@@ -58,7 +58,6 @@
             </div>
           </div>
 
-          <!-- Multi-Cortes na NF -->
           <div class="border-t pt-3">
             <div class="flex justify-between items-center mb-2">
               <label class="block text-xs font-bold text-gray-700">Detalhamento dos Cortes e Caixas da NF *</label>
@@ -79,7 +78,6 @@
         </form>
       </div>
 
-      <!-- Tabela NFs -->
       <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
         <h3 class="text-md font-semibold text-gray-800 mb-3">Notas Fiscais Cadastradas</h3>
         <div class="overflow-x-auto">
@@ -91,7 +89,7 @@
                 <th class="p-2">Fornecedor</th>
                 <th class="p-2">Detalhamento (Cortes & CXs)</th>
                 <th class="p-2">Peso NF (kg)</th>
-                <th class="p-2">Ação</th>
+                <th class="p-2">Status</th>
               </tr>
             </thead>
             <tbody id="lista-nfs"></tbody>
@@ -103,7 +101,7 @@
     <!-- TAB 2: CAIXAS & PESAGEM -->
     <section id="tab-caixas" class="tab-content space-y-4 hidden">
       <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Abertura & Conferência de Caixa (Pesagem P1, P2...)</h2>
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Abertura & Conferência de Caixa (Pesagem com Identificação por Corte)</h2>
         <form id="form-caixa" onsubmit="handleCaixaSubmit(event)" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -135,11 +133,10 @@
             </div>
           </div>
 
-          <!-- Pesagem Individual por Proteína (Ancho-P1, Ancho-P2...) -->
           <div class="border-t pt-3">
             <h4 class="text-xs font-bold text-gray-700 mb-2">Pesagem de Peças com Identificação Específica do Corte *</h4>
             <div id="pecas-weights-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-              <p class="text-xs text-gray-400 col-span-full">Selecione a NF, o corte e a quantidade de peças acima.</p>
+              <p class="text-xs text-gray-400 col-span-full">Selecione a NF, o corte e a quantidade de peças acima para gerar os campos.</p>
             </div>
           </div>
 
@@ -173,7 +170,6 @@
     <!-- TAB 3: ESTOQUE & MOVIMENTAÇÕES -->
     <section id="tab-estoque" class="tab-content space-y-4 hidden">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Card Câmara Fria -->
         <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
           <div class="flex justify-between items-center mb-3 border-b pb-2">
             <h3 class="text-md font-bold text-slate-800">❄️ Estoque: Câmara Fria</h3>
@@ -182,7 +178,6 @@
           <div id="cards-camara" class="space-y-2 max-h-80 overflow-y-auto"></div>
         </div>
 
-        <!-- Card Geladeira Porcionamento -->
         <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
           <div class="flex justify-between items-center mb-3 border-b pb-2">
             <h3 class="text-md font-bold text-slate-800">🧊 Estoque: Geladeira de Porcionamento</h3>
@@ -192,7 +187,6 @@
         </div>
       </div>
 
-      <!-- Transferência Interna -->
       <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
         <h3 class="text-md font-semibold text-gray-800 mb-3 border-b pb-2">Transferência Interna de Caixas</h3>
         <form id="form-transf" onsubmit="handleTransferSubmit(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -378,7 +372,6 @@
       <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
         <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Painel de Controle Administrativo (Fábio)</h2>
         
-        <!-- Cadastro e Exclusão de Cortes -->
         <div class="mb-6">
           <h3 class="text-md font-semibold text-gray-700 mb-2">Cadastrar / Excluir Proteínas</h3>
           <form onsubmit="handleAddCorte(event)" class="flex gap-2 mb-3">
@@ -388,14 +381,12 @@
           <div id="lista-cortes-tags" class="flex flex-wrap gap-2 mt-3"></div>
         </div>
 
-        <!-- Edição Global de Pesos das Caixas e Peças -->
         <div class="mb-6 border-t pt-4">
           <h3 class="text-md font-semibold text-gray-700 mb-2">Ajuste / Edição Direta de Pesos em Estoque</h3>
           <p class="text-xs text-gray-500 mb-3">Como Administrador, você pode alterar o peso de qualquer caixa ou de suas peças individuais.</p>
           <div id="adm-edit-caixas-container" class="space-y-3"></div>
         </div>
 
-        <!-- Usuários -->
         <div class="border-t pt-4">
           <h3 class="text-md font-semibold text-gray-700 mb-2">Usuários Autorizados</h3>
           <div class="bg-slate-50 p-4 rounded border space-y-2 text-xs">
@@ -428,6 +419,7 @@
   </div>
 
   <script>
+    // ESTADO GLOBAL
     const ADMIN_PASS = "990992";
     let currentUser = { name: "Operador/Eli", role: "OPERATOR" };
 
@@ -437,15 +429,20 @@
     let porcionamentosList = JSON.parse(localStorage.getItem('bt_porcionamentos')) || [];
     let historicoList = JSON.parse(localStorage.getItem('bt_historico')) || [];
 
+    // NAVEGAÇÃO DE ABAS
     function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.querySelectorAll('nav button').forEach(el => {
+      document.querySelectorAll('.tab-content').forEach(function(el) {
+        el.classList.add('hidden');
+      });
+      document.querySelectorAll('nav button').forEach(function(el) {
         el.classList.remove('tab-active');
         el.classList.add('text-gray-600');
       });
 
-      document.getElementById(tabId).classList.remove('hidden');
-      const activeBtn = document.getElementById('btn-' + tabId);
+      var targetTab = document.getElementById(tabId);
+      if(targetTab) targetTab.classList.remove('hidden');
+
+      var activeBtn = document.getElementById('btn-' + tabId);
       if(activeBtn) {
         activeBtn.classList.add('tab-active');
         activeBtn.classList.remove('text-gray-600');
@@ -455,13 +452,16 @@
       if(tabId === 'tab-admin') renderADMEditCaixas();
     }
 
-    function openAuthModal() { document.getElementById('authModal').classList.remove('hidden'); }
+    // AUTH MODAL
+    function openAuthModal() {
+      document.getElementById('authModal').classList.remove('hidden');
+    }
     function closeAuthModal() {
       document.getElementById('authModal').classList.add('hidden');
       document.getElementById('adminPasswordInput').value = "";
     }
     function validateAdminPassword() {
-      const pass = document.getElementById('adminPasswordInput').value;
+      var pass = document.getElementById('adminPasswordInput').value;
       if(pass === ADMIN_PASS) {
         currentUser = { name: "Fábio", role: "ADMIN" };
         document.getElementById('userBadge').innerText = "Perfil: Fábio (ADM)";
@@ -474,8 +474,9 @@
       }
     }
 
+    // INICIALIZAÇÃO
     window.onload = function() {
-      const today = new Date().toISOString().split('T')[0];
+      var today = new Date().toISOString().split('T')[0];
       if(document.getElementById('nf-data')) document.getElementById('nf-data').value = today;
       if(document.getElementById('hist-data-inicio')) document.getElementById('hist-data-inicio').value = today;
       if(document.getElementById('hist-data-fim')) document.getElementById('hist-data-fim').value = today;
@@ -488,29 +489,32 @@
       renderCortesTags();
     };
 
+    // GERENCIAMENTO DE CORTES
     function renderCortesSelects() {
-      const histSelect = document.getElementById('hist-corte-filtro');
+      var histSelect = document.getElementById('hist-corte-filtro');
       if(histSelect) {
-        histSelect.innerHTML = `<option value="TODOS">Todos os Cortes</option>` + cortesList.map(c => `<option value="${c}">${c}</option>`).join('');
+        histSelect.innerHTML = '<option value="TODOS">Todos os Cortes</option>' + cortesList.map(function(c) {
+          return '<option value="' + c + '">' + c + '</option>';
+        }).join('');
       }
       updateNFCortesDropdowns();
     }
 
     function renderCortesTags() {
-      const container = document.getElementById('lista-cortes-tags');
+      var container = document.getElementById('lista-cortes-tags');
       if(container) {
-        container.innerHTML = cortesList.map(c => `
-          <span class="bg-slate-200 text-slate-800 text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1.5">
-            ${c}
-            <button onclick="removeCorte('${c}')" class="text-red-600 font-bold hover:text-red-800 text-xs bg-slate-300 rounded-full w-4 h-4 flex items-center justify-center">×</button>
-          </span>
-        `).join('');
+        container.innerHTML = cortesList.map(function(c) {
+          return '<span class="bg-slate-200 text-slate-800 text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1.5">' +
+            c +
+            '<button onclick="removeCorte(\'' + c + '\')" class="text-red-600 font-bold hover:text-red-800 text-xs bg-slate-300 rounded-full w-4 h-4 flex items-center justify-center">×</button>' +
+          '</span>';
+        }).join('');
       }
     }
 
     function handleAddCorte(e) {
       e.preventDefault();
-      const val = document.getElementById('adm-novo-corte').value.trim();
+      var val = document.getElementById('adm-novo-corte').value.trim();
       if(val && !cortesList.includes(val)) {
         cortesList.push(val);
         localStorage.setItem('bt_cortes', JSON.stringify(cortesList));
@@ -521,31 +525,32 @@
     }
 
     function removeCorte(corteNome) {
-      if(confirm(`Tem certeza que deseja excluir a proteína/corte "${corteNome}"?`)) {
-        cortesList = cortesList.filter(c => c !== corteNome);
+      if(confirm('Tem certeza que deseja excluir a proteína/corte "' + corteNome + '"?')) {
+        cortesList = cortesList.filter(function(c) { return c !== corteNome; });
         localStorage.setItem('bt_cortes', JSON.stringify(cortesList));
         renderCortesSelects();
         renderCortesTags();
       }
     }
 
+    // NF MULTI-CORTE
     function addNFCorteRow() {
-      const container = document.getElementById('nf-cortes-container');
-      const rowId = Date.now() + Math.random();
-      const options = cortesList.map(c => `<option value="${c}">${c}</option>`).join('');
+      var container = document.getElementById('nf-cortes-container');
+      var rowId = Date.now() + Math.floor(Math.random() * 1000);
+      var options = cortesList.map(function(c) {
+        return '<option value="' + c + '">' + c + '</option>';
+      }).join('');
       
-      const rowHtml = `
-        <div id="nf-row-${rowId}" class="flex gap-2 items-center bg-gray-50 p-2 rounded border">
-          <select class="nf-corte-item border rounded p-1.5 text-sm flex-1">${options}</select>
-          <input type="number" min="1" placeholder="Qtd Caixas" class="nf-caixas-item border rounded p-1.5 text-sm w-32" required>
-          <button type="button" onclick="removeNFCorteRow('nf-row-${rowId}')" class="text-red-600 font-bold px-2 text-sm">✕</button>
-        </div>
-      `;
+      var rowHtml = '<div id="nf-row-' + rowId + '" class="flex gap-2 items-center bg-gray-50 p-2 rounded border">' +
+        '<select class="nf-corte-item border rounded p-1.5 text-sm flex-1">' + options + '</select>' +
+        '<input type="number" min="1" placeholder="Qtd Caixas" class="nf-caixas-item border rounded p-1.5 text-sm w-32" required>' +
+        '<button type="button" onclick="removeNFCorteRow(\'nf-row-' + rowId + '\')" class="text-red-600 font-bold px-2 text-sm">✕</button>' +
+      '</div>';
       container.insertAdjacentHTML('beforeend', rowHtml);
     }
 
     function removeNFCorteRow(id) {
-      const row = document.getElementById(id);
+      var row = document.getElementById(id);
       if(document.querySelectorAll('#nf-cortes-container > div').length > 1) {
         row.remove();
       } else {
@@ -554,9 +559,11 @@
     }
 
     function updateNFCortesDropdowns() {
-      const options = cortesList.map(c => `<option value="${c}">${c}</option>`).join('');
-      document.querySelectorAll('.nf-corte-item').forEach(select => {
-        const val = select.value;
+      var options = cortesList.map(function(c) {
+        return '<option value="' + c + '">' + c + '</option>';
+      }).join('');
+      document.querySelectorAll('.nf-corte-item').forEach(function(select) {
+        var val = select.value;
         select.innerHTML = options;
         if(cortesList.includes(val)) select.value = val;
       });
@@ -565,18 +572,18 @@
     function handleNFSubmit(e) {
       e.preventDefault();
       
-      const corteRows = document.querySelectorAll('#nf-cortes-container > div');
-      let detalheCortes = [];
-      let totalCaixas = 0;
+      var corteRows = document.querySelectorAll('#nf-cortes-container > div');
+      var detalheCortes = [];
+      var totalCaixas = 0;
 
-      corteRows.forEach(row => {
-        const corte = row.querySelector('.nf-corte-item').value;
-        const caixas = parseInt(row.querySelector('.nf-caixas-item').value) || 0;
-        detalheCortes.push({ corte, caixas });
+      corteRows.forEach(function(row) {
+        var corte = row.querySelector('.nf-corte-item').value;
+        var caixas = parseInt(row.querySelector('.nf-caixas-item').value) || 0;
+        detalheCortes.push({ corte: corte, caixas: caixas });
         totalCaixas += caixas;
       });
 
-      const newNF = {
+      var newNF = {
         id: Date.now(),
         numero: document.getElementById('nf-numero').value,
         fornecedor: document.getElementById('nf-fornecedor').value,
@@ -589,96 +596,89 @@
 
       nfsList.push(newNF);
       localStorage.setItem('bt_nfs', JSON.stringify(nfsList));
-      addLog("Entrada NF", "Multi-Corte", `NF #${newNF.numero} - ${newNF.fornecedor} (${totalCaixas} CXs)`, newNF.pesoTotal);
+      addLog("Entrada NF", "Multi-Corte", "NF #" + newNF.numero + " - " + newNF.fornecedor + " (" + totalCaixas + " CXs)", newNF.pesoTotal);
 
       document.getElementById('form-nf').reset();
       document.getElementById('nf-cortes-container').innerHTML = "";
       addNFCorteRow();
-      const today = new Date().toISOString().split('T')[0];
+      var today = new Date().toISOString().split('T')[0];
       document.getElementById('nf-data').value = today;
 
       renderNFList();
-      alert("Nota Fiscal registrada com sucesso! Direcionando para a conferência de caixas...");
-      goToConferenciaCaixa(newNF.id);
-    }
-
-    function goToConferenciaCaixa(nfId) {
-      switchTab('tab-caixas');
-      const selectNF = document.getElementById('caixa-nf-id');
-      if(selectNF) {
-        selectNF.value = nfId;
-        updateCorteOptionsFromNF();
-      }
+      alert("Nota Fiscal registrada com sucesso!");
     }
 
     function renderNFList() {
-      const tbody = document.getElementById('lista-nfs');
-      const caixaNFSelect = document.getElementById('caixa-nf-id');
+      var tbody = document.getElementById('lista-nfs');
+      var caixaNFSelect = document.getElementById('caixa-nf-id');
       
       if(tbody) {
-        tbody.innerHTML = nfsList.map(nf => {
-          const resumoCortes = nf.detalheCortes ? nf.detalheCortes.map(d => `${d.caixas}x${d.corte}`).join(', ') : 'N/A';
-          return `
-            <tr class="border-b hover:bg-gray-50">
-              <td class="p-2 font-bold">${nf.numero}</td>
-              <td class="p-2">${nf.data}</td>
-              <td class="p-2">${nf.fornecedor}</td>
-              <td class="p-2 font-medium text-slate-700">${resumoCortes}</td>
-              <td class="p-2 font-bold">${nf.pesoTotal.toFixed(3)} kg</td>
-              <td class="p-2">
-                <button onclick="goToConferenciaCaixa(${nf.id})" class="bg-red-600 hover:bg-red-700 text-white text-xs px-2.5 py-1 rounded font-medium">Lançar Caixas</button>
-              </td>
-            </tr>
-          `;
+        tbody.innerHTML = nfsList.map(function(nf) {
+          var resumoCortes = nf.detalheCortes ? nf.detalheCortes.map(function(d) {
+            return d.caixas + 'x ' + d.corte;
+          }).join(', ') : 'N/A';
+          return '<tr class="border-b hover:bg-gray-50">' +
+            '<td class="p-2 font-bold">' + nf.numero + '</td>' +
+            '<td class="p-2">' + nf.data + '</td>' +
+            '<td class="p-2">' + nf.fornecedor + '</td>' +
+            '<td class="p-2 font-medium text-slate-700">' + resumoCortes + '</td>' +
+            '<td class="p-2 font-bold">' + nf.pesoTotal.toFixed(3) + ' kg</td>' +
+            '<td class="p-2"><span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded">' + nf.status + '</span></td>' +
+          '</tr>';
         }).join('');
       }
 
       if(caixaNFSelect) {
-        caixaNFSelect.innerHTML = `<option value="">-- Selecione a NF --</option>` + nfsList.map(nf => `<option value="${nf.id}">NF #${nf.numero} -${nf.fornecedor}</option>`).join('');
+        caixaNFSelect.innerHTML = '<option value="">-- Selecione a NF --</option>' + nfsList.map(function(nf) {
+          return '<option value="' + nf.id + '">NF #' + nf.numero + ' - ' + nf.fornecedor + '</option>';
+        }).join('');
       }
     }
 
+    // CAIXA E PEÇAS RASTREÁVEIS
     function updateCorteOptionsFromNF() {
-      const nfId = parseInt(document.getElementById('caixa-nf-id').value);
-      const corteSelect = document.getElementById('caixa-corte');
-      const nf = nfsList.find(n => n.id === nfId);
+      var nfId = parseInt(document.getElementById('caixa-nf-id').value);
+      var corteSelect = document.getElementById('caixa-corte');
+      var nf = nfsList.find(function(n) { return n.id === nfId; });
 
       if(nf && nf.detalheCortes) {
-        corteSelect.innerHTML = nf.detalheCortes.map(d => `<option value="${d.corte}">${d.corte} (${d.caixas} CXs na NF)</option>`).join('');
+        corteSelect.innerHTML = nf.detalheCortes.map(function(d) {
+          return '<option value="' + d.corte + '">' + d.corte + ' (' + d.caixas + ' CXs na NF)</option>';
+        }).join('');
       } else {
-        corteSelect.innerHTML = cortesList.map(c => `<option value="${c}">${c}</option>`).join('');
+        corteSelect.innerHTML = cortesList.map(function(c) {
+          return '<option value="' + c + '">' + c + '</option>';
+        }).join('');
       }
       renderPecasInputs();
     }
 
     function renderPecasInputs() {
-      const qtd = parseInt(document.getElementById('caixa-qtd-pecas').value) || 0;
-      const corteNome = document.getElementById('caixa-corte').value || 'Peça';
-      const container = document.getElementById('pecas-weights-container');
+      var qtd = parseInt(document.getElementById('caixa-qtd-pecas').value) || 0;
+      var corteNome = document.getElementById('caixa-corte').value || 'Peça';
+      var container = document.getElementById('pecas-weights-container');
       container.innerHTML = "";
 
       if(qtd <= 0) {
-        container.innerHTML = `<p class="text-xs text-gray-400 col-span-full">Selecione a NF, o corte e a quantidade de peças acima.</p>`;
+        container.innerHTML = '<p class="text-xs text-gray-400 col-span-full">Selecione a NF, o corte e a quantidade de peças acima para gerar os campos.</p>';
         calcTotalCaixaPeso();
         return;
       }
 
-      for(let i = 1; i <= qtd; i++) {
-        const tagSpec = `${corteNome}-P${i}`;
-        const inputHtml = `
-          <div class="bg-gray-50 p-2 rounded border">
-            <label class="block text-xs font-bold text-slate-800 mb-1">${tagSpec} (kg)</label>
-            <input type="number" step="0.001" data-tag="${tagSpec}" class="peca-peso-input w-full border rounded p-1 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 2.500" required oninput="calcTotalCaixaPeso()">
-          </div>
-        `;
+      for(var i = 1; i <= qtd; i++) {
+        var tagSpec = corteNome + '-P' + i;
+        var inputHtml = '<div class="bg-gray-50 p-2 rounded border">' +
+          '<label class="block text-xs font-bold text-slate-800 mb-1">' + tagSpec + ' (kg)</label>' +
+          '<input type="number" step="0.001" data-tag="' + tagSpec + '" class="peca-peso-input w-full border rounded p-1 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 2.500" required oninput="calcTotalCaixaPeso()">' +
+        '</div>';
         container.insertAdjacentHTML('beforeend', inputHtml);
       }
     }
 
     function calcTotalCaixaPeso() {
-      const inputs = document.querySelectorAll('.peca-peso-input');
-      let total = 0;
-      inputs.forEach(inp => {
+      var inputs = document.querySelectorAll('.peca-peso-input');
+      var total = 0;
+      inputs.forEach(function(inp) {
         total += parseFloat(inp.value) || 0;
       });
       document.getElementById('caixa-peso-total-calc').value = total.toFixed(3) + " kg";
@@ -686,22 +686,22 @@
 
     function handleCaixaSubmit(e) {
       e.preventDefault();
-      const nfId = parseInt(document.getElementById('caixa-nf-id').value);
-      const nfObj = nfsList.find(n => n.id === nfId);
-      const corteSelecionado = document.getElementById('caixa-corte').value;
+      var nfId = parseInt(document.getElementById('caixa-nf-id').value);
+      var nfObj = nfsList.find(function(n) { return n.id === nfId; });
+      var corteSelecionado = document.getElementById('caixa-corte').value;
 
-      const pecaInputs = document.querySelectorAll('.peca-peso-input');
-      let pecasListObj = [];
-      let pesoTotalCaixa = 0;
+      var pecaInputs = document.querySelectorAll('.peca-peso-input');
+      var pecasListObj = [];
+      var pesoTotalCaixa = 0;
 
-      pecaInputs.forEach((inp, idx) => {
-        const pesoPeca = parseFloat(inp.value) || 0;
-        const tagIdent = inp.getAttribute('data-tag') || `${corteSelecionado}-P${idx+1}`;
+      pecaInputs.forEach(function(inp, idx) {
+        var pesoPeca = parseFloat(inp.value) || 0;
+        var tagIdent = inp.getAttribute('data-tag') || (corteSelecionado + '-P' + (idx+1));
         pecasListObj.push({ tag: tagIdent, peso: pesoPeca });
         pesoTotalCaixa += pesoPeca;
       });
 
-      const newCaixa = {
+      var newCaixa = {
         id: Date.now(),
         nfNumero: nfObj ? nfObj.numero : "S/N",
         corte: corteSelecionado,
@@ -714,39 +714,39 @@
 
       caixasList.push(newCaixa);
       localStorage.setItem('bt_caixas', JSON.stringify(caixasList));
-      addLog("Aferição Caixa", newCaixa.corte, `Lote ${newCaixa.lote} (${pecasListObj.length} peças: ${corteSelecionado}-P1 a P${pecasListObj.length})`, pesoTotalCaixa);
+      addLog("Aferição Caixa", newCaixa.corte, "Lote " + newCaixa.lote + " (" + pecasListObj.length + " peças)", pesoTotalCaixa);
 
       document.getElementById('form-caixa').reset();
-      document.getElementById('pecas-weights-container').innerHTML = `<p class="text-xs text-gray-400 col-span-full">Selecione a NF, o corte e a quantidade de peças acima.</p>`;
+      document.getElementById('pecas-weights-container').innerHTML = '<p class="text-xs text-gray-400 col-span-full">Selecione a NF, o corte e a quantidade de peças acima para gerar os campos.</p>';
       document.getElementById('caixa-peso-total-calc').value = "0.000 kg";
 
       renderCaixas();
-      alert(`Caixa ${newCaixa.lote} (${corteSelecionado}) cadastrada! Total: ${pesoTotalCaixa.toFixed(3)} kg`);
+      alert("Caixa " + newCaixa.lote + " (" + corteSelecionado + ") cadastrada! Total: " + pesoTotalCaixa.toFixed(3) + " kg");
     }
 
     function renderCaixas() {
-      const tbody = document.getElementById('lista-caixas');
-      const cardsCamara = document.getElementById('cards-camara');
-      const cardsGeladeira = document.getElementById('cards-geladeira');
-      const transfSelect = document.getElementById('transf-caixa-id');
-      const porcSelect = document.getElementById('porc-caixa-id');
+      var tbody = document.getElementById('lista-caixas');
+      var cardsCamara = document.getElementById('cards-camara');
+      var cardsGeladeira = document.getElementById('cards-geladeira');
+      var transfSelect = document.getElementById('transf-caixa-id');
+      var porcSelect = document.getElementById('porc-caixa-id');
 
-      let totCam = 0, totGel = 0;
+      var totCam = 0, totGel = 0;
 
       if(tbody) {
-        tbody.innerHTML = caixasList.map(cx => {
-          const detalhePecas = cx.pecas ? cx.pecas.map(p => `<span class="bg-gray-100 px-1.5 py-0.5 rounded mr-1 font-mono">${p.tag}:${p.peso.toFixed(3)}kg</span>`).join('') : `${cx.pecas} peças`;
-          return `
-            <tr class="border-b hover:bg-gray-50">
-              <td class="p-2 font-bold">${cx.lote}</td>
-              <td class="p-2">NF #${cx.nfNumero}</td>
-              <td class="p-2 font-semibold text-red-700">${cx.corte}</td>
-              <td class="p-2 font-bold text-slate-800">${cx.pesoReal.toFixed(3)} kg</td>
-              <td class="p-2 text-xs">${detalhePecas}</td>
-              <td class="p-2"><span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200">${cx.localizacao}</span></td>
-              <td class="p-2">${cx.status}</td>
-            </tr>
-          `;
+        tbody.innerHTML = caixasList.map(function(cx) {
+          var detalhePecas = cx.pecas ? cx.pecas.map(function(p) {
+            return '<span class="bg-gray-100 px-1.5 py-0.5 rounded mr-1 font-mono">' + p.tag + ': ' + p.peso.toFixed(3) + 'kg</span>';
+          }).join('') : (cx.pecas + ' peças');
+          return '<tr class="border-b hover:bg-gray-50">' +
+            '<td class="p-2 font-bold">' + cx.lote + '</td>' +
+            '<td class="p-2">NF #' + cx.nfNumero + '</td>' +
+            '<td class="p-2 font-semibold text-red-700">' + cx.corte + '</td>' +
+            '<td class="p-2 font-bold text-slate-800">' + cx.pesoReal.toFixed(3) + ' kg</td>' +
+            '<td class="p-2 text-xs">' + detalhePecas + '</td>' +
+            '<td class="p-2"><span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200">' + cx.localizacao + '</span></td>' +
+            '<td class="p-2">' + cx.status + '</td>' +
+          '</tr>';
         }).join('');
       }
 
@@ -754,16 +754,14 @@
         cardsCamara.innerHTML = "";
         cardsGeladeira.innerHTML = "";
 
-        caixasList.filter(c => c.status === "Em Estoque").forEach(cx => {
-          const cardHtml = `
-            <div class="p-2.5 bg-gray-50 border rounded flex justify-between items-center text-xs">
-              <div>
-                <span class="font-bold text-slate-800 block">${cx.lote} -${cx.corte}</span>
-                <span class="text-gray-500">NF #${cx.nfNumero} \vert{}${cx.pecas ? cx.pecas.length : 0} peças</span>
-              </div>
-              <span class="font-bold text-sm text-slate-700">${cx.pesoReal.toFixed(3)} kg</span>
-            </div>
-          `;
+        caixasList.filter(function(c) { return c.status === "Em Estoque"; }).forEach(function(cx) {
+          var cardHtml = '<div class="p-2.5 bg-gray-50 border rounded flex justify-between items-center text-xs">' +
+            '<div>' +
+              '<span class="font-bold text-slate-800 block">' + cx.lote + ' - ' + cx.corte + '</span>' +
+              '<span class="text-gray-500">NF #' + cx.nfNumero + ' | ' + (cx.pecas ? cx.pecas.length : 0) + ' peças</span>' +
+            '</div>' +
+            '<span class="font-bold text-sm text-slate-700">' + cx.pesoReal.toFixed(3) + ' kg</span>' +
+          '</div>';
           if(cx.localizacao === "Câmara Fria") {
             totCam += cx.pesoReal;
             cardsCamara.innerHTML += cardHtml;
@@ -778,22 +776,263 @@
       }
 
       if(transfSelect) {
-        transfSelect.innerHTML = caixasList.filter(c => c.status === "Em Estoque").map(c => `<option value="${c.id}">${c.lote} - ${c.corte} (${c.localizacao})</option>`).join('');
+        transfSelect.innerHTML = caixasList.filter(function(c) { return c.status === "Em Estoque"; }).map(function(c) {
+          return '<option value="' + c.id + '">' + c.lote + ' - ' + c.corte + ' (' + c.localizacao + ')</option>';
+        }).join('');
       }
       if(porcSelect) {
-        porcSelect.innerHTML = caixasList.filter(c => c.status === "Em Estoque" && c.localizacao === "Geladeira de Porcionamento").map(c => `<option value="${c.id}">${c.lote} - ${c.corte} (${c.pesoReal.toFixed(3)} kg)</option>`).join('');
+        porcSelect.innerHTML = caixasList.filter(function(c) { return c.status === "Em Estoque" && c.localizacao === "Geladeira de Porcionamento"; }).map(function(c) {
+          return '<option value="' + c.id + '">' + c.lote + ' - ' + c.corte + ' (' + c.pesoReal.toFixed(3) + ' kg)</option>';
+        }).join('');
       }
     }
 
+    // ADM - EDIÇÃO DE PESOS DE CAIXAS E PEÇAS
     function renderADMEditCaixas() {
-      const container = document.getElementById('adm-edit-caixas-container');
+      var container = document.getElementById('adm-edit-caixas-container');
       if(!container) return;
 
       if(caixasList.length === 0) {
-        container.innerHTML = `<p class="text-xs text-gray-400 p-3 bg-gray-50 rounded border">Nenhuma caixa cadastrada no estoque ainda. Assim que uma NF e caixas forem lançadas, os controles de edição do Fábio aparecerão aqui.</p>`;
+        container.innerHTML = '<p class="text-xs text-gray-400">Nenhuma caixa cadastrada no sistema.</p>';
         return;
       }
 
-      container.innerHTML = caixasList.map(cx => {
-        const pecasHtml = cx.pecas ? cx.pecas.map((p, idx) => `
-          <div
+      container.innerHTML = caixasList.map(function(cx) {
+        var pecasHtml = cx.pecas ? cx.pecas.map(function(p, idx) {
+          return '<div class="flex items-center gap-1">' +
+            '<span class="text-xs font-mono">' + p.tag + ':</span>' +
+            '<input type="number" step="0.001" value="' + p.peso + '" onchange="updatePecaPesoADM(' + cx.id + ', ' + idx + ', this.value)" class="w-20 border rounded p-1 text-xs font-bold">' +
+            '<span class="text-xs text-gray-500">kg</span>' +
+          '</div>';
+        }).join('') : '';
+
+        return '<div class="p-3 bg-slate-50 rounded border flex flex-col md:flex-row justify-between items-start md:items-center gap-3">' +
+          '<div>' +
+            '<span class="font-bold text-sm text-slate-800">' + cx.lote + ' (' + cx.corte + ')</span>' +
+            '<span class="text-xs text-gray-500 block">NF #' + cx.nfNumero + ' | Destino: ' + cx.localizacao + '</span>' +
+          '</div>' +
+          '<div class="flex flex-wrap items-center gap-2">' +
+            pecasHtml +
+            '<div class="border-l pl-2 ml-2">' +
+              '<span class="text-xs font-bold block text-red-600">Total: ' + cx.pesoReal.toFixed(3) + ' kg</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function updatePecaPesoADM(caixaId, pecaIdx, newPeso) {
+      var cx = caixasList.find(function(c) { return c.id === caixaId; });
+      if(cx && cx.pecas && cx.pecas[pecaIdx]) {
+        cx.pecas[pecaIdx].peso = parseFloat(newPeso) || 0;
+        cx.pesoReal = cx.pecas.reduce(function(acc, curr) { return acc + curr.peso; }, 0);
+        localStorage.setItem('bt_caixas', JSON.stringify(caixasList));
+        renderCaixas();
+        renderADMEditCaixas();
+        addLog("Ajuste ADM", cx.corte, "Fábio alterou peso da peça " + cx.pecas[pecaIdx].tag + " para " + newPeso + "kg", cx.pesoReal);
+      }
+    }
+
+    // TRANSFERÊNCIA
+    function handleTransferSubmit(e) {
+      e.preventDefault();
+      var cxId = parseInt(document.getElementById('transf-caixa-id').value);
+      var dest = document.getElementById('transf-destino').value;
+
+      var cx = caixasList.find(function(c) { return c.id === cxId; });
+      if(cx) {
+        var orig = cx.localizacao;
+        cx.localizacao = dest;
+        localStorage.setItem('bt_caixas', JSON.stringify(caixasList));
+        addLog("Transferência", cx.corte, cx.lote + ": " + orig + " -> " + dest, cx.pesoReal);
+        renderCaixas();
+        alert("Caixa " + cx.lote + " transferida para " + dest + "!");
+      }
+    }
+
+    // PORCIONAMENTO
+    function calculateYield() {
+      var bruto = parseFloat(document.getElementById('porc-peso-bruto').value) || 0;
+      var limpo = parseFloat(document.getElementById('porc-peso-limpo').value) || 0;
+      if(bruto > 0) {
+        var rend = (limpo / bruto) * 100;
+        document.getElementById('porc-rendimento').value = rend.toFixed(2) + "%";
+      } else {
+        document.getElementById('porc-rendimento').value = "0.00%";
+      }
+    }
+
+    function handlePorcionamentoSubmit(e) {
+      e.preventDefault();
+      var cxId = parseInt(document.getElementById('porc-caixa-id').value);
+      var cx = caixasList.find(function(c) { return c.id === cxId; });
+
+      var bruto = parseFloat(document.getElementById('porc-peso-bruto').value);
+      var limpo = parseFloat(document.getElementById('porc-peso-limpo').value);
+      var perda = parseFloat(document.getElementById('porc-peso-perda').value);
+      var porcoes = parseInt(document.getElementById('porc-qtd-porcoes').value);
+      var rend = (limpo / bruto) * 100;
+
+      var now = new Date();
+      var newPorc = {
+        id: Date.now(),
+        dataHora: now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
+        caixaLote: cx ? cx.lote : "N/A",
+        corte: cx ? cx.corte : "Geral",
+        bruto: bruto,
+        limpo: limpo,
+        perda: perda,
+        rendimento: rend,
+        porcoes: porcoes
+      };
+
+      porcionamentosList.push(newPorc);
+      localStorage.setItem('bt_porcionamentos', JSON.stringify(porcionamentosList));
+
+      if(cx) {
+        cx.pesoReal -= bruto;
+        if(cx.pesoReal <= 0.05) {
+          cx.pesoReal = 0;
+          cx.status = "Processado / Zerado";
+        }
+        localStorage.setItem('bt_caixas', JSON.stringify(caixasList));
+      }
+
+      addLog("Porcionamento (Eli)", newPorc.corte, "Processado Lote " + newPorc.caixaLote + " | " + porcoes + " porções", limpo);
+
+      document.getElementById('form-porcionamento').reset();
+      document.getElementById('porc-rendimento').value = "0.00%";
+      renderCaixas();
+      renderPorcionamentos();
+      alert("Porcionamento registrado com sucesso!");
+    }
+
+    function renderPorcionamentos() {
+      var tbody = document.getElementById('lista-porcionamentos');
+      if(tbody) {
+        tbody.innerHTML = porcionamentosList.map(function(p) {
+          return '<tr class="border-b hover:bg-gray-50">' +
+            '<td class="p-2">' + p.dataHora + '</td>' +
+            '<td class="p-2 font-bold">' + p.caixaLote + '</td>' +
+            '<td class="p-2 font-semibold text-red-700">' + p.corte + '</td>' +
+            '<td class="p-2">' + p.bruto.toFixed(3) + ' kg</td>' +
+            '<td class="p-2 font-bold text-emerald-700">' + p.limpo.toFixed(3) + ' kg</td>' +
+            '<td class="p-2 text-red-600">' + p.perda.toFixed(3) + ' kg</td>' +
+            '<td class="p-2 font-semibold">' + p.rendimento.toFixed(1) + '%</td>' +
+            '<td class="p-2 font-bold">' + p.porcoes + ' stks</td>' +
+          '</tr>';
+        }).join('');
+      }
+    }
+
+    // LOG HISTÓRICO
+    function addLog(tipo, corte, detalhe, peso) {
+      var now = new Date();
+      var log = {
+        id: Date.now(),
+        dataISO: now.toISOString().split('T')[0],
+        dataHora: now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
+        tipo: tipo,
+        corte: corte,
+        detalhe: detalhe,
+        peso: peso,
+        usuario: currentUser.name
+      };
+      historicoList.unshift(log);
+      localStorage.setItem('bt_historico', JSON.stringify(historicoList));
+    }
+
+    function filterHistory() {
+      var dInicio = document.getElementById('hist-data-inicio').value;
+      var dFim = document.getElementById('hist-data-fim').value;
+      var corteFiltro = document.getElementById('hist-corte-filtro').value;
+
+      var tbody = document.getElementById('lista-historico-filtrado');
+
+      var filtrados = historicoList.filter(function(item) {
+        var matchData = item.dataISO >= dInicio && item.dataISO <= dFim;
+        var matchCorte = (corteFiltro === "TODOS" || item.corte === corteFiltro);
+        return matchData && matchCorte;
+      });
+
+      if(filtrados.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-gray-400">Nenhum registro encontrado para este filtro.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtrados.map(function(h) {
+        return '<tr class="border-b hover:bg-gray-50">' +
+          '<td class="p-2">' + h.dataHora + '</td>' +
+          '<td class="p-2"><span class="bg-slate-100 text-slate-800 font-medium px-2 py-0.5 rounded border">' + h.tipo + '</span></td>' +
+          '<td class="p-2 font-bold text-red-700">' + h.corte + '</td>' +
+          '<td class="p-2">' + h.detalhe + '</td>' +
+          '<td class="p-2 font-semibold text-slate-800">' + h.peso.toFixed(3) + ' kg</td>' +
+          '<td class="p-2">' + h.usuario + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    // RELATÓRIOS & EXPORTAÇÃO
+    function updateRelatorios() {
+      var todayISO = new Date().toISOString().split('T')[0];
+
+      var nfsHoje = nfsList.filter(function(n) { return n.data === todayISO; });
+      var totalNfHoje = nfsHoje.reduce(function(acc, curr) { return acc + curr.pesoTotal; }, 0);
+
+      var porcHoje = porcionamentosList;
+      var totalLimpo = porcHoje.reduce(function(acc, curr) { return acc + curr.limpo; }, 0);
+      var totalPerdas = porcHoje.reduce(function(acc, curr) { return acc + curr.perda; }, 0);
+      var totalBruto = porcHoje.reduce(function(acc, curr) { return acc + curr.bruto; }, 0);
+
+      var rendMedio = totalBruto > 0 ? (totalLimpo / totalBruto) * 100 : 0;
+
+      document.getElementById('rep-total-nf').innerText = totalNfHoje.toFixed(3) + " kg";
+      document.getElementById('rep-total-limpo').innerText = totalLimpo.toFixed(3) + " kg";
+      document.getElementById('rep-total-perdas').innerText = totalPerdas.toFixed(3) + " kg";
+      document.getElementById('rep-rendimento-medio').innerText = rendMedio.toFixed(1) + "%";
+
+      var camText = "", gelText = "";
+      caixasList.filter(function(c) { return c.status === "Em Estoque"; }).forEach(function(c) {
+        var txt = c.lote + ' (' + c.corte + '): ' + c.pesoReal.toFixed(3) + ' kg | ';
+        if(c.localizacao === "Câmara Fria") camText += txt;
+        else gelText += txt;
+      });
+
+      document.getElementById('rep-saldo-camara').innerText = camText || "Nenhuma caixa em estoque.";
+      document.getElementById('rep-saldo-geladeira').innerText = gelText || "Nenhuma caixa na geladeira.";
+    }
+
+    function exportToWhatsApp() {
+      var dataHoje = new Date().toLocaleDateString('pt-BR');
+      var text = '*🥩 BEEFTRACK PRO - RELATÓRIO OPERACIONAL (' + dataHoje + ')*\n\n';
+      text += '*Recebimento NF (Hoje):* ' + document.getElementById('rep-total-nf').innerText + '\n';
+      text += '*Porcionado Limpo (Eli):* ' + document.getElementById('rep-total-limpo').innerText + '\n';
+      text += '*Aparas / Perdas:* ' + document.getElementById('rep-total-perdas').innerText + '\n';
+      text += '*Rendimento Médio:* ' + document.getElementById('rep-rendimento-medio').innerText + '\n\n';
+      text += '*SALDOS DE ESTOQUE:*\n';
+      text += '❄️ *Câmara Fria:* ' + document.getElementById('rep-saldo-camara').innerText + '\n';
+      text += '🧊 *Geladeira Eli:* ' + document.getElementById('rep-saldo-geladeira').innerText + '\n\n';
+      text += '_Gerado via BeefTrack Pro WMS_';
+
+      window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(text), '_blank');
+    }
+
+    function exportToPDF() {
+      var jsPDF = window.jspdf.jsPDF;
+      var doc = new jsPDF();
+      
+      doc.setFontSize(16);
+      doc.text("BeefTrack Pro WMS - Relatório Operacional", 14, 20);
+      doc.setFontSize(10);
+      doc.text("Data de Emissão: " + new Date().toLocaleDateString('pt-BR'), 14, 28);
+      
+      doc.text("Total Entradas NF: " + document.getElementById('rep-total-nf').innerText, 14, 40);
+      doc.text("Total Porcionado Limpo: " + document.getElementById('rep-total-limpo').innerText, 14, 48);
+      doc.text("Total Aparas/Perdas: " + document.getElementById('rep-total-perdas').innerText, 14, 56);
+      doc.text("Rendimento Médio: " + document.getElementById('rep-rendimento-medio').innerText, 14, 64);
+      
+      doc.save("BeefTrack_Relatorio_" + new Date().toISOString().split('T')[0] + ".pdf");
+    }
+  </script>
+</body>
+</html>
