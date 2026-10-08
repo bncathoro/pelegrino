@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeefTrack Pro WMS - Gestão & Rastreabilidade</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0b0f19; color: #f8fafc; }
+        .glass { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .tab-btn.active { background-color: #f59e0b; color: #0f172a; font-weight: 700; box-shadow: 0 4px 14px 0 rgba(245, 158, 11, 0.35); }
+        
+        @media print {
+            body { background-color: #ffffff !important; color: #000000 !important; }
+            header, nav, .no-print, .actions-bar { display: none !important; }
+            .glass { background: #ffffff !important; border: 1px solid #cbd5e1 !important; color: #000000 !important; box-shadow: none !important; }
+            .text-white, .text-slate-300, .text-slate-400 { color: #000000 !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <!-- Header / Navbar -->
+    <header class="glass sticky top-0 z-40 border-b border-slate-800 bg-slate-900/90">
+        <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-amber-500 rounded-xl text-slate-950 font-black shadow-lg shadow-amber-500/20">
+                    <i data-lucide="beef" class="w-7 h-7"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold text-white flex items-center gap-2">
+                        BeefTrack <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold">Pro WMS v3.0</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Rastreabilidade, Rendimento & Controle de Proteínas</p>
+                </div>
+            </div>
+
+            <!-- Switcher de Perfil e Informações de Header -->
+            <div class="flex items-center space-x-3">
+                <div class="hidden lg:flex items-center gap-4 text-xs pr-4 border-r border-slate-800 text-slate-400">
+                    <div>Estoque Total: <strong id="header-kg-total" class="text-amber-400">0.000 kg</strong></div>
+                    <div>Aproveitamento: <strong id="header-rendimento" class="text-emerald-400">100%</strong></div>
+                </div>
+                <div class="flex items-center space-x-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700">
+                    <button id="user-eli" onclick="solicitarTrocaPerfil('eli')" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 transition-all">
+                        Eli (Operador)
+                    </button>
+                    <button id="user-fabio" onclick="solicitarTrocaPerfil('fabio')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-slate-950 font-bold shadow flex items-center gap-1">
+                        <i data-lucide="lock" class="w-3 h-3"></i>
+                        <span>Fábio (Admin)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="max-w-7xl mx-auto px-4 mt-6">
+        <nav class="flex space-x-2 overflow-x-auto pb-2 border-b border-slate-800">
+            <button onclick="switchTab('recebimento')" id="tab-recebimento" class="tab-btn active flex items-center space-x-2 px-4 py-3 rounded-xl text-xs sm:text-sm transition-all whitespace-nowrap">
+                <i data-lucide="file-check-2" class="w-4 h-4"></i>
+                <span>1. Entradas (NF)</span>
+            </button>
+            <button onclick="switchTab('camarafria')" id="tab-camarafria" class="tab-btn flex items-center space-x-2 px-4 py-3 rounded-xl text-xs sm:text-sm text-slate-400 transition-all whitespace-nowrap">
+                <i data-lucide="snowflake" class="w-4 h-4"></i>
+                <span>2. Caixas & Pesagem</span>
+            </button>
+            <button onclick="switchTab('estoque')" id="tab-estoque" class="tab-btn flex items-center space-x-2 px-4 py-3 rounded-xl text-xs sm:text-sm text-slate-400 transition-all whitespace-nowrap">
+                <i data-lucide="boxes" class="w-4 h-4"></i>
+                <span>3. Estoque & Movimentação</span>
+            </button>
+            <button onclick="switchTab('eli')" id="tab-eli" class="tab-btn flex items-center space-x-2 px-4 py-3 rounded-xl text-xs sm:text-sm text-slate-400 transition-all whitespace-nowrap">
+                <i data-lucide="utensils-crossed" class="w-4 h-4"></i>
+                <span>4. Porcionamento (Eli)</span>
+            </button>
+            <button onclick="switchTab('relatorios')" id="tab-relatorios" class="tab-btn flex items-center space-x-2 px-4 py-3 rounded-xl text-xs sm:text-sm text-slate-400 transition-all whitespace-nowrap">
+                <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+                <span>📊 Relatório Diário</span>
+            </button>
+            <button onclick="switchTab('historico')" id="tab-historico" class="tab-btn flex items-center space-x-2 px-4 py-3 rounded-xl text-xs sm:text-sm text-slate-400 transition-all whitespace-nowrap">
+                <i data-lucide="calendar-range" class="w-4 h-4"></i>
+                <span>📅 Histórico & Período</span>
+            </button>
+            <button onclick="switchTab('admin')" id="tab-admin" class="tab-btn flex items-center space-x-2 px-4 py-3 rounded-xl text-xs sm:text-sm text-slate-400 transition-all whitespace-nowrap">
+                <i data-lucide="settings" class="w-4 h-4"></i>
+                <span>⚙️ Cadastros & Ajustes</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto px-4 mt-6">
+
+        <!-- 1. RECEBIMENTO / NFS TAB -->
+        <section id="content-recebimento" class="space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-lg font-bold text-white">1. Conferência da Nota Fiscal de Entrada</h2>
+                    <p class="text-xs text-slate-400">Cadastre a NF do fornecedor com as quantidades e pesos declarados.</p>
+                </div>
+                <button onclick="openModalNF()" class="flex items-center space-x-2 px-4 py-2.5 bg-amber-500 text-slate-950 font-bold rounded-xl text-sm shadow-lg hover:bg-amber-400 transition-all">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>+ Lançar Nova Nota Fiscal</span>
+                </button>
+            </div>
+
+            <div class="glass rounded-2xl border border-slate-800 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-900/80 text-slate-400 uppercase text-xs">
+                            <tr>
+                                <th class="p-4">Data</th>
+                                <th class="p-4">Nota Fiscal</th>
+                                <th class="p-4">Fornecedor</th>
+                                <th class="p-4">Total Caixas</th>
+                                <th class="p-4">Peso NF (kg)</th>
+                                <th class="p-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-nfs-body" class="divide-y divide-slate-800 text-slate-300">
+                            <!-- JS Inject -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. CÂMARA FRIA / ABERTURA DE CAIXAS TAB -->
+        <section id="content-camarafria" class="hidden space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-lg font-bold text-white">2. Caixas na Câmara Fria (Abertura & Pesagem)</h2>
+                    <p class="text-xs text-slate-400">Confira e abra as caixas recebidas aferindo o peso real de cada peça.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="cards-caixas-pendentes">
+                <!-- JS Inject -->
+            </div>
+        </section>
+
+        <!-- 3. ESTOQUE & TRANSFERÊNCIAS TAB -->
+        <section id="content-estoque" class="hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Coluna Câmara Fria -->
+                <div class="glass p-5 rounded-2xl border border-slate-800">
+                    <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-800">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="snowflake" class="w-5 h-5 text-blue-400"></i>
+                            <h3 class="font-bold text-white">Câmara Fria (Estoque Geral)</h3>
+                        </div>
+                        <span class="text-xs px-2.5 py-1 bg-blue-500/10 text-blue-400 rounded-full font-bold" id="badge-count-camara">0 Peças</span>
+                    </div>
+
+                    <div id="list-camara-fria" class="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+                        <!-- JS Inject -->
+                    </div>
+                </div>
+
+                <!-- Coluna Geladeira do Eli -->
+                <div class="glass p-5 rounded-2xl border border-slate-800">
+                    <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-800">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="refrigerator" class="w-5 h-5 text-amber-400"></i>
+                            <h3 class="font-bold text-white">Geladeira do Eli (Porcionamento)</h3>
+                        </div>
+                        <span class="text-xs px-2.5 py-1 bg-amber-500/10 text-amber-400 rounded-full font-bold" id="badge-count-eli">0 Peças</span>
+                    </div>
+
+                    <div id="list-geladeira-eli" class="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+                        <!-- JS Inject -->
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 4. MÓDULO DO ELI TAB -->
+        <section id="content-eli" class="hidden space-y-6">
+            <div class="glass p-6 rounded-2xl border border-slate-800 space-y-6">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i data-lucide="utensils-crossed" class="w-5 h-5 text-amber-400"></i> Fechamento Diário de Porcionamento (Eli)
+                    </h2>
+                    <p class="text-xs text-slate-400">Selecione as peças trabalhadas no dia e registre o peso das aparas e perdas.</p>
+                </div>
+
+                <div class="space-y-4">
+                    <label class="block text-sm font-semibold text-slate-300">1. Selecione as peças abertas na Geladeira:</label>
+                    <div id="eli-pecas-checkboxes" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-60 overflow-y-auto p-3 bg-slate-900/50 rounded-xl border border-slate-800">
+                        <!-- JS Inject -->
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-800">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Total de Aparas Limpeza (kg)</label>
+                        <input type="number" id="eli-input-aparas" step="0.001" placeholder="Ex: 0.850" oninput="calcularCalculoRendimentoEli()" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Perda de Steaks / Salão (kg)</label>
+                        <input type="number" id="eli-input-perdas" step="0.001" placeholder="Ex: 0.300" oninput="calcularCalculoRendimentoEli()" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                </div>
+
+                <!-- Painel de Rendimento em Tempo Real -->
+                <div id="eli-rendimento-preview" class="p-4 rounded-xl bg-slate-900 border border-slate-800 flex justify-between items-center text-xs">
+                    <span class="text-slate-400">Aproveitamento Estimado da Carne:</span>
+                    <span id="eli-rendimento-valor" class="text-base font-extrabold text-amber-400">100%</span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Motivo / Justificativa da Perda</label>
+                    <input type="text" id="eli-input-motivo" placeholder="Ex: Limpeza de gordura excedente do Ancho" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500">
+                </div>
+
+                <button onclick="salvarPorcionamentoEli()" class="w-full py-4 bg-amber-500 text-slate-950 font-black rounded-xl text-base shadow-lg hover:bg-amber-400 transition-all flex items-center justify-center space-x-2">
+                    <i data-lucide="check-circle" class="w-5 h-5"></i>
+                    <span>Confirmar Porcionamento e Baixar Peças</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- 5. RELATÓRIO DIÁRIO DE CARNES -->
+        <section id="content-relatorios" class="hidden space-y-6">
+            
+            <!-- Barra de Ações Rápidas -->
+            <div class="actions-bar glass p-4 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg">
+                        <i data-lucide="share-2" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-white">Exportação Executiva Diária</h3>
+                        <p class="text-xs text-slate-400">Envie o resumo do dia por WhatsApp ou salve em PDF.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <input type="text" id="whatsapp-number" placeholder="WhatsApp Ex: 5511999999999" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                    <button onclick="enviarRelatorioWhatsApp()" class="px-4 py-2 bg-emerald-500 text-slate-950 font-bold rounded-xl text-xs hover:bg-emerald-400 transition-all flex items-center gap-1.5">
+                        <i data-lucide="message-square" class="w-4 h-4"></i>
+                        <span>WhatsApp</span>
+                    </button>
+                    <button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs hover:bg-blue-500 transition-all flex items-center gap-1.5">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                        <span>Salvar PDF</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cards Indicadores de Rendimento e Estoque -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass p-5 rounded-2xl border border-slate-800">
+                    <p class="text-xs font-bold text-slate-400 uppercase">Estoque Ativo Total</p>
+                    <h3 id="card-rel-estoque" class="text-2xl font-black text-white mt-1">0.000 kg</h3>
+                    <p class="text-[10px] text-slate-500 mt-1">Câmara Fria + Geladeira</p>
+                </div>
+
+                <div class="glass p-5 rounded-2xl border border-slate-800">
+                    <p class="text-xs font-bold text-slate-400 uppercase">Aparas em Limpeza</p>
+                    <h3 id="card-rel-aparas" class="text-2xl font-black text-amber-400 mt-1">0.000 kg</h3>
+                    <p class="text-[10px] text-amber-500/80 mt-1">Reaproveitáveis (Hambúrguer/Molho)</p>
+                </div>
+
+                <div class="glass p-5 rounded-2xl border border-slate-800">
+                    <p class="text-xs font-bold text-slate-400 uppercase">Perdas do Salão</p>
+                    <h3 id="card-rel-perdas" class="text-2xl font-black text-rose-400 mt-1">0.000 kg</h3>
+                    <p class="text-[10px] text-rose-500/80 mt-1">Descarte involuntário</p>
+                </div>
+
+                <div class="glass p-5 rounded-2xl border border-slate-800">
+                    <p class="text-xs font-bold text-slate-400 uppercase">Rendimento Global</p>
+                    <h3 id="card-rel-rendimento" class="text-2xl font-black text-emerald-400 mt-1">100%</h3>
+                    <p class="text-[10px] text-emerald-500/80 mt-1">Taxa de aproveitamento da peça</p>
+                </div>
+            </div>
+
+            <!-- Tabela Detalhada por Tipo de Corte -->
+            <div class="glass rounded-2xl border border-slate-800 overflow-hidden">
+                <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+                    <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                        <i data-lucide="pie-chart" class="w-4 h-4 text-amber-400"></i> Resumo Consolidado por Corte (Hoje)
+                    </h3>
+                    <span class="text-xs text-slate-400" id="relatorio-data-atual">--/--/----</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-900/90 text-slate-400 uppercase">
+                            <tr>
+                                <th class="p-3.5">Corte de Carne</th>
+                                <th class="p-3.5">Peças em Estoque</th>
+                                <th class="p-3.5">Kg em Estoque</th>
+                                <th class="p-3.5">Aparas Acumuladas</th>
+                                <th class="p-3.5">Status / Giro</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-relatorio-cortes" class="divide-y divide-slate-800 text-slate-300">
+                            <!-- JS Inject -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- 6. HISTÓRICO & FILTRO POR PERÍODO (NOVA ABA) -->
+        <section id="content-historico" class="hidden space-y-6">
+            <div class="glass p-6 rounded-2xl border border-slate-800 space-y-6">
+                <div class="flex flex-wrap justify-between items-center gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i data-lucide="calendar-range" class="w-5 h-5 text-amber-400"></i> Relatório de Histórico por Período
+                        </h2>
+                        <p class="text-xs text-slate-400">Selecione o intervalo de datas para analisar entradas, porcionamentos e fluxo de proteína.</p>
+                    </div>
+
+                    <!-- Filtro de Datas -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div>
+                            <label class="block text-[10px] text-slate-400 uppercase mb-1">Data Inicial</label>
+                            <input type="date" id="filtro-data-inicio" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 uppercase mb-1">Data Final</label>
+                            <input type="date" id="filtro-data-fim" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div class="pt-4">
+                            <button onclick="filtrarHistoricoPeriodo()" class="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs hover:bg-amber-400 transition-all flex items-center gap-1">
+                                <i data-lucide="search" class="w-4 h-4"></i>
+                                <span>Filtrar</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumo Métrico do Período -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+                    <div class="p-4 bg-slate-900/60 rounded-xl border border-slate-800">
+                        <span class="text-[10px] text-slate-400 uppercase font-bold">Total Entradas (NFs)</span>
+                        <h4 id="hist-total-entradas" class="text-xl font-black text-amber-400 mt-1">0.000 kg</h4>
+                        <p class="text-[10px] text-slate-500" id="hist-qtd-nfs">0 notas registradas</p>
+                    </div>
+                    <div class="p-4 bg-slate-900/60 rounded-xl border border-slate-800">
+                        <span class="text-[10px] text-slate-400 uppercase font-bold">Saídas p/ Porcionamento</span>
+                        <h4 id="hist-total-saidas" class="text-xl font-black text-blue-400 mt-1">0.000 kg</h4>
+                        <p class="text-[10px] text-slate-500" id="hist-qtd-pecas-abertas">0 peças abertas</p>
+                    </div>
+                    <div class="p-4 bg-slate-900/60 rounded-xl border border-slate-800">
+                        <span class="text-[10px] text-slate-400 uppercase font-bold">Saldo na Câmara Fria</span>
+                        <h4 id="hist-saldo-camara" class="text-xl font-black text-white mt-1">0.000 kg</h4>
+                        <p class="text-[10px] text-slate-500">Estoque retido na câmara</p>
+                    </div>
+                    <div class="p-4 bg-slate-900/60 rounded-xl border border-slate-800">
+                        <span class="text-[10px] text-slate-400 uppercase font-bold">Saldo Geladeira Eli</span>
+                        <h4 id="hist-saldo-eli" class="text-xl font-black text-emerald-400 mt-1">0.000 kg</h4>
+                        <p class="text-[10px] text-slate-500">Pronto para porcionar</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela de Movimentações do Período -->
+            <div class="glass rounded-2xl border border-slate-800 overflow-hidden">
+                <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+                    <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                        <i data-lucide="list" class="w-4 h-4 text-amber-400"></i> Registros e Linha do Tempo do Período
+                    </h3>
+                    <button onclick="enviarRelatorioHistoricoWhatsApp()" class="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold hover:bg-emerald-500 hover:text-slate-950 transition-all flex items-center gap-1">
+                        <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+                        <span>Enviar Resumo do Período</span>
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-900/90 text-slate-400 uppercase">
+                            <tr>
+                                <th class="p-3.5">Data/Hora</th>
+                                <th class="p-3.5">Usuário</th>
+                                <th class="p-3.5">Ação / Operação</th>
+                                <th class="p-3.5">Detalhes da Proteína</th>
+                                <th class="p-3.5">Justificativa / Obs</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-historico-body" class="divide-y divide-slate-800 text-slate-300">
+                            <!-- JS Inject -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. CADASTROS & AJUSTES (ADMIN) TAB -->
+        <section id="content-admin" class="hidden space-y-6">
+
+            <!-- Painel de Cadastro de Novas Carnes / Proteínas -->
+            <div class="glass p-6 rounded-2xl border border-slate-800 space-y-6">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i data-lucide="plus-circle" class="w-5 h-5 text-amber-400"></i> Cadastrar Nova Carne / Proteína
+                    </h2>
+                    <p class="text-xs text-slate-400">Adicione novos cortes (ex: Tomahawk, Linguiça, Picanha) para ficarem disponíveis no sistema.</p>
+                </div>
+
+                <div class="flex flex-wrap items-end gap-4">
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Nome do Corte / Proteína</label>
+                        <input type="text" id="novo-corte-nome" placeholder="Ex: Tomahawk, Linguiça Artesanal" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div class="w-48">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Categoria</label>
+                        <select id="novo-corte-categoria" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500">
+                            <option value="Bovino">Bovino</option>
+                            <option value="Suíno">Suíno</option>
+                            <option value="Aves">Aves</option>
+                            <option value="Embutidos">Embutidos / Outros</option>
+                        </select>
+                    </div>
+                    <button onclick="cadastrarNovoCorte()" class="px-6 py-3 bg-amber-500 text-slate-950 font-bold rounded-xl text-sm hover:bg-amber-400 transition-all flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Cadastrar Corte</span>
+                    </button>
+                </div>
+
+                <div>
+                    <h4 class="text-xs font-bold text-slate-400 uppercase mb-3">Cortes Cadastrados no Sistema:</h4>
+                    <div id="lista-cortes-cadastrados" class="flex flex-wrap gap-2">
+                        <!-- JS Inject Cortes Tags -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Painel de Cadastro de Usuários & Senhas -->
+            <div class="glass p-6 rounded-2xl border border-slate-800 space-y-6">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i data-lucide="users" class="w-5 h-5 text-blue-400"></i> Gestão de Usuários e Senhas
+                    </h2>
+                    <p class="text-xs text-slate-400">Cadastre novos operadores ou administradores com senhas de acesso.</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Nome do Usuário</label>
+                        <input type="text" id="novo-user-nome" placeholder="Ex: Carlos" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Perfil de Acesso</label>
+                        <select id="novo-user-perfil" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500">
+                            <option value="operador">Eli / Operador</option>
+                            <option value="admin">Fábio / Admin</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Senha de Acesso</label>
+                        <input type="password" id="novo-user-senha" placeholder="Digite a senha" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                </div>
+
+                <button onclick="cadastrarNovoUsuario()" class="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl text-sm hover:bg-blue-500 transition-all flex items-center gap-2">
+                    <i data-lucide="user-plus" class="w-4 h-4"></i>
+                    <span>Cadastrar Usuário</span>
+                </button>
+            </div>
+
+            <!-- Ajuste Manual de Estoque (Admin) -->
+            <div class="glass p-6 rounded-2xl border border-slate-800 space-y-6">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i data-lucide="shield-alert" class="w-5 h-5 text-rose-400"></i> Ajuste Manual de Estoque (Fábio/Admin)
+                    </h2>
+                    <p class="text-xs text-slate-400">Qualquer alteração manual exige obrigatoriamente uma justificativa registrada no Audit Log.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Selecione a Peça</label>
+                        <select id="admin-select-peca" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500">
+                            <!-- JS Inject -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Novo Peso (kg)</label>
+                        <input type="number" id="admin-novo-peso" step="0.001" placeholder="Ex: 2.850" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Ação</label>
+                        <select id="admin-acao" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500">
+                            <option value="atualizar">Atualizar Peso</option>
+                            <option value="excluir">Remover Peça do Estoque</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Justificativa Obrigatória</label>
+                    <input type="text" id="admin-justificativa" placeholder="Ex: Correção de contagem física na câmara" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500">
+                </div>
+
+                <button onclick="executarAjusteAdmin()" class="px-6 py-3 bg-rose-500 text-white font-bold rounded-xl text-sm shadow-lg hover:bg-rose-400 transition-all flex items-center space-x-2">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    <span>Aplicar Ajuste com Auditoria</span>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL AUTENTICAÇÃO SENHA FÁBIO (ADMIN) -->
+    <div id="modal-login-admin" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass max-w-sm w-full p-6 rounded-2xl border border-slate-800 space-y-5 text-center">
+            <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-2xl border border-amber-500/30 flex items-center justify-center mx-auto">
+                <i data-lucide="lock" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-bold text-white">Acesso do Administrador</h3>
+                <p class="text-xs text-slate-400 mt-1">Digite a senha para acessar como Fábio (Admin)</p>
+            </div>
+
+            <div>
+                <input type="password" id="input-senha-fabio" placeholder="Senha ADM" class="w-full text-center bg-slate-900 border border-slate-700 rounded-xl p-3 text-white text-lg tracking-widest focus:outline-none focus:border-amber-500">
+                <p id="error-senha-fabio" class="text-xs text-rose-400 mt-2 hidden">Senha incorreta. Tente novamente.</p>
+            </div>
+
+            <div class="flex space-x-2">
+                <button onclick="closeModalLoginAdmin()" class="w-1/2 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold">Cancelar</button>
+                <button onclick="validarSenhaFabio()" class="w-1/2 py-2.5 bg-amber-500 text-slate-950 rounded-xl text-xs font-extrabold shadow">Entrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL LANÇAR NOTA FISCAL -->
+    <div id="modal-nf" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass max-w-2xl w-full p-6 rounded-2xl border border-slate-800 space-y-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-white">Lançar Nota Fiscal de Entrada</h3>
+                <button onclick="closeModalNF()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Fornecedor</label>
+                    <input type="text" id="nf-fornecedor" placeholder="Ex: Minerva" value="Minerva" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-sm text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Número da NF</label>
+                    <input type="text" id="nf-numero" placeholder="Ex: NF-10492" value="NF-10492" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-sm text-white">
+                </div>
+            </div>
+
+            <!-- Itens da Nota -->
+            <div class="space-y-3 pt-3 border-t border-slate-800">
+                <div class="flex justify-between items-center">
+                    <label class="block text-xs font-semibold text-amber-400 uppercase">Cortes e Caixas Declaradas:</label>
+                    <button onclick="addLinhaItemNF()" class="text-xs bg-slate-800 text-amber-400 px-3 py-1 rounded-lg border border-slate-700 font-bold">+ Adicionar Carne</button>
+                </div>
+                <div id="container-itens-nf" class="space-y-3">
+                    <!-- JS Inject Item Rows -->
+                </div>
+            </div>
+
+            <div id="nf-total-resumo" class="p-4 rounded-xl text-center text-sm font-bold bg-slate-900 border border-slate-800 text-slate-300">
+                Total da Nota: 0.000 kg • 0 Caixas
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-3 border-t border-slate-800">
+                <button onclick="closeModalNF()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-sm font-bold">Cancelar</button>
+                <button onclick="salvarNotaFiscal()" class="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-sm">Aprovar NF e Liberar Caixas</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ABRIR CAIXA NA CÂMARA FRIA -->
+    <div id="modal-abrir-caixa" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass max-w-lg w-full p-6 rounded-2xl border border-slate-800 space-y-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-white" id="modal-caixa-titulo">Abrir Caixa</h3>
+                    <p class="text-xs text-slate-400" id="modal-caixa-subtitulo">Aferição de peças individuais</p>
+                </div>
+                <button onclick="closeModalAbrirCaixa()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Quantidade de peças na caixa</label>
+                <input type="number" id="modal-qtd-pecas-caixa" value="3" min="1" max="12" onchange="gerarCamposPesagemPecas()" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-sm text-white">
+            </div>
+
+            <!-- Pesagem Individual -->
+            <div class="space-y-3 pt-3 border-t border-slate-800">
+                <label class="block text-xs font-semibold text-amber-400 uppercase">Peso individual de cada peça (kg):</label>
+                <div id="container-pesagem-pecas" class="grid grid-cols-2 gap-3">
+                    <!-- JS Inject -->
+                </div>
+            </div>
+
+            <div id="caixa-validacao-resumo" class="p-3 rounded-xl text-center text-xs font-bold bg-slate-900 border border-slate-800 text-slate-400">
+                Preencha o peso das peças...
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-3 border-t border-slate-800">
+                <button onclick="closeModalAbrirCaixa()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-sm font-bold">Cancelar</button>
+                <button onclick="confirmarAberturaCaixa()" class="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-sm">Confirmar e Guardar Estoque</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // State Global
+        let appState = {
+            currentUser: 'fabio',
+            cortesCadastrados: ['Ancho', 'Chorizo', 'Picanha', 'Fraldinha', 'Maminha', 'Tomahawk', 'Linguiça Artesanal'],
+            usuarios: [
+                { nome: 'Fábio', perfil: 'admin', senha: '990992' },
+                { nome: 'Eli', perfil: 'operador', senha: '' }
+            ],
+            notasFiscais: [
+                { id: 'nf1', data: '2026-10-08', numero: 'NF-10492', fornecedor: 'Minerva', pesoTotal: 77.450, totalCaixas: 7, status: 'Conferida' }
+            ],
+            caixasPendentes: [
+                { id: 'cx1', data: '2026-10-08', nf: 'NF-10492', fornecedor: 'Minerva', corte: 'Ancho', pesoEsperado: 10.205, numCaixa: 1, totalCaixasCorte: 4 },
+                { id: 'cx2', data: '2026-10-08', nf: 'NF-10492', fornecedor: 'Minerva', corte: 'Ancho', pesoEsperado: 10.205, numCaixa: 2, totalCaixasCorte: 4 },
+                { id: 'cx3', data: '2026-10-08', nf: 'NF-10492', fornecedor: 'Minerva', corte: 'Chorizo', pesoEsperado: 12.210, numCaixa: 1, totalCaixasCorte: 3 }
+            ],
+            pecas: [
+                { id: '1', codigo: 'Chorizo P1', corte: 'Chorizo', peso: 3.100, local: 'camara', lote: 'NF-10492', dataEntrada: '2026-10-08' },
+                { id: '2', codigo: 'Chorizo P2', corte: 'Chorizo', peso: 2.950, local: 'camara', lote: 'NF-10492', dataEntrada: '2026-10-08' },
+                { id: '3', codigo: 'Ancho P1', corte: 'Ancho', peso: 3.300, local: 'eli', lote: 'NF-10492', dataEntrada: '2026-10-08' }
+            ],
+            auditLogs: [
+                { dataISO: '2026-10-08', data: '18:30:00', usuario: 'Fábio (Admin)', acao: 'Sistema v3.0 Inicializado', detalhes: 'Base carregada com gestão de período e senhas', justificativa: 'Inicialização' }
+            ],
+            corteSequenciais: { 'Chorizo': 3, 'Ancho': 2, 'Picanha': 1, 'Fraldinha': 1, 'Maminha': 1, 'Tomahawk': 1, 'Linguiça Artesanal': 1 },
+            caixaAtiva: null,
+            totaisAparas: 1.250,
+            totaisPerdas: 0.400
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            document.getElementById('relatorio-data-atual').innerText = new Date().toLocaleDateString('pt-BR');
+            
+            // Inicializar datas no filtro de período
+            const hoje = new Date().toISOString().split('T')[0];
+            document.getElementById('filtro-data-inicio').value = hoje;
+            document.getElementById('filtro-data-fim').value = hoje;
+
+            updateUI();
+        });
+
+        function switchTab(tabName) {
+            const sections = document.querySelectorAll('main > section');
+            sections.forEach(sec => sec.classList.add('hidden'));
+
+            const targetSection = document.getElementById(`content-${tabName}`);
+            if(targetSection) {
+                targetSection.classList.remove('hidden');
+            }
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'text-slate-300');
+                btn.classList.add('text-slate-400');
+            });
+
+            const activeBtn = document.getElementById(`tab-${tabName}`);
+            if(activeBtn) {
+                activeBtn.classList.add('active');
+                activeBtn.classList.remove('text-slate-400');
+            }
+
+            updateUI();
+        }
+
+        // --- SISTEMA DE LOGIN DE ADMIN (SENHA 990992) ---
+        function solicitarTrocaPerfil(perfilDesejado) {
+            if(perfilDesejado === 'fabio' && appState.currentUser !== 'fabio') {
+                document.getElementById('modal-login-admin').classList.remove('hidden');
+                document.getElementById('input-senha-fabio').value = '';
+                document.getElementById('error-senha-fabio').classList.add('hidden');
+            } else {
+                setProfile(perfilDesejado);
+            }
+        }
+
+        function closeModalLoginAdmin() {
+            document.getElementById('modal-login-admin').classList.add('hidden');
+        }
+
+        function validarSenhaFabio() {
+            const inputSenha = document.getElementById('input-senha-fabio').value;
+            if(inputSenha === '990992') {
+                closeModalLoginAdmin();
+                setProfile('fabio');
+            } else {
+                document.getElementById('error-senha-fabio').classList.remove('hidden');
+            }
+        }
+
+        function setProfile(user) {
+            appState.currentUser = user;
+            document.getElementById('user-fabio').className = user === 'fabio' ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-slate-950 font-bold shadow flex items-center gap-1' : 'px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 flex items-center gap-1';
+            document.getElementById('user-eli').className = user === 'eli' ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-slate-950 font-bold shadow' : 'px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300';
+        }
+
+        function updateUI() {
+            renderNotasFiscais();
+            renderCaixasCamaraFria();
+            renderEstoque();
+            renderEliModule();
+            renderAjustesAdmin();
+            renderAuditTable();
+            renderRelatorioDiario();
+            renderCortesCadastradosTags();
+            filtrarHistoricoPeriodo();
+            updateHeaderData();
+            lucide.createIcons();
+        }
+
+        function updateHeaderData() {
+            const pesoTotal = appState.pecas.reduce((acc, p) => acc + p.peso, 0);
+            const totalProcessado = pesoTotal + appState.totaisAparas + appState.totaisPerdas;
+            const rendimento = totalProcessado > 0 ? ((pesoTotal / totalProcessado) * 100).toFixed(1) : 100;
+
+            document.getElementById('header-kg-total').innerText = `${pesoTotal.toFixed(3)} kg`;
+            document.getElementById('header-rendimento').innerText = `${rendimento}%`;
+        }
+
+        function renderNotasFiscais() {
+            const tbody = document.getElementById('table-nfs-body');
+            tbody.innerHTML = appState.notasFiscais.map(nf => `
+                <tr class="hover:bg-slate-800/40">
+                    <td class="p-4 text-slate-400 font-mono text-xs">${nf.data || '2026-10-08'}</td>
+                    <td class="p-4 font-bold text-white">${nf.numero}</td>
+                    <td class="p-4">${nf.fornecedor}</td>
+                    <td class="p-4">${nf.totalCaixas} caixas</td>
+                    <td class="p-4 font-bold text-amber-400">${nf.pesoTotal.toFixed(3)} kg</td>
+                    <td class="p-4">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            ${nf.status}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderCaixasCamaraFria() {
+            const container = document.getElementById('cards-caixas-pendentes');
+            container.innerHTML = appState.caixasPendentes.map(cx => `
+                <div class="glass p-5 rounded-2xl border border-slate-800 space-y-3">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold border border-amber-500/30">${cx.corte}</span>
+                            <h4 class="font-bold text-white text-base mt-2">Caixa ${cx.numCaixa} de ${cx.totalCaixasCorte}</h4>
+                            <p class="text-xs text-slate-400">${cx.fornecedor} • ${cx.nf}</p>
+                        </div>
+                        <i data-lucide="box" class="w-6 h-6 text-slate-500"></i>
+                    </div>
+                    <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
+                        <span class="text-xs text-slate-400">Peso Estimado: <strong class="text-white">${cx.pesoEsperado.toFixed(3)} kg</strong></span>
+                        <button onclick="abrirModalConferirCaixa('${cx.id}')" class="px-3 py-1.5 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs hover:bg-amber-400 transition-all">
+                            Abrir Caixa &rarr;
+                        </button>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-xs text-slate-500 col-span-full py-6 text-center">Nenhuma caixa aguardando abertura na câmara fria.</p>';
+        }
+
+        function renderEstoque() {
+            const camaraList = document.getElementById('list-camara-fria');
+            const eliList = document.getElementById('list-geladeira-eli');
+
+            const pecasCamara = appState.pecas.filter(p => p.local === 'camara');
+            const pecasEli = appState.pecas.filter(p => p.local === 'eli');
+
+            document.getElementById('badge-count-camara').innerText = `${pecasCamara.length} Peças`;
+            document.getElementById('badge-count-eli').innerText = `${pecasEli.length} Peças`;
+
+            camaraList.innerHTML = pecasCamara.map(p => `
+                <div class="flex justify-between items-center p-3 bg-slate-900/80 rounded-xl border border-slate-800">
+                    <div>
+                        <p class="font-bold text-white">${p.codigo}</p>
+                        <p class="text-xs text-slate-400">${p.lote} • <strong class="text-amber-400">${p.peso.toFixed(3)} kg</strong></p>
+                    </div>
+                    <button onclick="moverPeca('${p.id}', 'eli')" class="px-3 py-1.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-lg text-xs font-bold hover:bg-amber-500 hover:text-slate-950 transition-all">
+                        Mover p/ Eli &rarr;
+                    </button>
+                </div>
+            `).join('') || '<p class="text-xs text-slate-500 text-center py-4">Sem peças na câmara fria.</p>';
+
+            eliList.innerHTML = pecasEli.map(p => `
+                <div class="flex justify-between items-center p-3 bg-slate-900/80 rounded-xl border border-slate-800">
+                    <div>
+                        <p class="font-bold text-white">${p.codigo}</p>
+                        <p class="text-xs text-slate-400">${p.lote} • <strong class="text-amber-400">${p.peso.toFixed(3)} kg</strong></p>
+                    </div>
+                    <button onclick="moverPeca('${p.id}', 'camara')" class="px-3 py-1.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg text-xs font-bold hover:bg-blue-500 hover:text-white transition-all">
+                        &larr; Voltar Fria
+                    </button>
+                </div>
+            `).join('') || '<p class="text-xs text-slate-500 text-center py-4">Geladeira do Eli vazia.</p>';
+        }
+
+        function moverPeca(id, destino) {
+            const peca = appState.pecas.find(p => p.id === id);
+            if(peca) {
+                peca.local = destino;
+                logAudit(appState.currentUser === 'fabio' ? 'Fábio (Admin)' : 'Eli', 'Transferência Interna', `Moveu ${peca.codigo} para ${destino === 'eli' ? 'Geladeira do Eli' : 'Câmara Fria'}`, 'Transferência');
+                updateUI();
+            }
+        }
+
+        function renderEliModule() {
+            const container = document.getElementById('eli-pecas-checkboxes');
+            const pecasEli = appState.pecas.filter(p => p.local === 'eli');
+
+            container.innerHTML = pecasEli.map(p => `
+                <label class="flex items-center space-x-2 p-2.5 bg-slate-800/60 rounded-xl border border-slate-700/60 cursor-pointer hover:bg-slate-800">
+                    <input type="checkbox" value="${p.id}" onchange="calcularCalculoRendimentoEli()" class="eli-checkbox rounded bg-slate-900 border-slate-700 text-amber-500">
+                    <span class="text-xs font-bold text-white">${p.codigo} (${p.peso.toFixed(3)}kg)</span>
+                </label>
+            `).join('') || '<p class="text-xs text-slate-500 col-span-full py-2 text-center">Nenhuma peça na geladeira do Eli para porcionar.</p>';
+            
+            calcularCalculoRendimentoEli();
+        }
+
+        function calcularCalculoRendimentoEli() {
+            const selectedBoxes = document.querySelectorAll('.eli-checkbox:checked');
+            const ids = Array.from(selectedBoxes).map(cb => cb.value);
+            const pecasSelecionadas = appState.pecas.filter(p => ids.includes(p.id));
+            const pesoEntrada = pecasSelecionadas.reduce((acc, p) => acc + p.peso, 0);
+
+            const aparas = parseFloat(document.getElementById('eli-input-aparas').value) || 0;
+            const perdas = parseFloat(document.getElementById('eli-input-perdas').value) || 0;
+
+            if (pesoEntrada === 0) {
+                document.getElementById('eli-rendimento-valor').innerText = '100%';
+                return;
+            }
+
+            const pesoLiquido = pesoEntrada - aparas - perdas;
+            const rendimento = Math.max(0, ((pesoLiquido / pesoEntrada) * 100)).toFixed(1);
+
+            const elRendimento = document.getElementById('eli-rendimento-valor');
+            elRendimento.innerText = `${rendimento}%`;
+        }
+
+        function salvarPorcionamentoEli() {
+            const selectedBoxes = document.querySelectorAll('.eli-checkbox:checked');
+            const aparas = parseFloat(document.getElementById('eli-input-aparas').value) || 0;
+            const perdas = parseFloat(document.getElementById('eli-input-perdas').value) || 0;
+            const motivo = document.getElementById('eli-input-motivo').value || 'Porcionamento padrão';
+
+            if(selectedBoxes.length === 0) {
+                alert('Selecione pelo menos uma peça para porcionar.');
+                return;
+            }
+
+            const idsParaRemover = Array.from(selectedBoxes).map(cb => cb.value);
+            const pecasAbertas = appState.pecas.filter(p => idsParaRemover.includes(p.id));
+            const pesoTotalAberto = pecasAbertas.reduce((acc, p) => acc + p.peso, 0);
+
+            appState.totaisAparas += aparas;
+            appState.totaisPerdas += perdas;
+            appState.pecas = appState.pecas.filter(p => !idsParaRemover.includes(p.id));
+
+            logAudit('Eli', 'Porcionamento / Baixa', `Trabalhou ${pecasAbertas.map(p => p.codigo).join(', ')} (${pesoTotalAberto.toFixed(3)}kg). Aparas: ${aparas}kg | Perdas: ${perdas}kg`, motivo);
+
+            document.getElementById('eli-input-aparas').value = '';
+            document.getElementById('eli-input-perdas').value = '';
+            document.getElementById('eli-input-motivo').value = '';
+
+            alert('Porcionamento concluído com sucesso e estoque atualizado!');
+            updateUI();
+        }
+
+        function renderRelatorioDiario() {
+            const pesoTotalEstoque = appState.pecas.reduce((acc, p) => acc + p.peso, 0);
+            const totalCarneBruta = pesoTotalEstoque + appState.totaisAparas + appState.totaisPerdas;
+            const rendimentoGlobal = totalCarneBruta > 0 ? ((pesoTotalEstoque / totalCarneBruta) * 100).toFixed(1) : 100;
+
+            document.getElementById('card-rel-estoque').innerText = `${pesoTotalEstoque.toFixed(3)} kg`;
+            document.getElementById('card-rel-aparas').innerText = `${appState.totaisAparas.toFixed(3)} kg`;
+            document.getElementById('card-rel-perdas').innerText = `${appState.totaisPerdas.toFixed(3)} kg`;
+            document.getElementById('card-rel-rendimento').innerText = `${rendimentoGlobal}%`;
+
+            const resumoCortes = {};
+            appState.pecas.forEach(p => {
+                if(!resumoCortes[p.corte]) {
+                    resumoCortes[p.corte] = { pecas: 0, peso: 0 };
+                }
+                resumoCortes[p.corte].pecas += 1;
+                resumoCortes[p.corte].peso += p.peso;
+            });
+
+            const tbody = document.getElementById('table-relatorio-cortes');
+            const cortesKeys = Object.keys(resumoCortes);
+
+            if (cortesKeys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-500">Nenhum estoque ativo cadastrado no momento.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = cortesKeys.map(corte => `
+                <tr class="hover:bg-slate-800/40">
+                    <td class="p-3.5 font-bold text-white">${corte}</td>
+                    <td class="p-3.5">${resumoCortes[corte].pecas} peça(s)</td>
+                    <td class="p-3.5 font-bold text-amber-400">${resumoCortes[corte].peso.toFixed(3)} kg</td>
+                    <td class="p-3.5 text-slate-400">${(appState.totaisAparas / cortesKeys.length).toFixed(3)} kg (est.)</td>
+                    <td class="p-3.5">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            Estoque Saudável
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // --- FILTRO E HISTÓRICO POR PERÍODO ---
+        function filtrarHistoricoPeriodo() {
+            const dataInicio = document.getElementById('filtro-data-inicio').value;
+            const dataFim = document.getElementById('filtro-data-fim').value;
+
+            // Filtro de NFs no período
+            const nfsNoPeriodo = appState.notasFiscais.filter(nf => {
+                const dataNF = nf.data || '2026-10-08';
+                return dataNF >= dataInicio && dataNF <= dataFim;
+            });
+            const totalKgEntradas = nfsNoPeriodo.reduce((acc, nf) => acc + nf.pesoTotal, 0);
+
+            // Filtro de Logs no período
+            const logsNoPeriodo = appState.auditLogs.filter(log => {
+                const dataLog = log.dataISO || '2026-10-08';
+                return dataLog >= dataInicio && dataLog <= dataFim;
+            });
+
+            const pecasCamara = appState.pecas.filter(p => p.local === 'camara').reduce((acc, p) => acc + p.peso, 0);
+            const pecasEli = appState.pecas.filter(p => p.local === 'eli').reduce((acc, p) => acc + p.peso, 0);
+
+            document.getElementById('hist-total-entradas').innerText = `${totalKgEntradas.toFixed(3)} kg`;
+            document.getElementById('hist-qtd-nfs').innerText = `${nfsNoPeriodo.length} notas no período`;
+            document.getElementById('hist-saldo-camara').innerText = `${pecasCamara.toFixed(3)} kg`;
+            document.getElementById('hist-saldo-eli').innerText = `${pecasEli.toFixed(3)} kg`;
+
+            const tbody = document.getElementById('table-historico-body');
+            tbody.innerHTML = logsNoPeriodo.map(l => `
+                <tr class="hover:bg-slate-800/40">
+                    <td class="p-3 font-mono text-slate-400">${l.dataISO || '2026-10-08'} ${l.data}</td>
+                    <td class="p-3 font-bold text-amber-400">${l.usuario}</td>
+                    <td class="p-3 font-semibold text-white">${l.acao}</td>
+                    <td class="p-3">${l.detalhes}</td>
+                    <td class="p-3 text-slate-400 italic">${l.justificativa}</td>
+                </tr>
+            `).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-500">Nenhum registro encontrado neste período.</td></tr>';
+        }
+
+        function enviarRelatorioHistoricoWhatsApp() {
+            const dataInicio = document.getElementById('filtro-data-inicio').value;
+            const dataFim = document.getElementById('filtro-data-fim').value;
+            const numero = document.getElementById('whatsapp-number').value.replace(/\D/g, '');
+
+            if(!numero) {
+                alert('Digite o número do WhatsApp com DDD no campo da aba Relatório Diário.');
+                return;
+            }
+
+            const pecasCamara = appState.pecas.filter(p => p.local === 'camara').reduce((acc, p) => acc + p.peso, 0);
+            const pecasEli = appState.pecas.filter(p => p.local === 'eli').reduce((acc, p) => acc + p.peso, 0);
+
+            let mensagem = `*🥩 BEEFTRACK PRO - RELATÓRIO DO PERÍODO*\n`;
+            mensagem += `*Intervalo:* ${dataInicio} até ${dataFim}\n\n`;
+            mensagem += `❄️ *Estoque Câmara Fria:* ${pecasCamara.toFixed(3)} kg\n`;
+            mensagem += `🍖 *Estoque Geladeira Eli:* ${pecasEli.toFixed(3)} kg\n`;
+            mensagem += `✂️ *Total Aparas Acumuladas:* ${appState.totaisAparas.toFixed(3)} kg\n`;
+            mensagem += `⚠️ *Total Perdas Registradas:* ${appState.totaisPerdas.toFixed(3)} kg\n\n`;
+            mensagem += `_Relatório consolidado via BeefTrack Pro WMS_`;
+
+            const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+            window.open(url, '_blank');
+        }
+
+        // --- CADASTRO DINÂMICO DE CORTES E USUÁRIOS ---
+        function cadastrarNovoCorte() {
+            const nomeInput = document.getElementById('novo-corte-nome');
+            const corteNome = nomeInput.value.trim();
+
+            if(!corteNome) {
+                alert('Digite o nome do corte/proteína.');
+                return;
+            }
+
+            if(!appState.cortesCadastrados.includes(corteNome)) {
+                appState.cortesCadastrados.push(corteNome);
+                if(!appState.corteSequenciais[corteNome]) {
+                    appState.corteSequenciais[corteNome] = 1;
+                }
+                logAudit('Fábio (Admin)', 'Cadastro de Proteína', `Cadastrou nova carne: ${corteNome}`, 'Novas opções');
+                nomeInput.value = '';
+                alert(`Corte "${corteNome}" cadastrado com sucesso!`);
+                updateUI();
+            } else {
+                alert('Este corte já está cadastrado.');
+            }
+        }
+
+        function renderCortesCadastradosTags() {
+            const container = document.getElementById('lista-cortes-cadastrados');
+            container.innerHTML = appState.cortesCadastrados.map(c => `
+                <span class="px-3 py-1 bg-slate-800 text-amber-400 font-bold border border-slate-700 rounded-xl text-xs flex items-center gap-1.5">
+                    <i data-lucide="beef" class="w-3.5 h-3.5"></i>
+                    ${c}
+                </span>
+            `).join('');
+        }
+
+        function cadastrarNovoUsuario() {
+            const nome = document.getElementById('novo-user-nome').value.trim();
+            const perfil = document.getElementById('novo-user-perfil').value;
+            const senha = document.getElementById('novo-user-senha').value.trim();
+
+            if(!nome) {
+                alert('Digite o nome do usuário.');
+                return;
+            }
+
+            appState.usuarios.push({ nome, perfil, senha });
+            logAudit('Fábio (Admin)', 'Cadastro de Usuário', `Criou usuário: ${nome} (${perfil})`, 'Acesso liberado');
+
+            document.getElementById('novo-user-nome').value = '';
+            document.getElementById('novo-user-senha').value = '';
+            alert(`Usuário ${nome} cadastrado com sucesso!`);
+        }
+
+        function enviarRelatorioWhatsApp() {
+            const numero = document.getElementById('whatsapp-number').value.replace(/\D/g, '');
+            if(!numero) {
+                alert('Digite o número do WhatsApp com DDD (Ex: 5511999999999)');
+                return;
+            }
+
+            const pesoTotalEstoque = appState.pecas.reduce((acc, p) => acc + p.peso, 0);
+
+            let mensagem = `*🥩 BEEFTRACK PRO WMS - RELATÓRIO DIÁRIO*\n`;
+            mensagem += `*Data:* ${new Date().toLocaleDateString('pt-BR')}\n\n`;
+            mensagem += `📦 *Estoque Ativo Total:* ${pesoTotalEstoque.toFixed(3)} kg\n`;
+            mensagem += `✂️ *Aparas Limpeza:* ${appState.totaisAparas.toFixed(3)} kg\n`;
+            mensagem += `⚠️ *Perdas Salão:* ${appState.totaisPerdas.toFixed(3)} kg\n\n`;
+            mensagem += `*Detalhamento por Corte:*\n`;
+
+            const resumoCortes = {};
+            appState.pecas.forEach(p => {
+                resumoCortes[p.corte] = (resumoCortes[p.corte] || 0) + p.peso;
+            });
+
+            Object.keys(resumoCortes).forEach(corte => {
+                mensagem += `• ${corte}: ${resumoCortes[corte].toFixed(3)} kg\n`;
+            });
+
+            mensagem += `\n_Relatório gerado automaticamente via BeefTrack_`;
+
+            const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+            window.open(url, '_blank');
+        }
+
+        // Modal NF
+        function openModalNF() {
+            document.getElementById('modal-nf').classList.remove('hidden');
+            document.getElementById('container-itens-nf').innerHTML = '';
+            addLinhaItemNF(appState.cortesCadastrados[0] || 'Ancho', 40.820, 4);
+        }
+
+        function closeModalNF() {
+            document.getElementById('modal-nf').classList.add('hidden');
+        }
+
+        function addLinhaItemNF(cortePadrao = '', pesoPadrao = '', caixasPadrao = '') {
+            const container = document.getElementById('container-itens-nf');
+            const row = document.createElement('div');
+            row.className = 'grid grid-cols-3 gap-3 item-row-nf';
+
+            const optionsCortes = appState.cortesCadastrados.map(c => `<option value="${c}" ${c === cortePadrao ? 'selected' : ''}>${c}</option>`).join('');
+
+            row.innerHTML = `
+                <div>
+                    <label class="block text-[10px] text-slate-400 mb-1">Corte / Carne</label>
+                    <select class="nf-item-corte w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white">
+                        ${optionsCortes}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] text-slate-400 mb-1">Peso Total (kg)</label>
+                    <input type="number" step="0.001" value="${pesoPadrao}" placeholder="Ex: 40.820" oninput="calcularTotalNF()" class="nf-item-peso w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white">
+                </div>
+                <div>
+                    <label cla
