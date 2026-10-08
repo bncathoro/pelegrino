@@ -91,7 +91,7 @@
                 <th class="p-2">Fornecedor</th>
                 <th class="p-2">Detalhamento (Cortes & CXs)</th>
                 <th class="p-2">Peso NF (kg)</th>
-                <th class="p-2">Status</th>
+                <th class="p-2">Ação</th>
               </tr>
             </thead>
             <tbody id="lista-nfs"></tbody>
@@ -103,7 +103,7 @@
     <!-- TAB 2: CAIXAS & PESAGEM -->
     <section id="tab-caixas" class="tab-content space-y-4 hidden">
       <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Abertura & Conferência de Caixa (Pesagem com Identificação Única por Corte)</h2>
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Abertura & Conferência de Caixa (Pesagem P1, P2...)</h2>
         <form id="form-caixa" onsubmit="handleCaixaSubmit(event)" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -139,7 +139,7 @@
           <div class="border-t pt-3">
             <h4 class="text-xs font-bold text-gray-700 mb-2">Pesagem de Peças com Identificação Específica do Corte *</h4>
             <div id="pecas-weights-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-              <p class="text-xs text-gray-400 col-span-full">Selecione o corte e a quantidade de peças acima para gerar os campos.</p>
+              <p class="text-xs text-gray-400 col-span-full">Selecione a NF, o corte e a quantidade de peças acima.</p>
             </div>
           </div>
 
@@ -428,7 +428,6 @@
   </div>
 
   <script>
-    // ESTADO GLOBAL
     const ADMIN_PASS = "990992";
     let currentUser = { name: "Operador/Eli", role: "OPERATOR" };
 
@@ -438,7 +437,6 @@
     let porcionamentosList = JSON.parse(localStorage.getItem('bt_porcionamentos')) || [];
     let historicoList = JSON.parse(localStorage.getItem('bt_historico')) || [];
 
-    // NAVEGAÇÃO
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('nav button').forEach(el => {
@@ -457,7 +455,6 @@
       if(tabId === 'tab-admin') renderADMEditCaixas();
     }
 
-    // AUTH
     function openAuthModal() { document.getElementById('authModal').classList.remove('hidden'); }
     function closeAuthModal() {
       document.getElementById('authModal').classList.add('hidden');
@@ -477,7 +474,6 @@
       }
     }
 
-    // INICIALIZAÇÃO
     window.onload = function() {
       const today = new Date().toISOString().split('T')[0];
       if(document.getElementById('nf-data')) document.getElementById('nf-data').value = today;
@@ -492,7 +488,6 @@
       renderCortesTags();
     };
 
-    // GERENCIAMENTO DE CORTES
     function renderCortesSelects() {
       const histSelect = document.getElementById('hist-corte-filtro');
       if(histSelect) {
@@ -534,7 +529,6 @@
       }
     }
 
-    // NF MULTI-CORTE
     function addNFCorteRow() {
       const container = document.getElementById('nf-cortes-container');
       const rowId = Date.now() + Math.random();
@@ -604,7 +598,17 @@
       document.getElementById('nf-data').value = today;
 
       renderNFList();
-      alert("Nota Fiscal registrada com sucesso!");
+      alert("Nota Fiscal registrada com sucesso! Direcionando para a conferência de caixas...");
+      goToConferenciaCaixa(newNF.id);
+    }
+
+    function goToConferenciaCaixa(nfId) {
+      switchTab('tab-caixas');
+      const selectNF = document.getElementById('caixa-nf-id');
+      if(selectNF) {
+        selectNF.value = nfId;
+        updateCorteOptionsFromNF();
+      }
     }
 
     function renderNFList() {
@@ -613,7 +617,7 @@
       
       if(tbody) {
         tbody.innerHTML = nfsList.map(nf => {
-          const resumoCortes = nf.detalheCortes ? nf.detalheCortes.map(d => `${d.caixas}x ${d.corte}`).join(', ') : 'N/A';
+          const resumoCortes = nf.detalheCortes ? nf.detalheCortes.map(d => `${d.caixas}x${d.corte}`).join(', ') : 'N/A';
           return `
             <tr class="border-b hover:bg-gray-50">
               <td class="p-2 font-bold">${nf.numero}</td>
@@ -621,18 +625,19 @@
               <td class="p-2">${nf.fornecedor}</td>
               <td class="p-2 font-medium text-slate-700">${resumoCortes}</td>
               <td class="p-2 font-bold">${nf.pesoTotal.toFixed(3)} kg</td>
-              <td class="p-2"><span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded">${nf.status}</span></td>
+              <td class="p-2">
+                <button onclick="goToConferenciaCaixa(${nf.id})" class="bg-red-600 hover:bg-red-700 text-white text-xs px-2.5 py-1 rounded font-medium">Lançar Caixas</button>
+              </td>
             </tr>
           `;
         }).join('');
       }
 
       if(caixaNFSelect) {
-        caixaNFSelect.innerHTML = `<option value="">-- Selecione a NF --</option>` + nfsList.map(nf => `<option value="${nf.id}">NF #${nf.numero} - ${nf.fornecedor}</option>`).join('');
+        caixaNFSelect.innerHTML = `<option value="">-- Selecione a NF --</option>` + nfsList.map(nf => `<option value="${nf.id}">NF #${nf.numero} -${nf.fornecedor}</option>`).join('');
       }
     }
 
-    // CAIXA E PEÇAS RASTREÁVEIS (Ex: Ancho-P1, Chorizo-P1)
     function updateCorteOptionsFromNF() {
       const nfId = parseInt(document.getElementById('caixa-nf-id').value);
       const corteSelect = document.getElementById('caixa-corte');
@@ -653,7 +658,7 @@
       container.innerHTML = "";
 
       if(qtd <= 0) {
-        container.innerHTML = `<p class="text-xs text-gray-400 col-span-full">Selecione o corte e a quantidade de peças acima para gerar os campos.</p>`;
+        container.innerHTML = `<p class="text-xs text-gray-400 col-span-full">Selecione a NF, o corte e a quantidade de peças acima.</p>`;
         calcTotalCaixaPeso();
         return;
       }
@@ -712,7 +717,7 @@
       addLog("Aferição Caixa", newCaixa.corte, `Lote ${newCaixa.lote} (${pecasListObj.length} peças: ${corteSelecionado}-P1 a P${pecasListObj.length})`, pesoTotalCaixa);
 
       document.getElementById('form-caixa').reset();
-      document.getElementById('pecas-weights-container').innerHTML = `<p class="text-xs text-gray-400 col-span-full">Selecione o corte e a quantidade de peças acima para gerar os campos.</p>`;
+      document.getElementById('pecas-weights-container').innerHTML = `<p class="text-xs text-gray-400 col-span-full">Selecione a NF, o corte e a quantidade de peças acima.</p>`;
       document.getElementById('caixa-peso-total-calc').value = "0.000 kg";
 
       renderCaixas();
@@ -730,7 +735,7 @@
 
       if(tbody) {
         tbody.innerHTML = caixasList.map(cx => {
-          const detalhePecas = cx.pecas ? cx.pecas.map(p => `<span class="bg-gray-100 px-1.5 py-0.5 rounded mr-1 font-mono">${p.tag}: ${p.peso.toFixed(3)}kg</span>`).join('') : `${cx.pecas} peças`;
+          const detalhePecas = cx.pecas ? cx.pecas.map(p => `<span class="bg-gray-100 px-1.5 py-0.5 rounded mr-1 font-mono">${p.tag}:${p.peso.toFixed(3)}kg</span>`).join('') : `${cx.pecas} peças`;
           return `
             <tr class="border-b hover:bg-gray-50">
               <td class="p-2 font-bold">${cx.lote}</td>
@@ -753,8 +758,8 @@
           const cardHtml = `
             <div class="p-2.5 bg-gray-50 border rounded flex justify-between items-center text-xs">
               <div>
-                <span class="font-bold text-slate-800 block">${cx.lote} - ${cx.corte}</span>
-                <span class="text-gray-500">NF #${cx.nfNumero} | ${cx.pecas ? cx.pecas.length : 0} peças</span>
+                <span class="font-bold text-slate-800 block">${cx.lote} -${cx.corte}</span>
+                <span class="text-gray-500">NF #${cx.nfNumero} \vert{}${cx.pecas ? cx.pecas.length : 0} peças</span>
               </div>
               <span class="font-bold text-sm text-slate-700">${cx.pesoReal.toFixed(3)} kg</span>
             </div>
@@ -780,255 +785,15 @@
       }
     }
 
-    // ADM - EDIÇÃO DE PESOS DE CAIXAS E PEÇAS
     function renderADMEditCaixas() {
       const container = document.getElementById('adm-edit-caixas-container');
       if(!container) return;
 
       if(caixasList.length === 0) {
-        container.innerHTML = `<p class="text-xs text-gray-400">Nenhuma caixa cadastrada no sistema.</p>`;
+        container.innerHTML = `<p class="text-xs text-gray-400 p-3 bg-gray-50 rounded border">Nenhuma caixa cadastrada no estoque ainda. Assim que uma NF e caixas forem lançadas, os controles de edição do Fábio aparecerão aqui.</p>`;
         return;
       }
 
       container.innerHTML = caixasList.map(cx => {
         const pecasHtml = cx.pecas ? cx.pecas.map((p, idx) => `
-          <div class="flex items-center gap-1">
-            <span class="text-xs font-mono">${p.tag}:</span>
-            <input type="number" step="0.001" value="${p.peso}" onchange="updatePecaPesoADM(${cx.id}, ${idx}, this.value)" class="w-20 border rounded p-1 text-xs font-bold">
-            <span class="text-xs text-gray-500">kg</span>
-          </div>
-        `).join('') : '';
-
-        return `
-          <div class="p-3 bg-slate-50 rounded border flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-            <div>
-              <span class="font-bold text-sm text-slate-800">${cx.lote} (${cx.corte})</span>
-              <span class="text-xs text-gray-500 block">NF #${cx.nfNumero} | Destino: ${cx.localizacao}</span>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-              ${pecasHtml}
-              <div class="border-l pl-2 ml-2">
-                <span class="text-xs font-bold block text-red-600">Total: ${cx.pesoReal.toFixed(3)} kg</span>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function updatePecaPesoADM(caixaId, pecaIdx, newPeso) {
-      const cx = caixasList.find(c => c.id === caixaId);
-      if(cx && cx.pecas && cx.pecas[pecaIdx]) {
-        cx.pecas[pecaIdx].peso = parseFloat(newPeso) || 0;
-        // Recalcula total da caixa
-        cx.pesoReal = cx.pecas.reduce((acc, curr) => acc + curr.peso, 0);
-        localStorage.setItem('bt_caixas', JSON.stringify(caixasList));
-        renderCaixas();
-        renderADMEditCaixas();
-        addLog("Ajuste ADM", cx.corte, `Fábio alterou peso da peça ${cx.pecas[pecaIdx].tag} para ${newPeso}kg`, cx.pesoReal);
-      }
-    }
-
-    // TRANSFERÊNCIA
-    function handleTransferSubmit(e) {
-      e.preventDefault();
-      const cxId = parseInt(document.getElementById('transf-caixa-id').value);
-      const dest = document.getElementById('transf-destino').value;
-
-      const cx = caixasList.find(c => c.id === cxId);
-      if(cx) {
-        const orig = cx.localizacao;
-        cx.localizacao = dest;
-        localStorage.setItem('bt_caixas', JSON.stringify(caixasList));
-        addLog("Transferência", cx.corte, `${cx.lote}: ${orig} -> ${dest}`, cx.pesoReal);
-        renderCaixas();
-        alert(`Caixa ${cx.lote} transferida para ${dest}!`);
-      }
-    }
-
-    // PORCIONAMENTO
-    function calculateYield() {
-      const bruto = parseFloat(document.getElementById('porc-peso-bruto').value) || 0;
-      const limpo = parseFloat(document.getElementById('porc-peso-limpo').value) || 0;
-      if(bruto > 0) {
-        const rend = (limpo / bruto) * 100;
-        document.getElementById('porc-rendimento').value = rend.toFixed(2) + "%";
-      } else {
-        document.getElementById('porc-rendimento').value = "0.00%";
-      }
-    }
-
-    function handlePorcionamentoSubmit(e) {
-      e.preventDefault();
-      const cxId = parseInt(document.getElementById('porc-caixa-id').value);
-      const cx = caixasList.find(c => c.id === cxId);
-
-      const bruto = parseFloat(document.getElementById('porc-peso-bruto').value);
-      const limpo = parseFloat(document.getElementById('porc-peso-limpo').value);
-      const perda = parseFloat(document.getElementById('porc-peso-perda').value);
-      const porcoes = parseInt(document.getElementById('porc-qtd-porcoes').value);
-      const rend = (limpo / bruto) * 100;
-
-      const now = new Date();
-      const newPorc = {
-        id: Date.now(),
-        dataHora: now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-        caixaLote: cx ? cx.lote : "N/A",
-        corte: cx ? cx.corte : "Geral",
-        bruto: bruto,
-        limpo: limpo,
-        perda: perda,
-        rendimento: rend,
-        porcoes: porcoes
-      };
-
-      porcionamentosList.push(newPorc);
-      localStorage.setItem('bt_porcionamentos', JSON.stringify(porcionamentosList));
-
-      if(cx) {
-        cx.pesoReal -= bruto;
-        if(cx.pesoReal <= 0.05) {
-          cx.pesoReal = 0;
-          cx.status = "Processado / Zerado";
-        }
-        localStorage.setItem('bt_caixas', JSON.stringify(caixasList));
-      }
-
-      addLog("Porcionamento (Eli)", newPorc.corte, `Processado Lote ${newPorc.caixaLote} | ${porcoes} porções`, limpo);
-
-      document.getElementById('form-porcionamento').reset();
-      document.getElementById('porc-rendimento').value = "0.00%";
-      renderCaixas();
-      renderPorcionamentos();
-      alert("Porcionamento registrado com sucesso!");
-    }
-
-    function renderPorcionamentos() {
-      const tbody = document.getElementById('lista-porcionamentos');
-      if(tbody) {
-        tbody.innerHTML = porcionamentosList.map(p => `
-          <tr class="border-b hover:bg-gray-50">
-            <td class="p-2">${p.dataHora}</td>
-            <td class="p-2 font-bold">${p.caixaLote}</td>
-            <td class="p-2 font-semibold text-red-700">${p.corte}</td>
-            <td class="p-2">${p.bruto.toFixed(3)} kg</td>
-            <td class="p-2 font-bold text-emerald-700">${p.limpo.toFixed(3)} kg</td>
-            <td class="p-2 text-red-600">${p.perda.toFixed(3)} kg</td>
-            <td class="p-2 font-semibold">${p.rendimento.toFixed(1)}%</td>
-            <td class="p-2 font-bold">${p.porcoes} stks</td>
-          </tr>
-        `).join('');
-      }
-    }
-
-    // LOG HISTÓRICO
-    function addLog(tipo, corte, detalhe, peso) {
-      const now = new Date();
-      const log = {
-        id: Date.now(),
-        dataISO: now.toISOString().split('T')[0],
-        dataHora: now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-        tipo: tipo,
-        corte: corte,
-        detalhe: detalhe,
-        peso: peso,
-        usuario: currentUser.name
-      };
-      historicoList.unshift(log);
-      localStorage.setItem('bt_historico', JSON.stringify(historicoList));
-    }
-
-    function filterHistory() {
-      const dInicio = document.getElementById('hist-data-inicio').value;
-      const dFim = document.getElementById('hist-data-fim').value;
-      const corteFiltro = document.getElementById('hist-corte-filtro').value;
-
-      const tbody = document.getElementById('lista-historico-filtrado');
-
-      const filtrados = historicoList.filter(item => {
-        const matchData = item.dataISO >= dInicio && item.dataISO <= dFim;
-        const matchCorte = (corteFiltro === "TODOS" || item.corte === corteFiltro);
-        return matchData && matchCorte;
-      });
-
-      if(filtrados.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-gray-400">Nenhum registro encontrado para este filtro.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = filtrados.map(h => `
-        <tr class="border-b hover:bg-gray-50">
-          <td class="p-2">${h.dataHora}</td>
-          <td class="p-2"><span class="bg-slate-100 text-slate-800 font-medium px-2 py-0.5 rounded border">${h.tipo}</span></td>
-          <td class="p-2 font-bold text-red-700">${h.corte}</td>
-          <td class="p-2">${h.detalhe}</td>
-          <td class="p-2 font-semibold text-slate-800">${h.peso.toFixed(3)} kg</td>
-          <td class="p-2">${h.usuario}</td>
-        </tr>
-      `).join('');
-    }
-
-    // RELATÓRIOS & EXPORTAÇÃO
-    function updateRelatorios() {
-      const todayISO = new Date().toISOString().split('T')[0];
-
-      const nfsHoje = nfsList.filter(n => n.data === todayISO);
-      const totalNfHoje = nfsHoje.reduce((acc, curr) => acc + curr.pesoTotal, 0);
-
-      const porcHoje = porcionamentosList;
-      const totalLimpo = porcHoje.reduce((acc, curr) => acc + curr.limpo, 0);
-      const totalPerdas = porcHoje.reduce((acc, curr) => acc + curr.perda, 0);
-      const totalBruto = porcHoje.reduce((acc, curr) => acc + curr.bruto, 0);
-
-      const rendMedio = totalBruto > 0 ? (totalLimpo / totalBruto) * 100 : 0;
-
-      document.getElementById('rep-total-nf').innerText = totalNfHoje.toFixed(3) + " kg";
-      document.getElementById('rep-total-limpo').innerText = totalLimpo.toFixed(3) + " kg";
-      document.getElementById('rep-total-perdas').innerText = totalPerdas.toFixed(3) + " kg";
-      document.getElementById('rep-rendimento-medio').innerText = rendMedio.toFixed(1) + "%";
-
-      let camText = "", gelText = "";
-      caixasList.filter(c => c.status === "Em Estoque").forEach(c => {
-        const txt = `${c.lote} (${c.corte}): ${c.pesoReal.toFixed(3)} kg | `;
-        if(c.localizacao === "Câmara Fria") camText += txt;
-        else gelText += txt;
-      });
-
-      document.getElementById('rep-saldo-camara').innerText = camText || "Nenhuma caixa em estoque.";
-      document.getElementById('rep-saldo-geladeira').innerText = gelText || "Nenhuma caixa na geladeira.";
-    }
-
-    function exportToWhatsApp() {
-      const dataHoje = new Date().toLocaleDateString('pt-BR');
-      let text = `*🥩 BEEFTRACK PRO - RELATÓRIO OPERACIONAL (${dataHoje})*\n\n`;
-      text += `*Recebimento NF (Hoje):* ${document.getElementById('rep-total-nf').innerText}\n`;
-      text += `*Porcionado Limpo (Eli):* ${document.getElementById('rep-total-limpo').innerText}\n`;
-      text += `*Aparas / Perdas:* ${document.getElementById('rep-total-perdas').innerText}\n`;
-      text += `*Rendimento Médio:* ${document.getElementById('rep-rendimento-medio').innerText}\n\n`;
-      text += `*SALDOS DE ESTOQUE:*\n`;
-      text += `❄️ *Câmara Fria:* ${document.getElementById('rep-saldo-camara').innerText}\n`;
-      text += `🧊 *Geladeira Eli:* ${document.getElementById('rep-saldo-geladeira').innerText}\n\n`;
-      text += `_Gerado via BeefTrack Pro WMS_`;
-
-      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
-    }
-
-    function exportToPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      
-      doc.setFontSize(16);
-      doc.text("BeefTrack Pro WMS - Relatório Operacional", 14, 20);
-      doc.setFontSize(10);
-      doc.text(`Data de Emissão: ${new Date().toLocaleDateString('pt-BR')}`, 14, 28);
-      
-      doc.text(`Total Entradas NF: ${document.getElementById('rep-total-nf').innerText}`, 14, 40);
-      doc.text(`Total Porcionado Limpo: ${document.getElementById('rep-total-limpo').innerText}`, 14, 48);
-      doc.text(`Total Aparas/Perdas: ${document.getElementById('rep-total-perdas').innerText}`, 14, 56);
-      doc.text(`Rendimento Médio: ${document.getElementById('rep-rendimento-medio').innerText}`, 14, 64);
-      
-      doc.save(`BeefTrack_Relatorio_${new Date().toISOString().split('T')[0]}.pdf`);
-    }
-  </script>
-</body>
-</html>
+          <div
