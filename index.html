@@ -1,4 +1,531 @@
-rText = "Perfil: Fábio (ADM)";
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BeefTrack Pro WMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    .tab-active { border-bottom: 3px solid #dc2626; color: #dc2626; font-weight: bold; }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-slate-900 text-white p-4 shadow-md flex justify-between items-center">
+    <div>
+      <h1 class="text-xl font-bold tracking-wide text-red-500">BeefTrack Pro WMS</h1>
+      <p class="text-xs text-gray-400">Controle Operacional & Rastreabilidade de Proteínas</p>
+    </div>
+    <div class="flex items-center space-x-3">
+      <span id="userBadge" class="text-xs bg-slate-800 border border-slate-700 px-3 py-1 rounded-full text-gray-300">Perfil: Operador</span>
+      <button onclick="openAuthModal()" class="text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded font-medium">Trocar Perfil / Admin</button>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="bg-white border-b border-gray-200 px-4 flex space-x-4 overflow-x-auto text-sm">
+    <button onclick="switchTab('tab-nf')" id="btn-tab-nf" class="py-3 px-2 tab-active transition-all">1. Entradas NF</button>
+    <button onclick="switchTab('tab-caixas')" id="btn-tab-caixas" class="py-3 px-2 text-gray-600 transition-all">2. Caixas & Pesagem</button>
+    <button onclick="switchTab('tab-estoque')" id="btn-tab-estoque" class="py-3 px-2 text-gray-600 transition-all">3. Câmara Fria & Movimentações</button>
+    <button onclick="switchTab('tab-porcionamento')" id="btn-tab-porcionamento" class="py-3 px-2 text-gray-600 transition-all">4. Porcionamentos (Eli)</button>
+    <button onclick="switchTab('tab-aparas')" id="btn-tab-aparas" class="py-3 px-2 text-gray-600 transition-all">5. Aparas Diárias</button>
+    <button onclick="switchTab('tab-relatorios')" id="btn-tab-relatorios" class="py-3 px-2 text-gray-600 transition-all">6. Relatório Diário</button>
+    <button onclick="switchTab('tab-historico')" id="btn-tab-historico" class="py-3 px-2 text-gray-600 transition-all">7. Histórico & Período</button>
+    <button id="btn-admin-tab" onclick="switchTab('tab-admin')" class="py-3 px-2 text-gray-600 transition-all hidden">8. Gestão ADM (Fábio)</button>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 p-4 max-w-6xl mx-auto w-full">
+
+    <!-- TAB 1: ENTRADAS NF -->
+    <section id="tab-nf" class="tab-content space-y-4">
+      <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Registrar Nova Nota Fiscal (Recebimento)</h2>
+        <form id="form-nf" onsubmit="handleNFSubmit(event)" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Número da NF *</label>
+              <input type="text" id="nf-numero" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 10452">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Fornecedor / Frigorífico *</label>
+              <input type="text" id="nf-fornecedor" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: Frigorífico Minerva">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Data de Recebimento *</label>
+              <input type="date" id="nf-data" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Peso Total da NF (kg) *</label>
+              <input type="number" step="0.001" id="nf-peso-total" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 125.400">
+            </div>
+          </div>
+
+          <div class="border-t pt-3">
+            <div class="flex justify-between items-center mb-2">
+              <label class="block text-xs font-bold text-gray-700">Detalhamento dos Cortes, Caixas e Pesos da NF *</label>
+              <button type="button" onclick="addNFCorteRow()" class="text-xs bg-slate-800 hover:bg-slate-900 text-white px-3 py-1 rounded">+ Adicionar Item da NF</button>
+            </div>
+            <div id="nf-cortes-container" class="space-y-2"></div>
+          </div>
+
+          <div class="flex justify-end border-t pt-3">
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-2 rounded shadow transition-all text-sm w-full md:w-auto">Registrar Entrada de NF</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <h3 class="text-md font-semibold text-gray-800 mb-3">Notas Fiscais Cadastradas</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600">
+            <thead class="bg-gray-100 text-gray-700 uppercase border-b">
+              <tr>
+                <th class="p-2">NF</th>
+                <th class="p-2">Data</th>
+                <th class="p-2">Fornecedor</th>
+                <th class="p-2">Peso Total NF (kg)</th>
+                <th class="p-2">Detalhamento (Corte / CXs / Peso)</th>
+                <th class="p-2">Status</th>
+              </tr>
+            </thead>
+            <tbody id="lista-nfs"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: CAIXAS & PESAGEM -->
+    <section id="tab-caixas" class="tab-content space-y-4 hidden">
+      <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Abertura & Conferência de Caixa (Pesagem Peça por Peça)</h2>
+        <form id="form-caixa" onsubmit="handleCaixaSubmit(event)" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Selecione a NF de Origem *</label>
+              <select id="caixa-nf-id" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" onchange="updateCorteOptionsFromNF()"></select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Proteína / Corte da Caixa *</label>
+              <select id="caixa-corte" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" onchange="renderPecasInputs()"></select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Código / Lote da Caixa *</label>
+              <input type="text" id="caixa-lote" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: CX-001">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Destino Inicial *</label>
+              <select id="caixa-destino" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none">
+                <option value="Câmara Fria">Câmara Fria</option>
+                <option value="Geladeira de Porcionamento">Geladeira de Porcionamento</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Qtd. Peças Inteiras na Caixa *</label>
+              <input type="number" id="caixa-qtd-pecas" required min="1" max="50" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 5" oninput="renderPecasInputs()">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Peso Total Aferido (Soma Peças)</label>
+              <input type="text" id="caixa-peso-total-calc" readonly class="w-full border rounded p-2 text-sm bg-gray-100 font-bold text-red-600" placeholder="0.000 kg">
+            </div>
+          </div>
+
+          <div class="border-t pt-3">
+            <h4 class="text-xs font-bold text-gray-700 mb-2">Pesagem Individual das Peças *</h4>
+            <div id="pecas-weights-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+              <p class="text-xs text-gray-400 col-span-full">Selecione a NF e informe a quantidade de peças acima.</p>
+            </div>
+          </div>
+
+          <div class="flex justify-end border-t pt-3">
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-2 rounded shadow transition-all text-sm">Salvar Caixa no Estoque</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <h3 class="text-md font-semibold text-gray-800 mb-3">Caixas Aferidas e Peças no Estoque</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600">
+            <thead class="bg-gray-100 text-gray-700 uppercase border-b">
+              <tr>
+                <th class="p-2">Lote/CX</th>
+                <th class="p-2">NF</th>
+                <th class="p-2">Corte</th>
+                <th class="p-2">Peso Total (kg)</th>
+                <th class="p-2">Peças Rastreáveis</th>
+                <th class="p-2">Localização</th>
+                <th class="p-2">Status</th>
+              </tr>
+            </thead>
+            <tbody id="lista-caixas"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: CÂMARA FRIA & MOVIMENTAÇÕES -->
+    <section id="tab-estoque" class="tab-content space-y-4 hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+          <div class="flex justify-between items-center mb-3 border-b pb-2">
+            <h3 class="text-md font-bold text-slate-800">❄️ Estoque: Câmara Fria</h3>
+            <span id="tot-camara" class="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded">0.000 kg</span>
+          </div>
+          <div id="cards-camara" class="space-y-2 max-h-80 overflow-y-auto"></div>
+        </div>
+
+        <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+          <div class="flex justify-between items-center mb-3 border-b pb-2">
+            <h3 class="text-md font-bold text-slate-800">🧊 Estoque: Geladeira de Porcionamento</h3>
+            <span id="tot-geladeira" class="text-xs font-bold bg-emerald-100 text-emerald-800 px-2 py-1 rounded">0.000 kg</span>
+          </div>
+          <div id="cards-geladeira" class="space-y-2 max-h-80 overflow-y-auto"></div>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <h3 class="text-md font-semibold text-gray-800 mb-3 border-b pb-2">Transferência Interna de Caixas</h3>
+        <form id="form-transf" onsubmit="handleTransferSubmit(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Selecione a Caixa/Lote *</label>
+            <select id="transf-caixa-id" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Novo Destino *</label>
+            <select id="transf-destino" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none">
+              <option value="Geladeira de Porcionamento">Geladeira de Porcionamento</option>
+              <option value="Câmara Fria">Câmara Fria</option>
+            </select>
+          </div>
+          <div class="flex items-end">
+            <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium p-2 rounded shadow transition-all text-sm">Transferir Localização</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- TAB 4: PORCIONAMENTOS (ELI) -->
+    <section id="tab-porcionamento" class="tab-content space-y-4 hidden">
+      <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <div class="flex justify-between items-center border-b pb-2 mb-4">
+          <h2 class="text-lg font-semibold text-gray-800">Porcionamento por Peça - Operador Eli</h2>
+          <span class="text-xs bg-amber-100 text-amber-800 font-medium px-2.5 py-0.5 rounded">Processamento de Peças</span>
+        </div>
+
+        <form id="form-porcionamento" onsubmit="handlePorcionamentoSubmit(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Selecione a Peça (Geladeira) *</label>
+            <select id="porc-peca-tag" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" onchange="updatePecaBrutoDisplay()"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Peso Bruto Original da Peça (kg)</label>
+            <input type="text" id="porc-peso-bruto-display" readonly class="w-full border rounded p-2 text-sm bg-gray-100 font-bold text-slate-700" placeholder="0.000 kg">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Peso Limpo Porcionado / Válido (kg) *</label>
+            <input type="number" step="0.001" id="porc-peso-limpo" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 2.100">
+          </div>
+          <div class="md:col-span-3 flex justify-end">
+            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-2 rounded shadow transition-all text-sm">Dar Baixa na Peça Porcionada</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <h3 class="text-md font-semibold text-gray-800 mb-3">Histórico de Peças Porcionadas</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600">
+            <thead class="bg-gray-100 text-gray-700 uppercase border-b">
+              <tr>
+                <th class="p-2">Data/Hora</th>
+                <th class="p-2">Peça / Tag</th>
+                <th class="p-2">Caixa Lote</th>
+                <th class="p-2">Peso Bruto (kg)</th>
+                <th class="p-2">Peso Limpo (kg)</th>
+              </tr>
+            </thead>
+            <tbody id="lista-porcionamentos"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: APARAS DIÁRIAS -->
+    <section id="tab-aparas" class="tab-content space-y-4 hidden">
+      <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Registro de Aparas & Descarte Geral (Diário)</h2>
+        <form id="form-aparas" onsubmit="handleAparasSubmit(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Data de Referência *</label>
+            <input type="date" id="apara-data" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Peso Total de Aparas/Gordura (kg) *</label>
+            <input type="number" step="0.001" id="apara-peso" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 3.450">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Observações / Detalhes</label>
+            <input type="text" id="apara-obs" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: Aparas gerais do porcionamento noturno">
+          </div>
+          <div class="md:col-span-3 flex justify-end">
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-2 rounded shadow transition-all text-sm">Registrar Aparas do Dia</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <h3 class="text-md font-semibold text-gray-800 mb-3">Histórico de Aparas Diárias</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600">
+            <thead class="bg-gray-100 text-gray-700 uppercase border-b">
+              <tr>
+                <th class="p-2">Data</th>
+                <th class="p-2">Peso Aparas (kg)</th>
+                <th class="p-2">Observações</th>
+                <th class="p-2">Registrado Por</th>
+              </tr>
+            </thead>
+            <tbody id="lista-aparas"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: RELATÓRIO DIÁRIO -->
+    <section id="tab-relatorios" class="tab-content space-y-4 hidden">
+      <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <div class="flex justify-between items-center border-b pb-3 mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-gray-800">Relatório Operacional Diário</h2>
+            <p class="text-xs text-gray-500">Resumo de movimentação física do dia</p>
+          </div>
+          <div class="flex space-x-2">
+            <button onclick="exportToWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded flex items-center font-medium">📲 Enviar p/ WhatsApp</button>
+            <button onclick="exportToPDF()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-2 rounded flex items-center font-medium">📄 Exportar PDF</button>
+          </div>
+        </div>
+
+        <div id="relatorio-diario-content" class="space-y-6 text-sm">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-slate-50 p-4 rounded border text-center">
+              <span class="text-xs text-gray-500 block">Total Entradas NF (Hoje)</span>
+              <span id="rep-total-nf" class="text-xl font-bold text-slate-800">0.000 kg</span>
+            </div>
+            <div class="bg-slate-50 p-4 rounded border text-center">
+              <span class="text-xs text-gray-500 block">Total Porcionado Limpo (Eli)</span>
+              <span id="rep-total-limpo" class="text-xl font-bold text-emerald-700">0.000 kg</span>
+            </div>
+            <div class="bg-slate-50 p-4 rounded border text-center">
+              <span class="text-xs text-gray-500 block">Aparas Diárias Lançadas</span>
+              <span id="rep-total-perdas" class="text-xl font-bold text-red-600">0.000 kg</span>
+            </div>
+            <div class="bg-slate-50 p-4 rounded border text-center">
+              <span class="text-xs text-gray-500 block">Rendimento Operacional</span>
+              <span id="rep-rendimento-medio" class="text-xl font-bold text-blue-700">0.0%</span>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Saldos Atuais em Estoque (Físico)</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-3 bg-gray-50 rounded border">
+                <span class="font-bold text-gray-700 block mb-1">Câmara Fria:</span>
+                <p id="rep-saldo-camara" class="text-xs text-gray-600">Carregando...</p>
+              </div>
+              <div class="p-3 bg-gray-50 rounded border">
+                <span class="font-bold text-gray-700 block mb-1">Geladeira Porcionamento:</span>
+                <p id="rep-saldo-geladeira" class="text-xs text-gray-600">Carregando...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 7: HISTÓRICO & PERÍODO -->
+    <section id="tab-historico" class="tab-content space-y-4 hidden">
+      <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Consulta Histórica Personalizada</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-6">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Data Inicial</label>
+            <input type="date" id="hist-data-inicio" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Data Final</label>
+            <input type="date" id="hist-data-fim" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Proteína / Corte</label>
+            <select id="hist-corte-filtro" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none">
+              <option value="TODOS">Todos os Cortes</option>
+            </select>
+          </div>
+          <div>
+            <button onclick="filterHistory()" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium p-2 rounded shadow transition-all text-sm">Filtrar Período</button>
+          </div>
+        </div>
+
+        <div id="resultado-historico" class="space-y-4">
+          <h3 class="text-md font-semibold text-gray-800">Linha do Tempo de Movimentações</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-gray-600">
+              <thead class="bg-gray-100 text-gray-700 uppercase border-b">
+                <tr>
+                  <th class="p-2">Data/Hora</th>
+                  <th class="p-2">Tipo Movimento</th>
+                  <th class="p-2">Corte</th>
+                  <th class="p-2">Detalhamento</th>
+                  <th class="p-2">Peso Envolvido (kg)</th>
+                  <th class="p-2">Operador</th>
+                </tr>
+              </thead>
+              <tbody id="lista-historico-filtrado">
+                <tr><td colspan="6" class="text-center p-4 text-gray-400">Selecione o período e clique em "Filtrar Período" para carregar.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 8: GESTÃO ADM (FÁBIO) -->
+    <section id="tab-admin" class="tab-content space-y-4 hidden">
+      <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <div class="flex justify-between items-center border-b pb-2 mb-4">
+          <h2 class="text-lg font-bold text-gray-800">Painel de Controle Administrativo (Fábio)</h2>
+          <button onclick="clearSystemDataADM()" class="bg-red-800 hover:bg-red-900 text-white text-xs px-3 py-1.5 rounded font-bold">⚠️ Zerar Todo o Banco de Dados</button>
+        </div>
+        
+        <!-- Cadastro e Exclusão de Cortes -->
+        <div class="mb-6">
+          <h3 class="text-md font-semibold text-gray-700 mb-2">Cadastrar / Excluir Proteínas</h3>
+          <form onsubmit="handleAddCorte(event)" class="flex gap-2 mb-3">
+            <input type="text" id="adm-novo-corte" required placeholder="Ex: Tomahawk, Picanha, Linguiça" class="border rounded p-2 text-sm flex-1 focus:ring-2 focus:ring-red-500 outline-none">
+            <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white text-sm px-4 py-2 rounded">+ Adicionar Corte</button>
+          </form>
+          <div id="lista-cortes-tags" class="flex flex-wrap gap-2 mt-3"></div>
+        </div>
+
+        <!-- Exclusão de Notas Fiscais -->
+        <div class="mb-6 border-t pt-4">
+          <h3 class="text-md font-semibold text-red-700 mb-2">Excluir Notas Fiscais Registradas</h3>
+          <p class="text-xs text-gray-500 mb-2">Abaixo estão listadas todas as NFs cadastradas na Aba 1 para exclusão direta.</p>
+          <div id="adm-delete-nfs-container" class="space-y-2"></div>
+        </div>
+
+        <!-- Exclusão de Caixas no Estoque -->
+        <div class="mb-6 border-t pt-4">
+          <h3 class="text-md font-semibold text-red-700 mb-2">Excluir / Deletar Caixas em Estoque</h3>
+          <p class="text-xs text-gray-500 mb-2">Exclui permanentemente a caixa e suas peças do estoque.</p>
+          <div id="adm-delete-caixas-container" class="space-y-2"></div>
+        </div>
+
+        <!-- Reiniciar Numeração Sequencial de Peças (P1, P2...) -->
+        <div class="mb-6 border-t pt-4">
+          <h3 class="text-md font-semibold text-red-700 mb-1">🔄 Reiniciar Numeração de Peças (Ciclo Mensal / Troca de Lote)</h3>
+          <p class="text-xs text-gray-500 mb-3">Reseta a numeração para voltar a gerar a partir da P1 nas próximas entradas, sem apagar os pesos ou o estoque atual.</p>
+          <div class="flex gap-3 items-center">
+            <select id="adm-reset-corte-select" class="border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none flex-1 max-w-xs"></select>
+            <button onclick="resetCorteSequenceADM()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-4 py-2 rounded font-medium">Reiniciar Numeração para P1</button>
+          </div>
+        </div>
+
+        <!-- Edição Global de Pesos -->
+        <div class="mb-6 border-t pt-4">
+          <h3 class="text-md font-semibold text-gray-700 mb-2">Ajuste / Edição Direta de Pesos em Estoque</h3>
+          <p class="text-xs text-gray-500 mb-3">Como Administrador, você pode alterar o peso de qualquer caixa ou de suas peças individuais.</p>
+          <div id="adm-edit-caixas-container" class="space-y-3"></div>
+        </div>
+
+        <div class="border-t pt-4">
+          <h3 class="text-md font-semibold text-gray-700 mb-2">Usuários Autorizados</h3>
+          <div class="bg-slate-50 p-4 rounded border space-y-2 text-xs">
+            <div class="flex justify-between items-center border-b pb-1">
+              <span><strong>Fábio</strong> (Administrador - Acesso Total)</span>
+              <span class="text-gray-500">Senha: 990992</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span><strong>Eli</strong> (Operador - Porcionamento e Estoque)</span>
+              <span class="text-gray-500">Acesso Direto</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal ADM -->
+  <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg max-w-sm w-full p-6 shadow-xl">
+      <h3 class="text-lg font-bold text-gray-800 mb-2">Autenticação Administrativa</h3>
+      <p class="text-xs text-gray-500 mb-4">Insira a senha do Fábio para acessar os recursos de Administrador.</p>
+      <input type="password" id="adminPasswordInput" class="w-full border rounded p-2 text-sm mb-4 outline-none focus:ring-2 focus:ring-red-500" placeholder="Digite a senha ADM">
+      <div class="flex justify-end space-x-2">
+        <button onclick="closeAuthModal()" class="px-4 py-2 text-xs border rounded text-gray-600">Cancelar</button>
+        <button onclick="validateAdminPassword()" class="px-4 py-2 text-xs bg-red-600 text-white rounded font-medium">Entrar como ADM</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ADMIN_PASS = "990992";
+    let currentUser = { name: "Operador/Eli", role: "OPERATOR" };
+
+    let cortesList = JSON.parse(localStorage.getItem('bt_cortes')) || ["Ancho", "Chorizo", "Picanha", "Tomahawk"];
+    let nfsList = JSON.parse(localStorage.getItem('bt_nfs')) || [];
+    let caixasList = JSON.parse(localStorage.getItem('bt_caixas')) || [];
+    let porcionamentosList = JSON.parse(localStorage.getItem('bt_porcionamentos')) || [];
+    let aparasList = JSON.parse(localStorage.getItem('bt_aparas')) || [];
+    let historicoList = JSON.parse(localStorage.getItem('bt_historico')) || [];
+    let corteCounters = JSON.parse(localStorage.getItem('bt_corte_counters')) || {};
+
+    function switchTab(tabId) {
+      var contents = document.querySelectorAll('.tab-content');
+      for(var i=0; i<contents.length; i++) contents[i].classList.add('hidden');
+      
+      var navBtns = document.querySelectorAll('nav button');
+      for(var j=0; j<navBtns.length; j++) {
+        navBtns[j].classList.remove('tab-active');
+        navBtns[j].classList.add('text-gray-600');
+      }
+
+      var target = document.getElementById(tabId);
+      if(target) target.classList.remove('hidden');
+
+      var activeBtn = document.getElementById('btn-' + tabId);
+      if(activeBtn) {
+        activeBtn.classList.add('tab-active');
+        activeBtn.classList.remove('text-gray-600');
+      }
+
+      if(tabId === 'tab-caixas') renderNFSelectAba2();
+      if(tabId === 'tab-estoque') renderCaixas();
+      if(tabId === 'tab-porcionamento') renderPecasSelectPorcionamento();
+      if(tabId === 'tab-aparas') renderAparas();
+      if(tabId === 'tab-relatorios') updateRelatorios();
+      if(tabId === 'tab-admin') {
+        renderADMEditCaixas();
+        renderADMDeleteLists();
+        renderResetSelectADM();
+        renderCortesTags();
+      }
+    }
+
+    function openAuthModal() { document.getElementById('authModal').classList.remove('hidden'); }
+    function closeAuthModal() {
+      document.getElementById('authModal').classList.add('hidden');
+      document.getElementById('adminPasswordInput').value = "";
+    }
+    function validateAdminPassword() {
+      var pass = document.getElementById('adminPasswordInput').value;
+      if(pass === ADMIN_PASS) {
+        currentUser = { name: "Fábio", role: "ADMIN" };
+        document.getElementById('userBadge').innerText = "Perfil: Fábio (ADM)";
         document.getElementById('userBadge').className = "text-xs bg-red-900 border border-red-700 px-3 py-1 rounded-full text-red-200 font-bold";
         document.getElementById('btn-admin-tab').classList.remove('hidden');
         closeAuthModal();
@@ -58,16 +585,18 @@ rText = "Perfil: Fábio (ADM)";
         localStorage.setItem('bt_cortes', JSON.stringify(cortesList));
         renderCortesSelects();
         renderCortesTags();
+        renderResetSelectADM();
         document.getElementById('adm-novo-corte').value = "";
       }
     }
 
     function removeCorte(corteNome) {
-      if(confirm('Tem certeza que deseja excluir "' + corteNome + '"?')) {
+      if(confirm('Tem certeza que deseja excluir a proteína "' + corteNome + '"?')) {
         cortesList = cortesList.filter(function(c) { return c !== corteNome; });
         localStorage.setItem('bt_cortes', JSON.stringify(cortesList));
         renderCortesSelects();
         renderCortesTags();
+        renderResetSelectADM();
       }
     }
 
@@ -99,9 +628,10 @@ rText = "Perfil: Fábio (ADM)";
         return '<option value="' + c + '">' + c + '</option>';
       }).join('');
       
-      var rowHtml = '<div id="nf-row-' + rowId + '" class="flex gap-2 items-center bg-gray-50 p-2 rounded border">' +
-        '<select class="nf-corte-item border rounded p-1.5 text-sm flex-1">' + options + '</select>' +
-        '<input type="number" min="1" placeholder="Qtd Caixas" class="nf-caixas-item border rounded p-1.5 text-sm w-32" required>' +
+      var rowHtml = '<div id="nf-row-' + rowId + '" class="flex flex-wrap gap-2 items-center bg-gray-50 p-2 rounded border">' +
+        '<select class="nf-corte-item border rounded p-1.5 text-sm flex-1 min-w-[140px]">' + options + '</select>' +
+        '<input type="number" min="1" placeholder="Qtd Caixas" class="nf-caixas-item border rounded p-1.5 text-sm w-28" required>' +
+        '<input type="number" step="0.001" placeholder="Peso Caixa/Item (kg)" class="nf-pesoitem-item border rounded p-1.5 text-sm w-36" required>' +
         '<button type="button" onclick="removeNFCorteRow(\'nf-row-' + rowId + '\')" class="text-red-600 font-bold px-2 text-sm">✕</button>' +
       '</div>';
       container.insertAdjacentHTML('beforeend', rowHtml);
@@ -135,20 +665,24 @@ rText = "Perfil: Fábio (ADM)";
       var corteRows = document.querySelectorAll('#nf-cortes-container > div');
       var detalheCortes = [];
       var totalCaixas = 0;
+      var pesoTotalDetalhamento = 0;
 
       for(var i=0; i<corteRows.length; i++) {
         var corte = corteRows[i].querySelector('.nf-corte-item').value;
         var caixas = parseInt(corteRows[i].querySelector('.nf-caixas-item').value) || 0;
+        var pesoItem = parseFloat(corteRows[i].querySelector('.nf-pesoitem-item').value) || 0;
+
         if(caixas > 0) {
-          detalheCortes.push({ corte: corte, caixas: caixas });
+          detalheCortes.push({ corte: corte, caixas: caixas, pesoItem: pesoItem });
           totalCaixas += caixas;
+          pesoTotalDetalhamento += pesoItem;
         }
       }
 
       var nfNumero = document.getElementById('nf-numero').value.trim();
       var fornecedor = document.getElementById('nf-fornecedor').value.trim();
       var dataRec = document.getElementById('nf-data').value;
-      var pesoTotal = parseFloat(document.getElementById('nf-peso-total').value) || 0;
+      var pesoTotalNF = parseFloat(document.getElementById('nf-peso-total').value) || 0;
 
       var newNF = {
         id: Date.now(),
@@ -157,7 +691,7 @@ rText = "Perfil: Fábio (ADM)";
         data: dataRec,
         detalheCortes: detalheCortes,
         totalCaixas: totalCaixas,
-        pesoTotal: pesoTotal,
+        pesoTotal: pesoTotalNF,
         status: "Cadastrada"
       };
 
@@ -174,16 +708,22 @@ rText = "Perfil: Fábio (ADM)";
 
       renderNFList();
       renderNFSelectAba2();
-      alert("Nota Fiscal #" + nfNumero + " salva com sucesso!");
+      alert("Nota Fiscal #" + nfNumero + " salva com sucesso e liberada na Aba 2!");
     }
 
     function renderNFList() {
       var tbody = document.getElementById('lista-nfs');
       if(tbody) {
+        if(nfsList.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-gray-400">Nenhuma Nota Fiscal cadastrada.</td></tr>';
+          return;
+        }
+
         tbody.innerHTML = nfsList.map(function(nf) {
           var resumoCortes = nf.detalheCortes ? nf.detalheCortes.map(function(d) {
-            return d.caixas + 'x ' + d.corte;
+            return d.caixas + 'x ' + d.corte + ' (' + d.pesoItem.toFixed(3) + 'kg)';
           }).join(', ') : 'N/A';
+
           return '<tr class="border-b hover:bg-gray-50">' +
             '<td class="p-2 font-bold">' + nf.numero + '</td>' +
             '<td class="p-2">' + nf.data + '</td>' +
@@ -199,11 +739,16 @@ rText = "Perfil: Fábio (ADM)";
     function renderNFSelectAba2() {
       var caixaNFSelect = document.getElementById('caixa-nf-id');
       if(caixaNFSelect) {
-        caixaNFSelect.innerHTML = '<option value="">-- Selecione a NF de Origem (ou Avulso) --</option>' +
-          '<option value="AVULSO">-- Entrada Avulsa (Sem NF) --</option>' +
-          nfsList.map(function(nf) {
-            return '<option value="' + nf.id + '">NF #' + nf.numero + ' - ' + nf.fornecedor + '</option>';
+        var options = '<option value="">-- Selecione a NF de Origem (ou Avulso) --</option>' +
+          '<option value="AVULSO">-- Entrada Avulsa (Sem NF) --</option>';
+
+        if(nfsList.length > 0) {
+          options += nfsList.map(function(nf) {
+            return '<option value="' + nf.id + '">NF #' + nf.numero + ' - ' + nf.fornecedor + ' (' + nf.pesoTotal.toFixed(3) + ' kg)</option>';
           }).join('');
+        }
+
+        caixaNFSelect.innerHTML = options;
       }
       updateCorteOptionsFromNF();
     }
@@ -217,7 +762,7 @@ rText = "Perfil: Fábio (ADM)";
         var nf = nfsList.find(function(n) { return n.id === nfId; });
         if(nf && nf.detalheCortes && nf.detalheCortes.length > 0) {
           corteSelect.innerHTML = nf.detalheCortes.map(function(d) {
-            return '<option value="' + d.corte + '">' + d.corte + '</option>';
+            return '<option value="' + d.corte + '">' + d.corte + ' (CX Ref: ' + d.pesoItem.toFixed(3) + 'kg)</option>';
           }).join('');
         } else {
           corteSelect.innerHTML = cortesList.map(function(c) {
@@ -235,6 +780,10 @@ rText = "Perfil: Fábio (ADM)";
     function renderPecasInputs() {
       var qtd = parseInt(document.getElementById('caixa-qtd-pecas').value) || 0;
       var corteNome = document.getElementById('caixa-corte').value || 'Peça';
+      if(corteNome.indexOf(" (CX Ref:") !== -1) {
+        corteNome = corteNome.split(" (CX Ref:")[0];
+      }
+
       var container = document.getElementById('pecas-weights-container');
       container.innerHTML = "";
 
@@ -277,6 +826,10 @@ rText = "Perfil: Fábio (ADM)";
       }
 
       var corteSelecionado = document.getElementById('caixa-corte').value;
+      if(corteSelecionado.indexOf(" (CX Ref:") !== -1) {
+        corteSelecionado = corteSelecionado.split(" (CX Ref:")[0];
+      }
+
       var pecaInputs = document.querySelectorAll('.peca-peso-input');
       var pecasListObj = [];
       var pesoTotalCaixa = 0;
@@ -313,7 +866,7 @@ rText = "Perfil: Fábio (ADM)";
 
       renderCaixas();
       renderPecasSelectPorcionamento();
-      alert("Caixa " + newCaixa.lote + " cadastrada no estoque com sucesso!");
+      alert("Caixa " + newCaixa.lote + " salva! " + pesoTotalCaixa.toFixed(3) + " kg adicionados ao estoque.");
     }
 
     function renderCaixas() {
@@ -325,22 +878,26 @@ rText = "Perfil: Fábio (ADM)";
       var totCam = 0, totGel = 0;
 
       if(tbody) {
-        tbody.innerHTML = caixasList.map(function(cx) {
-          var detalhePecas = (cx.pecas && cx.pecas.length > 0) ? cx.pecas.map(function(p) {
-            var badgeClass = p.status === "Porcionado" ? "line-through opacity-50 bg-gray-200" : "bg-gray-100 text-red-700 font-bold";
-            return '<span class="' + badgeClass + ' px-1.5 py-0.5 rounded mr-1 font-mono text-xs">' + p.tag + ': ' + p.peso.toFixed(3) + 'kg</span>';
-          }).join('') : '<span class="text-amber-600 font-bold">Aguardando Aferição</span>';
+        if(caixasList.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4 text-gray-400">Nenhuma caixa cadastrada no estoque.</td></tr>';
+        } else {
+          tbody.innerHTML = caixasList.map(function(cx) {
+            var detalhePecas = (cx.pecas && cx.pecas.length > 0) ? cx.pecas.map(function(p) {
+              var badgeClass = p.status === "Porcionado" ? "line-through opacity-50 bg-gray-200" : "bg-gray-100 text-red-700 font-bold";
+              return '<span class="' + badgeClass + ' px-1.5 py-0.5 rounded mr-1 font-mono text-xs">' + p.tag + ': ' + p.peso.toFixed(3) + 'kg</span>';
+            }).join('') : '<span class="text-amber-600 font-bold">Aguardando Aferição</span>';
 
-          return '<tr class="border-b hover:bg-gray-50">' +
-            '<td class="p-2 font-bold">' + cx.lote + '</td>' +
-            '<td class="p-2">NF #' + cx.nfNumero + '</td>' +
-            '<td class="p-2 font-semibold text-slate-800">' + cx.corte + '</td>' +
-            '<td class="p-2 font-bold text-slate-800">' + cx.pesoReal.toFixed(3) + ' kg</td>' +
-            '<td class="p-2 text-xs">' + detalhePecas + '</td>' +
-            '<td class="p-2"><span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200">' + cx.localizacao + '</span></td>' +
-            '<td class="p-2">' + cx.status + '</td>' +
-          '</tr>';
-        }).join('');
+            return '<tr class="border-b hover:bg-gray-50">' +
+              '<td class="p-2 font-bold">' + cx.lote + '</td>' +
+              '<td class="p-2">NF #' + cx.nfNumero + '</td>' +
+              '<td class="p-2 font-semibold text-slate-800">' + cx.corte + '</td>' +
+              '<td class="p-2 font-bold text-slate-800">' + cx.pesoReal.toFixed(3) + ' kg</td>' +
+              '<td class="p-2 text-xs">' + detalhePecas + '</td>' +
+              '<td class="p-2"><span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200">' + cx.localizacao + '</span></td>' +
+              '<td class="p-2">' + cx.status + '</td>' +
+            '</tr>';
+          }).join('');
+        }
       }
 
       if(cardsCamara && cardsGeladeira) {
@@ -356,6 +913,7 @@ rText = "Perfil: Fábio (ADM)";
             '</div>' +
             '<span class="font-bold text-sm text-slate-700">' + cx.pesoReal.toFixed(3) + ' kg</span>' +
           '</div>';
+
           if(cx.localizacao === "Câmara Fria") {
             totCam += cx.pesoReal;
             cardsCamara.innerHTML += cardHtml;
@@ -364,6 +922,9 @@ rText = "Perfil: Fábio (ADM)";
             cardsGeladeira.innerHTML += cardHtml;
           }
         });
+
+        if(!cardsCamara.innerHTML) cardsCamara.innerHTML = '<p class="text-xs text-gray-400 p-2">Nenhuma caixa na Câmara Fria.</p>';
+        if(!cardsGeladeira.innerHTML) cardsGeladeira.innerHTML = '<p class="text-xs text-gray-400 p-2">Nenhuma caixa na Geladeira.</p>';
 
         document.getElementById('tot-camara').innerText = totCam.toFixed(3) + " kg";
         document.getElementById('tot-geladeira').innerText = totGel.toFixed(3) + " kg";
@@ -471,6 +1032,11 @@ rText = "Perfil: Fábio (ADM)";
     function renderPorcionamentos() {
       var tbody = document.getElementById('lista-porcionamentos');
       if(tbody) {
+        if(porcionamentosList.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-400">Nenhum porcionamento registrado.</td></tr>';
+          return;
+        }
+
         tbody.innerHTML = porcionamentosList.map(function(p) {
           return '<tr class="border-b hover:bg-gray-50">' +
             '<td class="p-2">' + p.dataHora + '</td>' +
@@ -512,6 +1078,11 @@ rText = "Perfil: Fábio (ADM)";
     function renderAparas() {
       var tbody = document.getElementById('lista-aparas');
       if(tbody) {
+        if(aparasList.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-gray-400">Nenhum registro de aparas encontrado.</td></tr>';
+          return;
+        }
+
         tbody.innerHTML = aparasList.map(function(a) {
           return '<tr class="border-b hover:bg-gray-50">' +
             '<td class="p-2 font-bold">' + a.data + '</td>' +
@@ -529,7 +1100,7 @@ rText = "Perfil: Fábio (ADM)";
 
       if(nfsCont) {
         if(nfsList.length === 0) {
-          nfsCont.innerHTML = '<p class="text-xs text-gray-400">Nenhuma Nota Fiscal cadastrada.</p>';
+          nfsCont.innerHTML = '<p class="text-xs text-gray-400 p-2 border rounded bg-gray-50">Nenhuma Nota Fiscal cadastrada no momento.</p>';
         } else {
           nfsCont.innerHTML = nfsList.map(function(n) {
             return '<div class="flex justify-between items-center p-2 bg-slate-50 border rounded text-xs">' +
@@ -542,7 +1113,7 @@ rText = "Perfil: Fábio (ADM)";
 
       if(cxsCont) {
         if(caixasList.length === 0) {
-          cxsCont.innerHTML = '<p class="text-xs text-gray-400">Nenhuma Caixa em estoque.</p>';
+          cxsCont.innerHTML = '<p class="text-xs text-gray-400 p-2 border rounded bg-gray-50">Nenhuma Caixa cadastrada no estoque.</p>';
         } else {
           cxsCont.innerHTML = caixasList.map(function(c) {
             return '<div class="flex justify-between items-center p-2 bg-slate-50 border rounded text-xs">' +
@@ -562,6 +1133,7 @@ rText = "Perfil: Fábio (ADM)";
         renderNFSelectAba2();
         renderADMDeleteLists();
         addLog("Exclusão ADM", "NF", "Fábio excluiu uma Nota Fiscal", 0);
+        alert("Nota Fiscal excluída com sucesso!");
       }
     }
 
@@ -574,6 +1146,7 @@ rText = "Perfil: Fábio (ADM)";
         renderADMDeleteLists();
         renderADMEditCaixas();
         addLog("Exclusão ADM", "Estoque", "Fábio excluiu uma Caixa do estoque", 0);
+        alert("Caixa excluída do estoque!");
       }
     }
 
@@ -582,7 +1155,7 @@ rText = "Perfil: Fábio (ADM)";
       if(!container) return;
 
       if(caixasList.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-400">Nenhuma caixa cadastrada no sistema.</p>';
+        container.innerHTML = '<p class="text-xs text-gray-400 p-2 border rounded bg-gray-50">Nenhuma caixa cadastrada para edição.</p>';
         return;
       }
 
@@ -619,6 +1192,32 @@ rText = "Perfil: Fábio (ADM)";
         renderCaixas();
         renderADMEditCaixas();
         addLog("Ajuste ADM", cx.corte, "Fábio alterou peso da peça " + cx.pecas[pecaIdx].tag + " para " + newPeso + "kg", cx.pesoReal);
+      }
+    }
+
+    function clearSystemDataADM() {
+      if(confirm("ATENÇÃO: Deseja ZERAR TODO o banco de dados do sistema? Todas as NFs, caixas, porcionamentos e relatórios serão apagados permanentemente.")) {
+        localStorage.clear();
+        nfsList = [];
+        caixasList = [];
+        porcionamentosList = [];
+        aparasList = [];
+        historicoList = [];
+        corteCounters = {};
+        cortesList = ["Ancho", "Chorizo", "Picanha", "Tomahawk"];
+        localStorage.setItem('bt_cortes', JSON.stringify(cortesList));
+
+        renderNFList();
+        renderNFSelectAba2();
+        renderCaixas();
+        renderPorcionamentos();
+        renderAparas();
+        renderADMDeleteLists();
+        renderADMEditCaixas();
+        renderCortesTags();
+        renderResetSelectADM();
+
+        alert("Banco de dados resetado com sucesso!");
       }
     }
 
