@@ -30,9 +30,10 @@
     <button onclick="switchTab('tab-caixas')" id="btn-tab-caixas" class="py-3 px-2 text-gray-600 transition-all">2. Caixas & Pesagem</button>
     <button onclick="switchTab('tab-estoque')" id="btn-tab-estoque" class="py-3 px-2 text-gray-600 transition-all">3. Estoque & Movimentações</button>
     <button onclick="switchTab('tab-porcionamento')" id="btn-tab-porcionamento" class="py-3 px-2 text-gray-600 transition-all">4. Porcionamentos (Eli)</button>
-    <button onclick="switchTab('tab-relatorios')" id="btn-tab-relatorios" class="py-3 px-2 text-gray-600 transition-all">5. Relatório Diário</button>
-    <button onclick="switchTab('tab-historico')" id="btn-tab-historico" class="py-3 px-2 text-gray-600 transition-all">6. Histórico & Período</button>
-    <button id="btn-admin-tab" onclick="switchTab('tab-admin')" class="py-3 px-2 text-gray-600 transition-all hidden">7. Gestão ADM (Fábio)</button>
+    <button onclick="switchTab('tab-aparas')" id="btn-tab-aparas" class="py-3 px-2 text-gray-600 transition-all">5. Aparas Diárias</button>
+    <button onclick="switchTab('tab-relatorios')" id="btn-tab-relatorios" class="py-3 px-2 text-gray-600 transition-all">6. Relatório Diário</button>
+    <button onclick="switchTab('tab-historico')" id="btn-tab-historico" class="py-3 px-2 text-gray-600 transition-all">7. Histórico & Período</button>
+    <button id="btn-admin-tab" onclick="switchTab('tab-admin')" class="py-3 px-2 text-gray-600 transition-all hidden">8. Gestão ADM (Fábio)</button>
   </nav>
 
   <!-- Main Content Area -->
@@ -101,7 +102,7 @@
     <!-- TAB 2: CAIXAS & PESAGEM -->
     <section id="tab-caixas" class="tab-content space-y-4 hidden">
       <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Abertura & Conferência de Caixa (Sequência Contínua de Peças)</h2>
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Abertura & Conferência de Caixa (Pesagem Peça por Peça)</h2>
         <form id="form-caixa" onsubmit="handleCaixaSubmit(event)" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -125,7 +126,7 @@
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-600 mb-1">Qtd. Peças Inteiras na Caixa *</label>
-              <input type="number" id="caixa-qtd-pecas" required min="1" max="20" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 5" oninput="renderPecasInputs()">
+              <input type="number" id="caixa-qtd-pecas" required min="1" max="50" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 5" oninput="renderPecasInputs()">
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-600 mb-1">Peso Total Aferido (Soma Peças)</label>
@@ -134,7 +135,7 @@
           </div>
 
           <div class="border-t pt-3">
-            <h4 class="text-xs font-bold text-gray-700 mb-2">Pesagem Individual das Peças (Numeração Sequencial) *</h4>
+            <h4 class="text-xs font-bold text-gray-700 mb-2">Pesagem Individual das Peças *</h4>
             <div id="pecas-weights-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
               <p class="text-xs text-gray-400 col-span-full">Selecione a NF e a quantidade de peças acima.</p>
             </div>
@@ -156,7 +157,7 @@
                 <th class="p-2">NF</th>
                 <th class="p-2">Corte</th>
                 <th class="p-2">Peso Total (kg)</th>
-                <th class="p-2">Peças Sequenciais Rastreáveis</th>
+                <th class="p-2">Peças Rastreáveis</th>
                 <th class="p-2">Localização</th>
                 <th class="p-2">Status</th>
               </tr>
@@ -212,55 +213,40 @@
     <section id="tab-porcionamento" class="tab-content space-y-4 hidden">
       <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
         <div class="flex justify-between items-center border-b pb-2 mb-4">
-          <h2 class="text-lg font-semibold text-gray-800">Produção & Porcionamento - Operador Eli</h2>
-          <span class="text-xs bg-amber-100 text-amber-800 font-medium px-2.5 py-0.5 rounded">Processamento Limpo</span>
+          <h2 class="text-lg font-semibold text-gray-800">Porcionamento por Peça - Operador Eli</h2>
+          <span class="text-xs bg-amber-100 text-amber-800 font-medium px-2.5 py-0.5 rounded">Processamento de Peças</span>
         </div>
 
         <form id="form-porcionamento" onsubmit="handlePorcionamentoSubmit(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Caixa / Peça de Origem (Geladeira) *</label>
-            <select id="porc-caixa-id" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" onchange="calculateYield()"></select>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Selecione a Peça (Geladeira) *</label>
+            <select id="porc-peca-tag" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" onchange="updatePecaBrutoDisplay()"></select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Peso Bruto Retirado p/ Limpeza (kg) *</label>
-            <input type="number" step="0.001" id="porc-peso-bruto" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 5.200" oninput="calculateYield()">
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Peso Bruto Original da Peça (kg)</label>
+            <input type="text" id="porc-peso-bruto-display" readonly class="w-full border rounded p-2 text-sm bg-gray-100 font-bold text-slate-700" placeholder="0.000 kg">
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-600 mb-1">Peso Limpo Porcionado / Válido (kg) *</label>
-            <input type="number" step="0.001" id="porc-peso-limpo" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 4.650" oninput="calculateYield()">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Perdas / Aparas de Gordura (kg) *</label>
-            <input type="number" step="0.001" id="porc-peso-perda" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 0.550" oninput="calculateYield()">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Qtd. Porções / Steaks Obtidos *</label>
-            <input type="number" id="porc-qtd-porcoes" required min="1" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 15">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Rendimento Calculado (%)</label>
-            <input type="text" id="porc-rendimento" readonly class="w-full border rounded p-2 text-sm bg-gray-100 font-bold text-slate-700" placeholder="0.00%">
+            <input type="number" step="0.001" id="porc-peso-limpo" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 2.100">
           </div>
           <div class="md:col-span-3 flex justify-end">
-            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-2 rounded shadow transition-all text-sm">Registrar Porcionamento</button>
+            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-2 rounded shadow transition-all text-sm">Dar Baixa na Peça Porcionada</button>
           </div>
         </form>
       </div>
 
       <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
-        <h3 class="text-md font-semibold text-gray-800 mb-3">Registros de Porcionamentos Efetuados</h3>
+        <h3 class="text-md font-semibold text-gray-800 mb-3">Histórico de Peças Porcionadas</h3>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-gray-600">
             <thead class="bg-gray-100 text-gray-700 uppercase border-b">
               <tr>
                 <th class="p-2">Data/Hora</th>
-                <th class="p-2">Caixa Origem</th>
-                <th class="p-2">Corte</th>
-                <th class="p-2">Bruto (kg)</th>
-                <th class="p-2">Limpo (kg)</th>
-                <th class="p-2">Aparas (kg)</th>
-                <th class="p-2">Rendimento</th>
-                <th class="p-2">Porções</th>
+                <th class="p-2">Peça / Tag</th>
+                <th class="p-2">Caixa Lote</th>
+                <th class="p-2">Peso Bruto (kg)</th>
+                <th class="p-2">Peso Limpo (kg)</th>
               </tr>
             </thead>
             <tbody id="lista-porcionamentos"></tbody>
@@ -269,7 +255,48 @@
       </div>
     </section>
 
-    <!-- TAB 5: RELATÓRIO DIÁRIO -->
+    <!-- TAB 5: APARAS DIÁRIAS -->
+    <section id="tab-aparas" class="tab-content space-y-4 hidden">
+      <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Registro de Aparas & Descarte Geral (Diário)</h2>
+        <form id="form-aparas" onsubmit="handleAparasSubmit(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Data de Referência *</label>
+            <input type="date" id="apara-data" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Peso Total de Aparas/Gordura (kg) *</label>
+            <input type="number" step="0.001" id="apara-peso" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 3.450">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Observações / Detalhes</label>
+            <input type="text" id="apara-obs" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: Aparas gerais do porcionamento noturno">
+          </div>
+          <div class="md:col-span-3 flex justify-end">
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-2 rounded shadow transition-all text-sm">Registrar Aparas do Dia</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <h3 class="text-md font-semibold text-gray-800 mb-3">Histórico de Aparas Diárias</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600">
+            <thead class="bg-gray-100 text-gray-700 uppercase border-b">
+              <tr>
+                <th class="p-2">Data</th>
+                <th class="p-2">Peso Aparas (kg)</th>
+                <th class="p-2">Observações</th>
+                <th class="p-2">Registrado Por</th>
+              </tr>
+            </thead>
+            <tbody id="lista-aparas"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: RELATÓRIO DIÁRIO -->
     <section id="tab-relatorios" class="tab-content space-y-4 hidden">
       <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
         <div class="flex justify-between items-center border-b pb-3 mb-4">
@@ -290,15 +317,15 @@
               <span id="rep-total-nf" class="text-xl font-bold text-slate-800">0.000 kg</span>
             </div>
             <div class="bg-slate-50 p-4 rounded border text-center">
-              <span class="text-xs text-gray-500 block">Total Processado Eli</span>
+              <span class="text-xs text-gray-500 block">Total Porcionado Limpo (Eli)</span>
               <span id="rep-total-limpo" class="text-xl font-bold text-emerald-700">0.000 kg</span>
             </div>
             <div class="bg-slate-50 p-4 rounded border text-center">
-              <span class="text-xs text-gray-500 block">Aparas / Perdas Totais</span>
+              <span class="text-xs text-gray-500 block">Aparas Diárias Lançadas</span>
               <span id="rep-total-perdas" class="text-xl font-bold text-red-600">0.000 kg</span>
             </div>
             <div class="bg-slate-50 p-4 rounded border text-center">
-              <span class="text-xs text-gray-500 block">Rendimento Médio Geral</span>
+              <span class="text-xs text-gray-500 block">Rendimento Operacional</span>
               <span id="rep-rendimento-medio" class="text-xl font-bold text-blue-700">0.0%</span>
             </div>
           </div>
@@ -320,7 +347,7 @@
       </div>
     </section>
 
-    <!-- TAB 6: HISTÓRICO & PERÍODO -->
+    <!-- TAB 7: HISTÓRICO & PERÍODO -->
     <section id="tab-historico" class="tab-content space-y-4 hidden">
       <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
         <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Consulta Histórica Personalizada</h2>
@@ -367,12 +394,11 @@
       </div>
     </section>
 
-    <!-- TAB 7: GESTÃO ADM (FÁBIO) -->
+    <!-- TAB 8: GESTÃO ADM (FÁBIO) -->
     <section id="tab-admin" class="tab-content space-y-4 hidden">
       <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
         <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Painel de Controle Administrativo (Fábio)</h2>
         
-        <!-- Cadastro e Exclusão de Cortes -->
         <div class="mb-6">
           <h3 class="text-md font-semibold text-gray-700 mb-2">Cadastrar / Excluir Proteínas</h3>
           <form onsubmit="handleAddCorte(event)" class="flex gap-2 mb-3">
@@ -382,7 +408,6 @@
           <div id="lista-cortes-tags" class="flex flex-wrap gap-2 mt-3"></div>
         </div>
 
-        <!-- Reiniciar Numeração Sequencial de Peças (P1, P2...) -->
         <div class="mb-6 border-t pt-4">
           <h3 class="text-md font-semibold text-red-700 mb-1">🔄 Reiniciar Numeração de Peças (Ciclo Mensal / Troca de Lote)</h3>
           <p class="text-xs text-gray-500 mb-3">Reseta a numeração para voltar a gerar a partir da P1 nas próximas entradas, sem apagar os pesos ou o estoque atual.</p>
@@ -392,7 +417,6 @@
           </div>
         </div>
 
-        <!-- Edição Global de Pesos -->
         <div class="mb-6 border-t pt-4">
           <h3 class="text-md font-semibold text-gray-700 mb-2">Ajuste / Edição Direta de Pesos em Estoque</h3>
           <p class="text-xs text-gray-500 mb-3">Como Administrador, você pode alterar o peso de qualquer caixa ou de suas peças individuais.</p>
@@ -438,6 +462,7 @@
     let nfsList = JSON.parse(localStorage.getItem('bt_nfs')) || [];
     let caixasList = JSON.parse(localStorage.getItem('bt_caixas')) || [];
     let porcionamentosList = JSON.parse(localStorage.getItem('bt_porcionamentos')) || [];
+    let aparasList = JSON.parse(localStorage.getItem('bt_aparas')) || [];
     let historicoList = JSON.parse(localStorage.getItem('bt_historico')) || [];
     let corteCounters = JSON.parse(localStorage.getItem('bt_corte_counters')) || {};
 
@@ -460,6 +485,9 @@
         activeBtn.classList.remove('text-gray-600');
       }
 
+      if(tabId === 'tab-caixas') renderNFSelectAba2();
+      if(tabId === 'tab-porcionamento') renderPecasSelectPorcionamento();
+      if(tabId === 'tab-aparas') renderAparas();
       if(tabId === 'tab-relatorios') updateRelatorios();
       if(tabId === 'tab-admin') {
         renderADMEditCaixas();
@@ -489,6 +517,7 @@
     window.onload = function() {
       var today = new Date().toISOString().split('T')[0];
       if(document.getElementById('nf-data')) document.getElementById('nf-data').value = today;
+      if(document.getElementById('apara-data')) document.getElementById('apara-data').value = today;
       if(document.getElementById('hist-data-inicio')) document.getElementById('hist-data-inicio').value = today;
       if(document.getElementById('hist-data-fim')) document.getElementById('hist-data-fim').value = today;
 
@@ -497,8 +526,11 @@
         addNFCorteRow();
       }
       renderNFList();
+      renderNFSelectAba2();
       renderCaixas();
+      renderPecasSelectPorcionamento();
       renderPorcionamentos();
+      renderAparas();
       renderCortesTags();
     };
 
@@ -613,43 +645,30 @@
       for(var i=0; i<corteRows.length; i++) {
         var corte = corteRows[i].querySelector('.nf-corte-item').value;
         var caixas = parseInt(corteRows[i].querySelector('.nf-caixas-item').value) || 0;
-        detalheCortes.push({ corte: corte, caixas: caixas });
-        totalCaixas += caixas;
+        if(caixas > 0) {
+          detalheCortes.push({ corte: corte, caixas: caixas });
+          totalCaixas += caixas;
+        }
       }
 
-      var nfNumero = document.getElementById('nf-numero').value;
+      var nfNumero = document.getElementById('nf-numero').value.trim();
+      var fornecedor = document.getElementById('nf-fornecedor').value.trim();
+      var dataRec = document.getElementById('nf-data').value;
+      var pesoTotal = parseFloat(document.getElementById('nf-peso-total').value) || 0;
+
       var newNF = {
         id: Date.now(),
         numero: nfNumero,
-        fornecedor: document.getElementById('nf-fornecedor').value,
-        data: document.getElementById('nf-data').value,
+        fornecedor: fornecedor,
+        data: dataRec,
         detalheCortes: detalheCortes,
         totalCaixas: totalCaixas,
-        pesoTotal: parseFloat(document.getElementById('nf-peso-total').value),
-        status: "Pendente Conferência"
+        pesoTotal: pesoTotal,
+        status: "Cadastrada"
       };
 
       nfsList.push(newNF);
       localStorage.setItem('bt_nfs', JSON.stringify(nfsList));
-
-      var count = 1;
-      detalheCortes.forEach(function(d) {
-        for(var c=1; c<=d.caixas; c++) {
-          var cxCode = "CX-" + nfNumero + "-" + count;
-          caixasList.push({
-            id: Date.now() + Math.floor(Math.random() * 10000),
-            nfNumero: nfNumero,
-            corte: d.corte,
-            lote: cxCode,
-            pesoReal: 0,
-            pecas: [],
-            localizacao: "Câmara Fria",
-            status: "Aferição Pendente"
-          });
-          count++;
-        }
-      });
-      localStorage.setItem('bt_caixas', JSON.stringify(caixasList));
 
       addLog("Entrada NF", "Multi-Corte", "NF #" + newNF.numero + " - " + newNF.fornecedor, newNF.pesoTotal);
 
@@ -660,14 +679,12 @@
       document.getElementById('nf-data').value = today;
 
       renderNFList();
-      renderCaixas();
-      alert("Nota Fiscal e " + totalCaixas + " caixas registradas com sucesso!");
+      renderNFSelectAba2();
+      alert("Nota Fiscal #" + nfNumero + " salva com sucesso!");
     }
 
     function renderNFList() {
       var tbody = document.getElementById('lista-nfs');
-      var caixaNFSelect = document.getElementById('caixa-nf-id');
-      
       if(tbody) {
         tbody.innerHTML = nfsList.map(function(nf) {
           var resumoCortes = nf.detalheCortes ? nf.detalheCortes.map(function(d) {
@@ -679,27 +696,40 @@
             '<td class="p-2">' + nf.fornecedor + '</td>' +
             '<td class="p-2 font-medium text-slate-700">' + resumoCortes + '</td>' +
             '<td class="p-2 font-bold">' + nf.pesoTotal.toFixed(3) + ' kg</td>' +
-            '<td class="p-2"><span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded">' + nf.status + '</span></td>' +
+            '<td class="p-2"><span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded">' + nf.status + '</span></td>' +
           '</tr>';
-        }).join('');
-      }
-
-      if(caixaNFSelect) {
-        caixaNFSelect.innerHTML = '<option value="">-- Selecione a NF --</option>' + nfsList.map(function(nf) {
-          return '<option value="' + nf.id + '">NF #' + nf.numero + ' - ' + nf.fornecedor + '</option>';
         }).join('');
       }
     }
 
-    function updateCorteOptionsFromNF() {
-      var nfId = parseInt(document.getElementById('caixa-nf-id').value);
-      var corteSelect = document.getElementById('caixa-corte');
-      var nf = nfsList.find(function(n) { return n.id === nfId; });
+    function renderNFSelectAba2() {
+      var caixaNFSelect = document.getElementById('caixa-nf-id');
+      if(caixaNFSelect) {
+        caixaNFSelect.innerHTML = '<option value="">-- Selecione a NF de Origem (ou Avulso) --</option>' +
+          '<option value="AVULSO">-- Entrada Avulsa (Sem NF) --</option>' +
+          nfsList.map(function(nf) {
+            return '<option value="' + nf.id + '">NF #' + nf.numero + ' - ' + nf.fornecedor + '</option>';
+          }).join('');
+      }
+      updateCorteOptionsFromNF();
+    }
 
-      if(nf && nf.detalheCortes) {
-        corteSelect.innerHTML = nf.detalheCortes.map(function(d) {
-          return '<option value="' + d.corte + '">' + d.corte + '</option>';
-        }).join('');
+    function updateCorteOptionsFromNF() {
+      var val = document.getElementById('caixa-nf-id').value;
+      var corteSelect = document.getElementById('caixa-corte');
+
+      if(val && val !== "AVULSO") {
+        var nfId = parseInt(val);
+        var nf = nfsList.find(function(n) { return n.id === nfId; });
+        if(nf && nf.detalheCortes && nf.detalheCortes.length > 0) {
+          corteSelect.innerHTML = nf.detalheCortes.map(function(d) {
+            return '<option value="' + d.corte + '">' + d.corte + '</option>';
+          }).join('');
+        } else {
+          corteSelect.innerHTML = cortesList.map(function(c) {
+            return '<option value="' + c + '">' + c + '</option>';
+          }).join('');
+        }
       } else {
         corteSelect.innerHTML = cortesList.map(function(c) {
           return '<option value="' + c + '">' + c + '</option>';
@@ -744,10 +774,15 @@
 
     function handleCaixaSubmit(e) {
       e.preventDefault();
-      var nfId = parseInt(document.getElementById('caixa-nf-id').value);
-      var nfObj = nfsList.find(function(n) { return n.id === nfId; });
-      var corteSelecionado = document.getElementById('caixa-corte').value;
+      var nfSelectVal = document.getElementById('caixa-nf-id').value;
+      var nfNumero = "Avulso";
+      
+      if(nfSelectVal && nfSelectVal !== "AVULSO") {
+        var nfObj = nfsList.find(function(n) { return n.id === parseInt(nfSelectVal); });
+        if(nfObj) nfNumero = nfObj.numero;
+      }
 
+      var corteSelecionado = document.getElementById('caixa-corte').value;
       var pecaInputs = document.querySelectorAll('.peca-peso-input');
       var pecasListObj = [];
       var pesoTotalCaixa = 0;
@@ -755,7 +790,7 @@
       for(var i=0; i<pecaInputs.length; i++) {
         var pesoPeca = parseFloat(pecaInputs[i].value) || 0;
         var tagIdent = pecaInputs[i].getAttribute('data-tag');
-        pecasListObj.push({ tag: tagIdent, peso: pesoPeca });
+        pecasListObj.push({ tag: tagIdent, peso: pesoPeca, status: "Em Estoque" });
         pesoTotalCaixa += pesoPeca;
       }
 
@@ -765,9 +800,9 @@
 
       var newCaixa = {
         id: Date.now(),
-        nfNumero: nfObj ? nfObj.numero : "S/N",
+        nfNumero: nfNumero,
         corte: corteSelecionado,
-        lote: document.getElementById('caixa-lote').value,
+        lote: document.getElementById('caixa-lote').value.trim(),
         pesoReal: pesoTotalCaixa,
         pecas: pecasListObj,
         localizacao: document.getElementById('caixa-destino').value,
@@ -783,7 +818,8 @@
       document.getElementById('caixa-peso-total-calc').value = "0.000 kg";
 
       renderCaixas();
-      alert("Caixa " + newCaixa.lote + " cadastrada com sucesso! Peças: " + pecasListObj[0].tag + " a " + pecasListObj[pecasListObj.length-1].tag);
+      renderPecasSelectPorcionamento();
+      alert("Caixa " + newCaixa.lote + " cadastrada com sucesso!");
     }
 
     function renderCaixas() {
@@ -791,14 +827,14 @@
       var cardsCamara = document.getElementById('cards-camara');
       var cardsGeladeira = document.getElementById('cards-geladeira');
       var transfSelect = document.getElementById('transf-caixa-id');
-      var porcSelect = document.getElementById('porc-caixa-id');
 
       var totCam = 0, totGel = 0;
 
       if(tbody) {
         tbody.innerHTML = caixasList.map(function(cx) {
           var detalhePecas = (cx.pecas && cx.pecas.length > 0) ? cx.pecas.map(function(p) {
-            return '<span class="bg-gray-100 px-1.5 py-0.5 rounded mr-1 font-mono text-xs text-red-700 font-bold">' + p.tag + ': ' + p.peso.toFixed(3) + 'kg</span>';
+            var badgeClass = p.status === "Porcionado" ? "line-through opacity-50 bg-gray-200" : "bg-gray-100 text-red-700 font-bold";
+            return '<span class="' + badgeClass + ' px-1.5 py-0.5 rounded mr-1 font-mono text-xs">' + p.tag + ': ' + p.peso.toFixed(3) + 'kg</span>';
           }).join('') : '<span class="text-amber-600 font-bold">Aguardando Aferição</span>';
 
           return '<tr class="border-b hover:bg-gray-50">' +
@@ -818,10 +854,11 @@
         cardsGeladeira.innerHTML = "";
 
         caixasList.filter(function(c) { return c.status === "Em Estoque"; }).forEach(function(cx) {
+          var pecasAtivas = cx.pecas ? cx.pecas.filter(function(p){ return p.status !== "Porcionado"; }).length : 0;
           var cardHtml = '<div class="p-2.5 bg-gray-50 border rounded flex justify-between items-center text-xs">' +
             '<div>' +
               '<span class="font-bold text-slate-800 block">' + cx.lote + ' - ' + cx.corte + '</span>' +
-              '<span class="text-gray-500">NF #' + cx.nfNumero + ' | ' + (cx.pecas ? cx.pecas.length : 0) + ' peças</span>' +
+              '<span class="text-gray-500">NF #' + cx.nfNumero + ' | ' + pecasAtivas + ' peças disponíveis</span>' +
             '</div>' +
             '<span class="font-bold text-sm text-slate-700">' + cx.pesoReal.toFixed(3) + ' kg</span>' +
           '</div>';
@@ -843,9 +880,153 @@
           return '<option value="' + c.id + '">' + c.lote + ' - ' + c.corte + ' (' + c.localizacao + ')</option>';
         }).join('');
       }
-      if(porcSelect) {
-        porcSelect.innerHTML = caixasList.filter(function(c) { return c.status === "Em Estoque" && c.localizacao === "Geladeira de Porcionamento"; }).map(function(c) {
-          return '<option value="' + c.id + '">' + c.lote + ' - ' + c.corte + ' (' + c.pesoReal.toFixed(3) + ' kg)</option>';
+    }
+
+    // PORCIONAMENTO POR PEÇA INDIVIDUAL (ELI)
+    function renderPecasSelectPorcionamento() {
+      var sel = document.getElementById('porc-peca-tag');
+      if(!sel) return;
+
+      var options = '<option value="">-- Selecione a Peça em Estoque --</option>';
+
+      caixasList.filter(function(cx) {
+        return cx.localizacao === "Geladeira de Porcionamento" && cx.status === "Em Estoque";
+      }).forEach(function(cx) {
+        if(cx.pecas) {
+          cx.pecas.forEach(function(p, idx) {
+            if(p.status !== "Porcionado") {
+              var val = cx.id + "||" + idx;
+              options += '<option value="' + val + '">' + p.tag + ' (' + p.peso.toFixed(3) + ' kg) - Lote: ' + cx.lote + '</option>';
+            }
+          });
+        }
+      });
+
+      sel.innerHTML = options;
+      updatePecaBrutoDisplay();
+    }
+
+    function updatePecaBrutoDisplay() {
+      var val = document.getElementById('porc-peca-tag').value;
+      var inputBruto = document.getElementById('porc-peso-bruto-display');
+
+      if(val) {
+        var parts = val.split("||");
+        var cxId = parseInt(parts[0]);
+        var pIdx = parseInt(parts[1]);
+
+        var cx = caixasList.find(function(c) { return c.id === cxId; });
+        if(cx && cx.pecas && cx.pecas[pIdx]) {
+          inputBruto.value = cx.pecas[pIdx].peso.toFixed(3) + " kg";
+          return;
+        }
+      }
+      inputBruto.value = "0.000 kg";
+    }
+
+    function handlePorcionamentoSubmit(e) {
+      e.preventDefault();
+      var val = document.getElementById('porc-peca-tag').value;
+      if(!val) {
+        alert("Selecione uma peça válida.");
+        return;
+      }
+
+      var parts = val.split("||");
+      var cxId = parseInt(parts[0]);
+      var pIdx = parseInt(parts[1]);
+
+      var cx = caixasList.find(function(c) { return c.id === cxId; });
+      if(cx && cx.pecas && cx.pecas[pIdx]) {
+        var pecaObj = cx.pecas[pIdx];
+        var pesoLimpo = parseFloat(document.getElementById('porc-peso-limpo').value) || 0;
+
+        pecaObj.status = "Porcionado";
+        cx.pesoReal -= pecaObj.peso;
+        if(cx.pesoReal < 0.05) {
+          cx.pesoReal = 0;
+          cx.status = "Processado / Zerado";
+        }
+
+        var now = new Date();
+        var newPorc = {
+          id: Date.now(),
+          dataHora: now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
+          tag: pecaObj.tag,
+          caixaLote: cx.lote,
+          bruto: pecaObj.peso,
+          limpo: pesoLimpo,
+          dataISO: now.toISOString().split('T')[0]
+        };
+
+        porcionamentosList.unshift(newPorc);
+        localStorage.setItem('bt_porcionamentos', JSON.stringify(porcionamentosList));
+        localStorage.setItem('bt_caixas', JSON.stringify(caixasList));
+
+        addLog("Porcionamento (Eli)", cx.corte, "Porcionou peça " + pecaObj.tag + " | Limpo: " + pesoLimpo.toFixed(3) + "kg", pesoLimpo);
+
+        document.getElementById('form-porcionamento').reset();
+        document.getElementById('porc-peso-bruto-display').value = "0.000 kg";
+
+        renderCaixas();
+        renderPecasSelectPorcionamento();
+        renderPorcionamentos();
+        alert("Porcionamento da peça " + pecaObj.tag + " registrado com sucesso!");
+      }
+    }
+
+    function renderPorcionamentos() {
+      var tbody = document.getElementById('lista-porcionamentos');
+      if(tbody) {
+        tbody.innerHTML = porcionamentosList.map(function(p) {
+          return '<tr class="border-b hover:bg-gray-50">' +
+            '<td class="p-2">' + p.dataHora + '</td>' +
+            '<td class="p-2 font-bold text-red-700">' + p.tag + '</td>' +
+            '<td class="p-2">' + p.caixaLote + '</td>' +
+            '<td class="p-2">' + p.bruto.toFixed(3) + ' kg</td>' +
+            '<td class="p-2 font-bold text-emerald-700">' + p.limpo.toFixed(3) + ' kg</td>' +
+          '</tr>';
+        }).join('');
+      }
+    }
+
+    // REGISTRO DE APARAS DIÁRIAS (ABA 5)
+    function handleAparasSubmit(e) {
+      e.preventDefault();
+      var dataRef = document.getElementById('apara-data').value;
+      var peso = parseFloat(document.getElementById('apara-peso').value) || 0;
+      var obs = document.getElementById('apara-obs').value.trim() || "Aparas do dia";
+
+      var newApara = {
+        id: Date.now(),
+        data: dataRef,
+        peso: peso,
+        obs: obs,
+        usuario: currentUser.name
+      };
+
+      aparasList.unshift(newApara);
+      localStorage.setItem('bt_aparas', JSON.stringify(aparasList));
+      addLog("Aparas Diárias", "Geral", "Registro de aparas: " + obs, peso);
+
+      document.getElementById('form-aparas').reset();
+      var today = new Date().toISOString().split('T')[0];
+      document.getElementById('apara-data').value = today;
+
+      renderAparas();
+      alert("Aparas de " + peso.toFixed(3) + " kg registradas para o dia " + dataRef);
+    }
+
+    function renderAparas() {
+      var tbody = document.getElementById('lista-aparas');
+      if(tbody) {
+        tbody.innerHTML = aparasList.map(function(a) {
+          return '<tr class="border-b hover:bg-gray-50">' +
+            '<td class="p-2 font-bold">' + a.data + '</td>' +
+            '<td class="p-2 font-bold text-red-600">' + a.peso.toFixed(3) + ' kg</td>' +
+            '<td class="p-2">' + a.obs + '</td>' +
+            '<td class="p-2">' + a.usuario + '</td>' +
+          '</tr>';
         }).join('');
       }
     }
@@ -907,81 +1088,8 @@
         localStorage.setItem('bt_caixas', JSON.stringify(caixasList));
         addLog("Transferência", cx.corte, cx.lote + ": " + orig + " -> " + dest, cx.pesoReal);
         renderCaixas();
+        renderPecasSelectPorcionamento();
         alert("Caixa " + cx.lote + " transferida para " + dest + "!");
-      }
-    }
-
-    function calculateYield() {
-      var bruto = parseFloat(document.getElementById('porc-peso-bruto').value) || 0;
-      var limpo = parseFloat(document.getElementById('porc-peso-limpo').value) || 0;
-      if(bruto > 0) {
-        var rend = (limpo / bruto) * 100;
-        document.getElementById('porc-rendimento').value = rend.toFixed(2) + "%";
-      } else {
-        document.getElementById('porc-rendimento').value = "0.00%";
-      }
-    }
-
-    function handlePorcionamentoSubmit(e) {
-      e.preventDefault();
-      var cxId = parseInt(document.getElementById('porc-caixa-id').value);
-      var cx = caixasList.find(function(c) { return c.id === cxId; });
-
-      var bruto = parseFloat(document.getElementById('porc-peso-bruto').value);
-      var limpo = parseFloat(document.getElementById('porc-peso-limpo').value);
-      var perda = parseFloat(document.getElementById('porc-peso-perda').value);
-      var porcoes = parseInt(document.getElementById('porc-qtd-porcoes').value);
-      var rend = (limpo / bruto) * 100;
-
-      var now = new Date();
-      var newPorc = {
-        id: Date.now(),
-        dataHora: now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-        caixaLote: cx ? cx.lote : "N/A",
-        corte: cx ? cx.corte : "Geral",
-        bruto: bruto,
-        limpo: limpo,
-        perda: perda,
-        rendimento: rend,
-        porcoes: porcoes
-      };
-
-      porcionamentosList.push(newPorc);
-      localStorage.setItem('bt_porcionamentos', JSON.stringify(porcionamentosList));
-
-      if(cx) {
-        cx.pesoReal -= bruto;
-        if(cx.pesoReal <= 0.05) {
-          cx.pesoReal = 0;
-          cx.status = "Processado / Zerado";
-        }
-        localStorage.setItem('bt_caixas', JSON.stringify(caixasList));
-      }
-
-      addLog("Porcionamento (Eli)", newPorc.corte, "Processado Lote " + newPorc.caixaLote + " | " + porcoes + " porções", limpo);
-
-      document.getElementById('form-porcionamento').reset();
-      document.getElementById('porc-rendimento').value = "0.00%";
-      renderCaixas();
-      renderPorcionamentos();
-      alert("Porcionamento registrado com sucesso!");
-    }
-
-    function renderPorcionamentos() {
-      var tbody = document.getElementById('lista-porcionamentos');
-      if(tbody) {
-        tbody.innerHTML = porcionamentosList.map(function(p) {
-          return '<tr class="border-b hover:bg-gray-50">' +
-            '<td class="p-2">' + p.dataHora + '</td>' +
-            '<td class="p-2 font-bold">' + p.caixaLote + '</td>' +
-            '<td class="p-2 font-semibold text-red-700">' + p.corte + '</td>' +
-            '<td class="p-2">' + p.bruto.toFixed(3) + ' kg</td>' +
-            '<td class="p-2 font-bold text-emerald-700">' + p.limpo.toFixed(3) + ' kg</td>' +
-            '<td class="p-2 text-red-600">' + p.perda.toFixed(3) + ' kg</td>' +
-            '<td class="p-2 font-semibold">' + p.rendimento.toFixed(1) + '%</td>' +
-            '<td class="p-2 font-bold">' + p.porcoes + ' stks</td>' +
-          '</tr>';
-        }).join('');
       }
     }
 
@@ -1037,16 +1145,18 @@
       var nfsHoje = nfsList.filter(function(n) { return n.data === todayISO; });
       var totalNfHoje = nfsHoje.reduce(function(acc, curr) { return acc + curr.pesoTotal; }, 0);
 
-      var porcHoje = porcionamentosList;
+      var porcHoje = porcionamentosList.filter(function(p) { return p.dataISO === todayISO; });
       var totalLimpo = porcHoje.reduce(function(acc, curr) { return acc + curr.limpo; }, 0);
-      var totalPerdas = porcHoje.reduce(function(acc, curr) { return acc + curr.perda; }, 0);
-      var totalBruto = porcHoje.reduce(function(acc, curr) { return acc + curr.bruto; }, 0);
+      var totalBrutoProcessado = porcHoje.reduce(function(acc, curr) { return acc + curr.bruto; }, 0);
 
-      var rendMedio = totalBruto > 0 ? (totalLimpo / totalBruto) * 100 : 0;
+      var aparasHoje = aparasList.filter(function(a) { return a.data === todayISO; });
+      var totalAparas = aparasHoje.reduce(function(acc, curr) { return acc + curr.peso; }, 0);
+
+      var rendMedio = totalBrutoProcessado > 0 ? (totalLimpo / totalBrutoProcessado) * 100 : 0;
 
       document.getElementById('rep-total-nf').innerText = totalNfHoje.toFixed(3) + " kg";
       document.getElementById('rep-total-limpo').innerText = totalLimpo.toFixed(3) + " kg";
-      document.getElementById('rep-total-perdas').innerText = totalPerdas.toFixed(3) + " kg";
+      document.getElementById('rep-total-perdas').innerText = totalAparas.toFixed(3) + " kg";
       document.getElementById('rep-rendimento-medio').innerText = rendMedio.toFixed(1) + "%";
 
       var camText = "", gelText = "";
@@ -1065,7 +1175,7 @@
       var text = '*🥩 BEEFTRACK PRO - RELATÓRIO OPERACIONAL (' + dataHoje + ')*\n\n';
       text += '*Recebimento NF (Hoje):* ' + document.getElementById('rep-total-nf').innerText + '\n';
       text += '*Porcionado Limpo (Eli):* ' + document.getElementById('rep-total-limpo').innerText + '\n';
-      text += '*Aparas / Perdas:* ' + document.getElementById('rep-total-perdas').innerText + '\n';
+      text += '*Aparas Diárias:* ' + document.getElementById('rep-total-perdas').innerText + '\n';
       text += '*Rendimento Médio:* ' + document.getElementById('rep-rendimento-medio').innerText + '\n\n';
       text += '*SALDOS DE ESTOQUE:*\n';
       text += '❄️ *Câmara Fria:* ' + document.getElementById('rep-saldo-camara').innerText + '\n';
@@ -1086,7 +1196,7 @@
       
       doc.text("Total Entradas NF: " + document.getElementById('rep-total-nf').innerText, 14, 40);
       doc.text("Total Porcionado Limpo: " + document.getElementById('rep-total-limpo').innerText, 14, 48);
-      doc.text("Total Aparas/Perdas: " + document.getElementById('rep-total-perdas').innerText, 14, 56);
+      doc.text("Total Aparas Diárias: " + document.getElementById('rep-total-perdas').innerText, 14, 56);
       doc.text("Rendimento Médio: " + document.getElementById('rep-rendimento-medio').innerText, 14, 64);
       
       doc.save("BeefTrack_Relatorio_" + new Date().toISOString().split('T')[0] + ".pdf");
