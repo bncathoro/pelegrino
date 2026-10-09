@@ -28,7 +28,7 @@
   <nav class="bg-white border-b border-gray-200 px-4 flex space-x-4 overflow-x-auto text-sm">
     <button onclick="switchTab('tab-nf')" id="btn-tab-nf" class="py-3 px-2 tab-active transition-all">1. Entradas NF</button>
     <button onclick="switchTab('tab-caixas')" id="btn-tab-caixas" class="py-3 px-2 text-gray-600 transition-all">2. Caixas & Pesagem</button>
-    <button onclick="switchTab('tab-estoque')" id="btn-tab-estoque" class="py-3 px-2 text-gray-600 transition-all">3. Estoque & Movimentações</button>
+    <button onclick="switchTab('tab-estoque')" id="btn-tab-estoque" class="py-3 px-2 text-gray-600 transition-all">3. Câmara Fria & Movimentações</button>
     <button onclick="switchTab('tab-porcionamento')" id="btn-tab-porcionamento" class="py-3 px-2 text-gray-600 transition-all">4. Porcionamentos (Eli)</button>
     <button onclick="switchTab('tab-aparas')" id="btn-tab-aparas" class="py-3 px-2 text-gray-600 transition-all">5. Aparas Diárias</button>
     <button onclick="switchTab('tab-relatorios')" id="btn-tab-relatorios" class="py-3 px-2 text-gray-600 transition-all">6. Relatório Diário</button>
@@ -44,7 +44,7 @@
       <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
         <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Registrar Nova Nota Fiscal (Recebimento)</h2>
         <form id="form-nf" onsubmit="handleNFSubmit(event)" class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-xs font-semibold text-gray-600 mb-1">Número da NF *</label>
               <input type="text" id="nf-numero" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 10452">
@@ -57,6 +57,10 @@
               <label class="block text-xs font-semibold text-gray-600 mb-1">Data de Recebimento *</label>
               <input type="date" id="nf-data" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none">
             </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Peso Total da Nota Fiscal (kg) *</label>
+              <input type="number" step="0.001" id="nf-peso-total" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 125.400">
+            </div>
           </div>
 
           <div class="border-t pt-3">
@@ -67,14 +71,8 @@
             <div id="nf-cortes-container" class="space-y-2"></div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-3">
-            <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">Peso Total da Nota Fiscal (kg) *</label>
-              <input type="number" step="0.001" id="nf-peso-total" required class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 125.400">
-            </div>
-            <div class="flex items-end justify-end">
-              <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-2 rounded shadow transition-all text-sm w-full md:w-auto">Registrar Entrada de NF</button>
-            </div>
+          <div class="flex justify-end border-t pt-3">
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-2 rounded shadow transition-all text-sm w-full md:w-auto">Registrar Entrada de NF</button>
           </div>
         </form>
       </div>
@@ -88,8 +86,8 @@
                 <th class="p-2">NF</th>
                 <th class="p-2">Data</th>
                 <th class="p-2">Fornecedor</th>
-                <th class="p-2">Detalhamento (Cortes & CXs)</th>
                 <th class="p-2">Peso NF (kg)</th>
+                <th class="p-2">Detalhamento (Cortes & CXs)</th>
                 <th class="p-2">Status</th>
               </tr>
             </thead>
@@ -168,7 +166,7 @@
       </div>
     </section>
 
-    <!-- TAB 3: ESTOQUE & MOVIMENTAÇÕES -->
+    <!-- TAB 3: CÂMARA FRIA & MOVIMENTAÇÕES -->
     <section id="tab-estoque" class="tab-content space-y-4 hidden">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
@@ -399,6 +397,7 @@
       <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
         <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Painel de Controle Administrativo (Fábio)</h2>
         
+        <!-- Cadastro e Exclusão de Cortes -->
         <div class="mb-6">
           <h3 class="text-md font-semibold text-gray-700 mb-2">Cadastrar / Excluir Proteínas</h3>
           <form onsubmit="handleAddCorte(event)" class="flex gap-2 mb-3">
@@ -408,6 +407,21 @@
           <div id="lista-cortes-tags" class="flex flex-wrap gap-2 mt-3"></div>
         </div>
 
+        <!-- Exclusão de Notas Fiscais -->
+        <div class="mb-6 border-t pt-4">
+          <h3 class="text-md font-semibold text-red-700 mb-2">Excluir Notas Fiscais Registradas</h3>
+          <p class="text-xs text-gray-500 mb-2">Se você cadastrou uma NF errada, pode excluí-la diretamente aqui.</p>
+          <div id="adm-delete-nfs-container" class="space-y-2"></div>
+        </div>
+
+        <!-- Exclusão de Caixas no Estoque -->
+        <div class="mb-6 border-t pt-4">
+          <h3 class="text-md font-semibold text-red-700 mb-2">Excluir / Deletar Caixas em Estoque</h3>
+          <p class="text-xs text-gray-500 mb-2">Exclui permanentemente a caixa e suas peças do estoque.</p>
+          <div id="adm-delete-caixas-container" class="space-y-2"></div>
+        </div>
+
+        <!-- Reiniciar Numeração Sequencial de Peças (P1, P2...) -->
         <div class="mb-6 border-t pt-4">
           <h3 class="text-md font-semibold text-red-700 mb-1">🔄 Reiniciar Numeração de Peças (Ciclo Mensal / Troca de Lote)</h3>
           <p class="text-xs text-gray-500 mb-3">Reseta a numeração para voltar a gerar a partir da P1 nas próximas entradas, sem apagar os pesos ou o estoque atual.</p>
@@ -417,6 +431,7 @@
           </div>
         </div>
 
+        <!-- Edição Global de Pesos -->
         <div class="mb-6 border-t pt-4">
           <h3 class="text-md font-semibold text-gray-700 mb-2">Ajuste / Edição Direta de Pesos em Estoque</h3>
           <p class="text-xs text-gray-500 mb-3">Como Administrador, você pode alterar o peso de qualquer caixa ou de suas peças individuais.</p>
@@ -486,11 +501,13 @@
       }
 
       if(tabId === 'tab-caixas') renderNFSelectAba2();
+      if(tabId === 'tab-estoque') renderCaixas();
       if(tabId === 'tab-porcionamento') renderPecasSelectPorcionamento();
       if(tabId === 'tab-aparas') renderAparas();
       if(tabId === 'tab-relatorios') updateRelatorios();
       if(tabId === 'tab-admin') {
         renderADMEditCaixas();
+        renderADMDeleteLists();
         renderResetSelectADM();
       }
     }
@@ -694,8 +711,8 @@
             '<td class="p-2 font-bold">' + nf.numero + '</td>' +
             '<td class="p-2">' + nf.data + '</td>' +
             '<td class="p-2">' + nf.fornecedor + '</td>' +
+            '<td class="p-2 font-bold text-red-700">' + nf.pesoTotal.toFixed(3) + ' kg</td>' +
             '<td class="p-2 font-medium text-slate-700">' + resumoCortes + '</td>' +
-            '<td class="p-2 font-bold">' + nf.pesoTotal.toFixed(3) + ' kg</td>' +
             '<td class="p-2"><span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded">' + nf.status + '</span></td>' +
           '</tr>';
         }).join('');
@@ -819,7 +836,7 @@
 
       renderCaixas();
       renderPecasSelectPorcionamento();
-      alert("Caixa " + newCaixa.lote + " cadastrada com sucesso!");
+      alert("Caixa " + newCaixa.lote + " cadastrada no estoque com sucesso!");
     }
 
     function renderCaixas() {
@@ -882,7 +899,6 @@
       }
     }
 
-    // PORCIONAMENTO POR PEÇA INDIVIDUAL (ELI)
     function renderPecasSelectPorcionamento() {
       var sel = document.getElementById('porc-peca-tag');
       if(!sel) return;
@@ -990,7 +1006,6 @@
       }
     }
 
-    // REGISTRO DE APARAS DIÁRIAS (ABA 5)
     function handleAparasSubmit(e) {
       e.preventDefault();
       var dataRef = document.getElementById('apara-data').value;
@@ -1014,7 +1029,7 @@
       document.getElementById('apara-data').value = today;
 
       renderAparas();
-      alert("Aparas de " + peso.toFixed(3) + " kg registradas para o dia " + dataRef);
+      alert("Aparas de " + peso.toFixed(3) + " kg registradas!");
     }
 
     function renderAparas() {
@@ -1028,6 +1043,60 @@
             '<td class="p-2">' + a.usuario + '</td>' +
           '</tr>';
         }).join('');
+      }
+    }
+
+    function renderADMDeleteLists() {
+      var nfsCont = document.getElementById('adm-delete-nfs-container');
+      var cxsCont = document.getElementById('adm-delete-caixas-container');
+
+      if(nfsCont) {
+        if(nfsList.length === 0) {
+          nfsCont.innerHTML = '<p class="text-xs text-gray-400">Nenhuma Nota Fiscal cadastrada.</p>';
+        } else {
+          nfsCont.innerHTML = nfsList.map(function(n) {
+            return '<div class="flex justify-between items-center p-2 bg-slate-50 border rounded text-xs">' +
+              '<span><strong>NF #' + n.numero + '</strong> (' + n.fornecedor + ') - ' + n.pesoTotal.toFixed(3) + ' kg</span>' +
+              '<button onclick="deleteNFADM(' + n.id + ')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded">Excluir NF</button>' +
+            '</div>';
+          }).join('');
+        }
+      }
+
+      if(cxsCont) {
+        if(caixasList.length === 0) {
+          cxsCont.innerHTML = '<p class="text-xs text-gray-400">Nenhuma Caixa em estoque.</p>';
+        } else {
+          cxsCont.innerHTML = caixasList.map(function(c) {
+            return '<div class="flex justify-between items-center p-2 bg-slate-50 border rounded text-xs">' +
+              '<span><strong>' + c.lote + '</strong> (' + c.corte + ') - ' + c.pesoReal.toFixed(3) + ' kg [' + c.localizacao + ']</span>' +
+              '<button onclick="deleteCaixaADM(' + c.id + ')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded">Excluir CX</button>' +
+            '</div>';
+          }).join('');
+        }
+      }
+    }
+
+    function deleteNFADM(id) {
+      if(confirm("Tem certeza que deseja excluir esta Nota Fiscal?")) {
+        nfsList = nfsList.filter(function(n) { return n.id !== id; });
+        localStorage.setItem('bt_nfs', JSON.stringify(nfsList));
+        renderNFList();
+        renderNFSelectAba2();
+        renderADMDeleteLists();
+        addLog("Exclusão ADM", "NF", "Fábio excluiu uma Nota Fiscal", 0);
+      }
+    }
+
+    function deleteCaixaADM(id) {
+      if(confirm("Tem certeza que deseja excluir esta Caixa do Estoque?")) {
+        caixasList = caixasList.filter(function(c) { return c.id !== id; });
+        localStorage.setItem('bt_caixas', JSON.stringify(caixasList));
+        renderCaixas();
+        renderPecasSelectPorcionamento();
+        renderADMDeleteLists();
+        renderADMEditCaixas();
+        addLog("Exclusão ADM", "Estoque", "Fábio excluiu uma Caixa do estoque", 0);
       }
     }
 
