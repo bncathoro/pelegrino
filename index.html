@@ -101,7 +101,7 @@
     <!-- TAB 2: CAIXAS & PESAGEM -->
     <section id="tab-caixas" class="tab-content space-y-4 hidden">
       <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Abertura & Conferência de Caixa (Pesagem com Identificação por Corte)</h2>
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Abertura & Conferência de Caixa (Sequência Contínua de Peças)</h2>
         <form id="form-caixa" onsubmit="handleCaixaSubmit(event)" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -134,20 +134,20 @@
           </div>
 
           <div class="border-t pt-3">
-            <h4 class="text-xs font-bold text-gray-700 mb-2">Pesagem de Peças com Identificação Específica do Corte *</h4>
+            <h4 class="text-xs font-bold text-gray-700 mb-2">Pesagem Individual das Peças (Numeração Sequencial) *</h4>
             <div id="pecas-weights-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-              <p class="text-xs text-gray-400 col-span-full">Selecione a NF, o corte e a quantidade de peças acima para gerar os campos.</p>
+              <p class="text-xs text-gray-400 col-span-full">Selecione a NF e a quantidade de peças acima.</p>
             </div>
           </div>
 
           <div class="flex justify-end border-t pt-3">
-            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-2 rounded shadow transition-all text-sm">Cadastrar Caixa e Peças no Estoque</button>
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-2 rounded shadow transition-all text-sm">Salvar Caixa no Estoque</button>
           </div>
         </form>
       </div>
 
       <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
-        <h3 class="text-md font-semibold text-gray-800 mb-3">Caixas Aferidas e Peças Etiquetadas</h3>
+        <h3 class="text-md font-semibold text-gray-800 mb-3">Caixas Aferidas e Peças no Estoque</h3>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-gray-600">
             <thead class="bg-gray-100 text-gray-700 uppercase border-b">
@@ -156,7 +156,7 @@
                 <th class="p-2">NF</th>
                 <th class="p-2">Corte</th>
                 <th class="p-2">Peso Total (kg)</th>
-                <th class="p-2">Peças Rastreáveis</th>
+                <th class="p-2">Peças Sequenciais Rastreáveis</th>
                 <th class="p-2">Localização</th>
                 <th class="p-2">Status</th>
               </tr>
@@ -372,6 +372,7 @@
       <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
         <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Painel de Controle Administrativo (Fábio)</h2>
         
+        <!-- Cadastro e Exclusão de Cortes -->
         <div class="mb-6">
           <h3 class="text-md font-semibold text-gray-700 mb-2">Cadastrar / Excluir Proteínas</h3>
           <form onsubmit="handleAddCorte(event)" class="flex gap-2 mb-3">
@@ -381,6 +382,17 @@
           <div id="lista-cortes-tags" class="flex flex-wrap gap-2 mt-3"></div>
         </div>
 
+        <!-- Reiniciar Numeração Sequencial de Peças (P1, P2...) -->
+        <div class="mb-6 border-t pt-4">
+          <h3 class="text-md font-semibold text-red-700 mb-1">🔄 Reiniciar Numeração de Peças (Ciclo Mensal / Troca de Lote)</h3>
+          <p class="text-xs text-gray-500 mb-3">Reseta a numeração para voltar a gerar a partir da P1 nas próximas entradas, sem apagar os pesos ou o estoque atual.</p>
+          <div class="flex gap-3 items-center">
+            <select id="adm-reset-corte-select" class="border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none flex-1 max-w-xs"></select>
+            <button onclick="resetCorteSequenceADM()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-4 py-2 rounded font-medium">Reiniciar Numeração para P1</button>
+          </div>
+        </div>
+
+        <!-- Edição Global de Pesos -->
         <div class="mb-6 border-t pt-4">
           <h3 class="text-md font-semibold text-gray-700 mb-2">Ajuste / Edição Direta de Pesos em Estoque</h3>
           <p class="text-xs text-gray-500 mb-3">Como Administrador, você pode alterar o peso de qualquer caixa ou de suas peças individuais.</p>
@@ -405,7 +417,7 @@
 
   </main>
 
-  <!-- Modal de Autenticação / Senha ADM -->
+  <!-- Modal ADM -->
   <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-lg max-w-sm w-full p-6 shadow-xl">
       <h3 class="text-lg font-bold text-gray-800 mb-2">Autenticação Administrativa</h3>
@@ -419,7 +431,6 @@
   </div>
 
   <script>
-    // ESTADO GLOBAL
     const ADMIN_PASS = "990992";
     let currentUser = { name: "Operador/Eli", role: "OPERATOR" };
 
@@ -428,19 +439,20 @@
     let caixasList = JSON.parse(localStorage.getItem('bt_caixas')) || [];
     let porcionamentosList = JSON.parse(localStorage.getItem('bt_porcionamentos')) || [];
     let historicoList = JSON.parse(localStorage.getItem('bt_historico')) || [];
+    let corteCounters = JSON.parse(localStorage.getItem('bt_corte_counters')) || {};
 
-    // NAVEGAÇÃO DE ABAS
     function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(function(el) {
-        el.classList.add('hidden');
-      });
-      document.querySelectorAll('nav button').forEach(function(el) {
-        el.classList.remove('tab-active');
-        el.classList.add('text-gray-600');
-      });
+      var contents = document.querySelectorAll('.tab-content');
+      for(var i=0; i<contents.length; i++) contents[i].classList.add('hidden');
+      
+      var navBtns = document.querySelectorAll('nav button');
+      for(var j=0; j<navBtns.length; j++) {
+        navBtns[j].classList.remove('tab-active');
+        navBtns[j].classList.add('text-gray-600');
+      }
 
-      var targetTab = document.getElementById(tabId);
-      if(targetTab) targetTab.classList.remove('hidden');
+      var target = document.getElementById(tabId);
+      if(target) target.classList.remove('hidden');
 
       var activeBtn = document.getElementById('btn-' + tabId);
       if(activeBtn) {
@@ -449,13 +461,13 @@
       }
 
       if(tabId === 'tab-relatorios') updateRelatorios();
-      if(tabId === 'tab-admin') renderADMEditCaixas();
+      if(tabId === 'tab-admin') {
+        renderADMEditCaixas();
+        renderResetSelectADM();
+      }
     }
 
-    // AUTH MODAL
-    function openAuthModal() {
-      document.getElementById('authModal').classList.remove('hidden');
-    }
+    function openAuthModal() { document.getElementById('authModal').classList.remove('hidden'); }
     function closeAuthModal() {
       document.getElementById('authModal').classList.add('hidden');
       document.getElementById('adminPasswordInput').value = "";
@@ -474,7 +486,6 @@
       }
     }
 
-    // INICIALIZAÇÃO
     window.onload = function() {
       var today = new Date().toISOString().split('T')[0];
       if(document.getElementById('nf-data')) document.getElementById('nf-data').value = today;
@@ -482,14 +493,15 @@
       if(document.getElementById('hist-data-fim')) document.getElementById('hist-data-fim').value = today;
 
       renderCortesSelects();
-      addNFCorteRow();
+      if(document.getElementById('nf-cortes-container').children.length === 0) {
+        addNFCorteRow();
+      }
       renderNFList();
       renderCaixas();
       renderPorcionamentos();
       renderCortesTags();
     };
 
-    // GERENCIAMENTO DE CORTES
     function renderCortesSelects() {
       var histSelect = document.getElementById('hist-corte-filtro');
       if(histSelect) {
@@ -515,7 +527,7 @@
     function handleAddCorte(e) {
       e.preventDefault();
       var val = document.getElementById('adm-novo-corte').value.trim();
-      if(val && !cortesList.includes(val)) {
+      if(val && cortesList.indexOf(val) === -1) {
         cortesList.push(val);
         localStorage.setItem('bt_cortes', JSON.stringify(cortesList));
         renderCortesSelects();
@@ -525,7 +537,7 @@
     }
 
     function removeCorte(corteNome) {
-      if(confirm('Tem certeza que deseja excluir a proteína/corte "' + corteNome + '"?')) {
+      if(confirm('Tem certeza que deseja excluir "' + corteNome + '"?')) {
         cortesList = cortesList.filter(function(c) { return c !== corteNome; });
         localStorage.setItem('bt_cortes', JSON.stringify(cortesList));
         renderCortesSelects();
@@ -533,7 +545,27 @@
       }
     }
 
-    // NF MULTI-CORTE
+    function renderResetSelectADM() {
+      var sel = document.getElementById('adm-reset-corte-select');
+      if(sel) {
+        sel.innerHTML = cortesList.map(function(c) {
+          var currentVal = corteCounters[c] || 0;
+          return '<option value="' + c + '">' + c + ' (Atual: P' + currentVal + ')</option>';
+        }).join('');
+      }
+    }
+
+    function resetCorteSequenceADM() {
+      var corteSel = document.getElementById('adm-reset-corte-select').value;
+      if(corteSel && confirm('Deseja reiniciar a numeração de ' + corteSel + ' para P1 a partir das próximas entradas?')) {
+        corteCounters[corteSel] = 0;
+        localStorage.setItem('bt_corte_counters', JSON.stringify(corteCounters));
+        renderResetSelectADM();
+        addLog("Ajuste ADM", corteSel, "Fábio reiniciou a numeração de peças para P1", 0);
+        alert('Numeração do corte ' + corteSel + ' resetada com sucesso! A próxima peça será ' + corteSel + '-P1.');
+      }
+    }
+
     function addNFCorteRow() {
       var container = document.getElementById('nf-cortes-container');
       var rowId = Date.now() + Math.floor(Math.random() * 1000);
@@ -550,9 +582,10 @@
     }
 
     function removeNFCorteRow(id) {
-      var row = document.getElementById(id);
-      if(document.querySelectorAll('#nf-cortes-container > div').length > 1) {
-        row.remove();
+      var container = document.getElementById('nf-cortes-container');
+      if(container.children.length > 1) {
+        var row = document.getElementById(id);
+        if(row) row.remove();
       } else {
         alert("A Nota Fiscal precisa ter pelo menos 1 corte/caixa cadastrado.");
       }
@@ -562,11 +595,12 @@
       var options = cortesList.map(function(c) {
         return '<option value="' + c + '">' + c + '</option>';
       }).join('');
-      document.querySelectorAll('.nf-corte-item').forEach(function(select) {
-        var val = select.value;
-        select.innerHTML = options;
-        if(cortesList.includes(val)) select.value = val;
-      });
+      var selects = document.querySelectorAll('.nf-corte-item');
+      for(var i=0; i<selects.length; i++) {
+        var val = selects[i].value;
+        selects[i].innerHTML = options;
+        if(cortesList.indexOf(val) !== -1) selects[i].value = val;
+      }
     }
 
     function handleNFSubmit(e) {
@@ -576,16 +610,17 @@
       var detalheCortes = [];
       var totalCaixas = 0;
 
-      corteRows.forEach(function(row) {
-        var corte = row.querySelector('.nf-corte-item').value;
-        var caixas = parseInt(row.querySelector('.nf-caixas-item').value) || 0;
+      for(var i=0; i<corteRows.length; i++) {
+        var corte = corteRows[i].querySelector('.nf-corte-item').value;
+        var caixas = parseInt(corteRows[i].querySelector('.nf-caixas-item').value) || 0;
         detalheCortes.push({ corte: corte, caixas: caixas });
         totalCaixas += caixas;
-      });
+      }
 
+      var nfNumero = document.getElementById('nf-numero').value;
       var newNF = {
         id: Date.now(),
-        numero: document.getElementById('nf-numero').value,
+        numero: nfNumero,
         fornecedor: document.getElementById('nf-fornecedor').value,
         data: document.getElementById('nf-data').value,
         detalheCortes: detalheCortes,
@@ -596,7 +631,27 @@
 
       nfsList.push(newNF);
       localStorage.setItem('bt_nfs', JSON.stringify(nfsList));
-      addLog("Entrada NF", "Multi-Corte", "NF #" + newNF.numero + " - " + newNF.fornecedor + " (" + totalCaixas + " CXs)", newNF.pesoTotal);
+
+      var count = 1;
+      detalheCortes.forEach(function(d) {
+        for(var c=1; c<=d.caixas; c++) {
+          var cxCode = "CX-" + nfNumero + "-" + count;
+          caixasList.push({
+            id: Date.now() + Math.floor(Math.random() * 10000),
+            nfNumero: nfNumero,
+            corte: d.corte,
+            lote: cxCode,
+            pesoReal: 0,
+            pecas: [],
+            localizacao: "Câmara Fria",
+            status: "Aferição Pendente"
+          });
+          count++;
+        }
+      });
+      localStorage.setItem('bt_caixas', JSON.stringify(caixasList));
+
+      addLog("Entrada NF", "Multi-Corte", "NF #" + newNF.numero + " - " + newNF.fornecedor, newNF.pesoTotal);
 
       document.getElementById('form-nf').reset();
       document.getElementById('nf-cortes-container').innerHTML = "";
@@ -605,7 +660,8 @@
       document.getElementById('nf-data').value = today;
 
       renderNFList();
-      alert("Nota Fiscal registrada com sucesso!");
+      renderCaixas();
+      alert("Nota Fiscal e " + totalCaixas + " caixas registradas com sucesso!");
     }
 
     function renderNFList() {
@@ -635,7 +691,6 @@
       }
     }
 
-    // CAIXA E PEÇAS RASTREÁVEIS
     function updateCorteOptionsFromNF() {
       var nfId = parseInt(document.getElementById('caixa-nf-id').value);
       var corteSelect = document.getElementById('caixa-corte');
@@ -643,7 +698,7 @@
 
       if(nf && nf.detalheCortes) {
         corteSelect.innerHTML = nf.detalheCortes.map(function(d) {
-          return '<option value="' + d.corte + '">' + d.corte + ' (' + d.caixas + ' CXs na NF)</option>';
+          return '<option value="' + d.corte + '">' + d.corte + '</option>';
         }).join('');
       } else {
         corteSelect.innerHTML = cortesList.map(function(c) {
@@ -660,13 +715,16 @@
       container.innerHTML = "";
 
       if(qtd <= 0) {
-        container.innerHTML = '<p class="text-xs text-gray-400 col-span-full">Selecione a NF, o corte e a quantidade de peças acima para gerar os campos.</p>';
+        container.innerHTML = '<p class="text-xs text-gray-400 col-span-full">Selecione a NF e informe a quantidade de peças acima.</p>';
         calcTotalCaixaPeso();
         return;
       }
 
+      var currentSeqStart = corteCounters[corteNome] || 0;
+
       for(var i = 1; i <= qtd; i++) {
-        var tagSpec = corteNome + '-P' + i;
+        var seqNum = currentSeqStart + i;
+        var tagSpec = corteNome + '-P' + seqNum;
         var inputHtml = '<div class="bg-gray-50 p-2 rounded border">' +
           '<label class="block text-xs font-bold text-slate-800 mb-1">' + tagSpec + ' (kg)</label>' +
           '<input type="number" step="0.001" data-tag="' + tagSpec + '" class="peca-peso-input w-full border rounded p-1 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 2.500" required oninput="calcTotalCaixaPeso()">' +
@@ -678,9 +736,9 @@
     function calcTotalCaixaPeso() {
       var inputs = document.querySelectorAll('.peca-peso-input');
       var total = 0;
-      inputs.forEach(function(inp) {
-        total += parseFloat(inp.value) || 0;
-      });
+      for(var i=0; i<inputs.length; i++) {
+        total += parseFloat(inputs[i].value) || 0;
+      }
       document.getElementById('caixa-peso-total-calc').value = total.toFixed(3) + " kg";
     }
 
@@ -694,12 +752,16 @@
       var pecasListObj = [];
       var pesoTotalCaixa = 0;
 
-      pecaInputs.forEach(function(inp, idx) {
-        var pesoPeca = parseFloat(inp.value) || 0;
-        var tagIdent = inp.getAttribute('data-tag') || (corteSelecionado + '-P' + (idx+1));
+      for(var i=0; i<pecaInputs.length; i++) {
+        var pesoPeca = parseFloat(pecaInputs[i].value) || 0;
+        var tagIdent = pecaInputs[i].getAttribute('data-tag');
         pecasListObj.push({ tag: tagIdent, peso: pesoPeca });
         pesoTotalCaixa += pesoPeca;
-      });
+      }
+
+      var currentCounter = corteCounters[corteSelecionado] || 0;
+      corteCounters[corteSelecionado] = currentCounter + pecaInputs.length;
+      localStorage.setItem('bt_corte_counters', JSON.stringify(corteCounters));
 
       var newCaixa = {
         id: Date.now(),
@@ -717,11 +779,11 @@
       addLog("Aferição Caixa", newCaixa.corte, "Lote " + newCaixa.lote + " (" + pecasListObj.length + " peças)", pesoTotalCaixa);
 
       document.getElementById('form-caixa').reset();
-      document.getElementById('pecas-weights-container').innerHTML = '<p class="text-xs text-gray-400 col-span-full">Selecione a NF, o corte e a quantidade de peças acima para gerar os campos.</p>';
+      document.getElementById('pecas-weights-container').innerHTML = '<p class="text-xs text-gray-400 col-span-full">Selecione a NF e informe a quantidade de peças acima.</p>';
       document.getElementById('caixa-peso-total-calc').value = "0.000 kg";
 
       renderCaixas();
-      alert("Caixa " + newCaixa.lote + " (" + corteSelecionado + ") cadastrada! Total: " + pesoTotalCaixa.toFixed(3) + " kg");
+      alert("Caixa " + newCaixa.lote + " cadastrada com sucesso! Peças: " + pecasListObj[0].tag + " a " + pecasListObj[pecasListObj.length-1].tag);
     }
 
     function renderCaixas() {
@@ -735,13 +797,14 @@
 
       if(tbody) {
         tbody.innerHTML = caixasList.map(function(cx) {
-          var detalhePecas = cx.pecas ? cx.pecas.map(function(p) {
-            return '<span class="bg-gray-100 px-1.5 py-0.5 rounded mr-1 font-mono">' + p.tag + ': ' + p.peso.toFixed(3) + 'kg</span>';
-          }).join('') : (cx.pecas + ' peças');
+          var detalhePecas = (cx.pecas && cx.pecas.length > 0) ? cx.pecas.map(function(p) {
+            return '<span class="bg-gray-100 px-1.5 py-0.5 rounded mr-1 font-mono text-xs text-red-700 font-bold">' + p.tag + ': ' + p.peso.toFixed(3) + 'kg</span>';
+          }).join('') : '<span class="text-amber-600 font-bold">Aguardando Aferição</span>';
+
           return '<tr class="border-b hover:bg-gray-50">' +
             '<td class="p-2 font-bold">' + cx.lote + '</td>' +
             '<td class="p-2">NF #' + cx.nfNumero + '</td>' +
-            '<td class="p-2 font-semibold text-red-700">' + cx.corte + '</td>' +
+            '<td class="p-2 font-semibold text-slate-800">' + cx.corte + '</td>' +
             '<td class="p-2 font-bold text-slate-800">' + cx.pesoReal.toFixed(3) + ' kg</td>' +
             '<td class="p-2 text-xs">' + detalhePecas + '</td>' +
             '<td class="p-2"><span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200">' + cx.localizacao + '</span></td>' +
@@ -787,7 +850,6 @@
       }
     }
 
-    // ADM - EDIÇÃO DE PESOS DE CAIXAS E PEÇAS
     function renderADMEditCaixas() {
       var container = document.getElementById('adm-edit-caixas-container');
       if(!container) return;
@@ -800,7 +862,7 @@
       container.innerHTML = caixasList.map(function(cx) {
         var pecasHtml = cx.pecas ? cx.pecas.map(function(p, idx) {
           return '<div class="flex items-center gap-1">' +
-            '<span class="text-xs font-mono">' + p.tag + ':</span>' +
+            '<span class="text-xs font-mono font-bold text-red-700">' + p.tag + ':</span>' +
             '<input type="number" step="0.001" value="' + p.peso + '" onchange="updatePecaPesoADM(' + cx.id + ', ' + idx + ', this.value)" class="w-20 border rounded p-1 text-xs font-bold">' +
             '<span class="text-xs text-gray-500">kg</span>' +
           '</div>';
@@ -833,7 +895,6 @@
       }
     }
 
-    // TRANSFERÊNCIA
     function handleTransferSubmit(e) {
       e.preventDefault();
       var cxId = parseInt(document.getElementById('transf-caixa-id').value);
@@ -850,7 +911,6 @@
       }
     }
 
-    // PORCIONAMENTO
     function calculateYield() {
       var bruto = parseFloat(document.getElementById('porc-peso-bruto').value) || 0;
       var limpo = parseFloat(document.getElementById('porc-peso-limpo').value) || 0;
@@ -925,7 +985,6 @@
       }
     }
 
-    // LOG HISTÓRICO
     function addLog(tipo, corte, detalhe, peso) {
       var now = new Date();
       var log = {
@@ -972,7 +1031,6 @@
       }).join('');
     }
 
-    // RELATÓRIOS & EXPORTAÇÃO
     function updateRelatorios() {
       var todayISO = new Date().toISOString().split('T')[0];
 
