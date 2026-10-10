@@ -26,7 +26,7 @@
     <button onclick="switchTab('tab-caixas')" id="btn-tab-caixas" class="py-3 px-2 text-gray-600 transition-all font-semibold">2. Caixas & Pesagem</button>
     <button onclick="switchTab('tab-estoque')" id="btn-tab-estoque" class="py-3 px-2 text-gray-600 transition-all font-semibold">3. Câmara Fria</button>
     <button onclick="switchTab('tab-eli')" id="btn-tab-eli" class="py-3 px-2 text-gray-600 transition-all font-semibold">4. Geladeira do Eli</button>
-    <button onclick="switchTab('tab-aparas')" id="btn-tab-aparas" class="py-3 px-2 text-gray-600 transition-all font-semibold">5. Aparas & Rendimento</button>
+    <button onclick="switchTab('tab-aparas')" id="btn-tab-aparas" class="py-3 px-2 text-gray-600 transition-all font-semibold">5. Aparas & Rendimento Diário</button>
   </nav>
 
   <!-- Conteúdo Principal -->
@@ -262,7 +262,7 @@
       </div>
     </section>
 
-    <!-- ETAPA 4: GELADEIRA DO ELI & BAIXA RETROATIVA DA ETIQUETA -->
+    <!-- ETAPA 4: GELADEIRA DO ELI -->
     <section id="tab-eli" class="tab-content space-y-6 hidden">
       <div class="border-b pb-3 flex justify-between items-center">
         <div>
@@ -283,14 +283,12 @@
         </div>
       </div>
 
-      <!-- Painel de Baixa com Data Editável -->
       <div class="bg-white p-6 rounded-xl border-2 border-slate-800 shadow-sm space-y-4">
         <div class="flex flex-wrap justify-between items-center gap-3 border-b pb-3">
           <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
             <span>📝 Registrar Uso (Caderninho do Eli)</span>
           </h3>
 
-          <!-- Campo de Seleção da Data de Uso -->
           <div class="flex items-center gap-2">
             <label class="text-xs font-bold text-slate-700">Data do Consumo *</label>
             <input type="date" id="input-data-baixa-eli" class="border rounded-lg p-1.5 text-xs font-bold text-red-700 bg-slate-50 outline-none focus:ring-2 focus:ring-red-500">
@@ -311,7 +309,6 @@
         </div>
       </div>
 
-      <!-- Tabela de Histórico de Baixas -->
       <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
         <h3 class="text-md font-bold text-slate-800 mb-4">Histórico de Peças Baixadas (Com Data do Uso)</h3>
         <div class="overflow-x-auto">
@@ -332,91 +329,90 @@
       </div>
     </section>
 
-    <!-- ETAPA 5: APARAS, PERDAS & RENDIMENTO DIÁRIO -->
+    <!-- ETAPA 5: APARAS, PERDAS & RENDIMENTO DIÁRIO (CONSOLIDADO POR DIA) -->
     <section id="tab-aparas" class="tab-content space-y-6 hidden">
       <div class="border-b pb-3 flex justify-between items-center">
         <div>
           <h2 class="text-lg font-bold text-slate-800">🥩 Aparas, Perdas & Rendimento Diário</h2>
-          <p class="text-xs text-gray-500">Informe o aproveitamento de aparas e perdas das peças utilizadas (Data editável).</p>
+          <p class="text-xs text-gray-500">Registre o acumulado total de aparas e perdas pesadas no fim do dia por proteína.</p>
         </div>
         <span class="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-semibold">Etapa 5 de 5</span>
       </div>
 
-      <!-- Formulário de Lançamento de Aparas/Perdas -->
       <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
-        <h3 class="text-sm font-bold text-slate-800 border-b pb-2">Lançar Rendimento de Peça Utilizada</h3>
+        <h3 class="text-sm font-bold text-slate-800 border-b pb-2">Lançamento Consolidado do Dia</h3>
 
-        <form id="form-aparas" onsubmit="handleSalvarAparas(event)" class="space-y-4">
+        <form id="form-aparas-diario" onsubmit="handleSalvarAparasDiario(event)" class="space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-lg border text-xs">
             <div>
-              <label class="block font-bold text-gray-700 mb-1">Selecione a Peça Utilizada *</label>
-              <select id="select-peca-apara" onchange="atualizarInfoPecaApara()" required class="w-full border rounded-lg p-2 font-bold text-slate-800 bg-white outline-none">
-                <option value="">-- Nenhuma peça aguardando --</option>
+              <label class="block font-bold text-gray-700 mb-1">Data do Porcionamento/Serviço *</label>
+              <input type="date" id="apara-diaria-data" onchange="atualizarResumoBaixasDia()" required class="w-full border rounded-lg p-2 font-bold text-red-700 bg-white outline-none">
+            </div>
+
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Proteína / Corte *</label>
+              <select id="apara-diaria-corte" onchange="atualizarResumoBaixasDia()" required class="w-full border rounded-lg p-2 font-bold text-slate-800 bg-white outline-none">
+                <option value="TODAS">-- Todas as Proteínas (Geral do Dia) --</option>
               </select>
             </div>
 
             <div>
-              <label class="block font-bold text-gray-700 mb-1">Data da Limpeza/Porcionamento *</label>
-              <input type="date" id="input-data-apara" required class="w-full border rounded-lg p-2 font-bold text-red-700 bg-white outline-none">
-            </div>
-
-            <div>
-              <label class="block font-bold text-gray-700 mb-1">Peso Bruto da Peça (kg)</label>
-              <input type="text" id="display-peso-bruto-apara" readonly class="w-full border rounded-lg p-2 font-bold text-slate-800 bg-gray-100 outline-none" value="0.000 kg">
+              <label class="block font-bold text-gray-700 mb-1">Total Bruto Baixado no Caderno (kg)</label>
+              <input type="text" id="apara-diaria-bruto-display" readonly class="w-full border rounded-lg p-2 font-bold text-slate-800 bg-gray-100 outline-none" value="0.000 kg">
             </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
             <div>
-              <label class="block font-bold text-slate-800 mb-1">Aparas / Gordura Útil (kg)</label>
-              <p class="text-[10px] text-gray-500 mb-1">Ex: Moída, hambúrguer, recheios.</p>
-              <input type="number" step="0.001" id="input-peso-apara" oninput="calcularRendimentoApara()" placeholder="Ex: 0.400" class="w-full border rounded-lg p-2 font-bold text-slate-800 outline-none focus:ring-2 focus:ring-red-500">
+              <label class="block font-bold text-slate-800 mb-1">Aparas Acumuladas no Dia (kg)</label>
+              <p class="text-[10px] text-gray-500 mb-1">Gordura boa, retalhos p/ moída ou hambúrguer.</p>
+              <input type="number" step="0.001" id="apara-diaria-peso-apara" oninput="calcularRendimentoDiarioVisual()" placeholder="Ex: 1.500" class="w-full border rounded-lg p-2 font-bold text-slate-800 outline-none focus:ring-2 focus:ring-red-500">
             </div>
 
             <div>
-              <label class="block font-bold text-slate-800 mb-1">Perdas / Descarte (kg)</label>
-              <p class="text-[10px] text-gray-500 mb-1">Ex: Sebo impróprio, membranas.</p>
-              <input type="number" step="0.001" id="input-peso-perda" oninput="calcularRendimentoApara()" placeholder="Ex: 0.200" class="w-full border rounded-lg p-2 font-bold text-red-600 outline-none focus:ring-2 focus:ring-red-500">
+              <label class="block font-bold text-slate-800 mb-1">Perdas / Descarte no Dia (kg)</label>
+              <p class="text-[10px] text-gray-500 mb-1">Sebo impróprio, nervos, membranas descartadas.</p>
+              <input type="number" step="0.001" id="apara-diaria-peso-perda" oninput="calcularRendimentoDiarioVisual()" placeholder="Ex: 0.800" class="w-full border rounded-lg p-2 font-bold text-red-600 outline-none focus:ring-2 focus:ring-red-500">
             </div>
 
             <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-200">
-              <span class="block text-[11px] font-bold text-emerald-800 mb-0.5">Rendimento Útil Calculado (Bife Limpo):</span>
-              <span id="display-rendimento-limpo" class="text-lg font-bold text-emerald-700 block">0.000 kg</span>
-              <span id="display-rendimento-porcentagem" class="text-[11px] text-emerald-800 font-semibold block">(100.0% de aproveitamento)</span>
+              <span class="block text-[11px] font-bold text-emerald-800 mb-0.5">Bife Limpo Útil Produção (kg):</span>
+              <span id="apara-diaria-util-display" class="text-lg font-bold text-emerald-700 block">0.000 kg</span>
+              <span id="apara-diaria-porc-display" class="text-[11px] text-emerald-800 font-semibold block">(100.0% aproveitamento)</span>
             </div>
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Observação / Anotação (Opcional)</label>
-            <input type="text" id="input-obs-apara" placeholder="Ex: Limpeza padrão para bifes de 300g" class="w-full border rounded-lg p-2 text-xs outline-none">
+            <label class="block text-xs font-bold text-gray-700 mb-1">Observação do Dia (Opcional)</label>
+            <input type="text" id="apara-diaria-obs" placeholder="Ex: Lote do Minerva veio com capa de gordura mais alta que o normal" class="w-full border rounded-lg p-2 text-xs outline-none">
           </div>
 
           <div class="flex justify-end pt-2">
             <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-6 py-2.5 rounded-lg shadow transition-all">
-              Registrar Rendimento & Salvar
+              Salvar Rendimento Diário
             </button>
           </div>
         </form>
       </div>
 
-      <!-- Tabela do Histórico de Rendimentos -->
+      <!-- Tabela do Histórico Consolidado por Dia -->
       <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-        <h3 class="text-md font-bold text-slate-800 mb-4">Relatório Diário de Rendimento e Quebra de Peças</h3>
+        <h3 class="text-md font-bold text-slate-800 mb-4">Histórico de Rendimento Diário de Produção</h3>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-gray-600">
             <thead class="bg-slate-100 text-slate-700 uppercase border-b">
               <tr>
-                <th class="p-3">Data Limpeza</th>
-                <th class="p-3">Tag Peça</th>
+                <th class="p-3">Data</th>
                 <th class="p-3">Proteína</th>
-                <th class="p-3">Peso Bruto</th>
+                <th class="p-3">Bruto Usado (Caderno)</th>
                 <th class="p-3">Aparas (kg)</th>
                 <th class="p-3">Perdas (kg)</th>
-                <th class="p-3">Útil (kg) / %</th>
-                <th class="p-3">Obs</th>
+                <th class="p-3">Bife Limpo (kg) / %</th>
+                <th class="p-3">Observações</th>
+                <th class="p-3">Ação</th>
               </tr>
             </thead>
-            <tbody id="lista-historico-aparas"></tbody>
+            <tbody id="lista-historico-aparas-diario"></tbody>
           </table>
         </div>
       </div>
@@ -424,7 +420,7 @@
 
   </main>
 
-  <!-- MODAL PARA SAÍDA DE PEÇA (MENU DE 3 PONTINHOS) -->
+  <!-- MODAL PARA SAÍDA DE PEÇA -->
   <div id="modal-saida-peca" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-white rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
       <div class="flex justify-between items-center border-b pb-3">
@@ -462,7 +458,7 @@
     let caixasPendentesList = JSON.parse(localStorage.getItem('pel_caixas_pendentes')) || [];
     let caixasAbertasList = JSON.parse(localStorage.getItem('pel_caixas_abertas')) || [];
     let pecasEstoqueList = JSON.parse(localStorage.getItem('pel_pecas_estoque')) || [];
-    let aparasHistoricoList = JSON.parse(localStorage.getItem('pel_aparas_historico')) || [];
+    let aparasDiarioHistorico = JSON.parse(localStorage.getItem('pel_aparas_diario_hist')) || [];
     let sequencialCortes = JSON.parse(localStorage.getItem('pel_seq_cortes')) || {};
 
     let caixaEmPesagemAtual = null;
@@ -473,7 +469,7 @@
       var hojeStr = new Date().toISOString().split('T')[0];
       document.getElementById('nf-data').value = hojeStr;
       document.getElementById('input-data-baixa-eli').value = hojeStr;
-      document.getElementById('input-data-apara').value = hojeStr;
+      document.getElementById('apara-diaria-data').value = hojeStr;
 
       renderFornecedoresSelect();
       addNFCorteRow();
@@ -483,7 +479,7 @@
       renderFiltrosProteinaEtapa3();
       renderEstoqueCamaraFria();
       renderGeladeiraEliEtapa4();
-      renderEtapa5Aparas();
+      renderEtapa5AparasDiario();
     };
 
     function switchTab(tabId) {
@@ -505,7 +501,7 @@
       if(tabId === 'tab-caixas') { renderCaixasFechadasGrid(); renderCaixasAbertasTable(); }
       if(tabId === 'tab-estoque') { renderFiltrosProteinaEtapa3(); renderEstoqueCamaraFria(); }
       if(tabId === 'tab-eli') { renderGeladeiraEliEtapa4(); }
-      if(tabId === 'tab-aparas') { renderEtapa5Aparas(); }
+      if(tabId === 'tab-aparas') { renderEtapa5AparasDiario(); }
     }
 
     function renderFornecedoresSelect() {
@@ -1085,7 +1081,7 @@
         renderFiltrosProteinaEtapa3();
         renderEstoqueCamaraFria();
         renderGeladeiraEliEtapa4();
-        renderEtapa5Aparas();
+        renderEtapa5AparasDiario();
         alert(`Peça ${peca.tag} (${peca.corte}) enviada para a Geladeira do Eli!`);
       }
     }
@@ -1214,7 +1210,7 @@
 
         localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
         renderGeladeiraEliEtapa4();
-        renderEtapa5Aparas();
+        renderEtapa5AparasDiario();
         alert(`${checkboxes.length} peça(s) baixada(s) com sucesso para a data ${dataConsumo}! Liberadas para Aparas na Etapa 5.`);
       }
     }
@@ -1227,148 +1223,145 @@
           delete peca.dataBaixaEli;
           localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
           renderGeladeiraEliEtapa4();
-          renderEtapa5Aparas();
+          renderEtapa5AparasDiario();
         }
       }
     }
 
-    /* --- LÓGICA DA ETAPA 5 (APARAS, PERDAS & RENDIMENTO DIÁRIO) --- */
+    /* --- LÓGICA DA ETAPA 5 (APARAS CONSOLIDADAS POR DIA) --- */
 
-    function renderEtapa5Aparas() {
-      var selectPeca = document.getElementById('select-peca-apara');
-      var tbodyHist = document.getElementById('lista-historico-aparas');
+    function renderEtapa5AparasDiario() {
+      var selectCorte = document.getElementById('apara-diaria-corte');
+      if(!selectCorte) return;
 
-      if(!selectPeca) return;
-
-      var pecasAguardando = pecasEstoqueList.filter(p => p.status === "Enviada p/ Aparas");
-
-      if(pecasAguardando.length === 0) {
-        selectPeca.innerHTML = '<option value="">-- Nenhuma peça aguardando rendimento --</option>';
-        document.getElementById('display-peso-bruto-apara').value = "0.000 kg";
-      } else {
-        selectPeca.innerHTML = '<option value="">-- Selecione uma peça para calcular rendimento --</option>' +
-          pecasAguardando.map(p => `<option value="${p.id}">${p.tag} - ${p.corte} (${p.peso.toFixed(3)}kg) [Uso: ${p.dataBaixaEli}]</option>`).join('');
+      var cortesUnicos = ["TODAS", ...new Set(pecasEstoqueList.filter(p => p.status === "Enviada p/ Aparas" || p.status === "Finalizado").map(p => p.corte))];
+      if(cortesUnicos.length === 1 && cortesUnicos[0] === "TODAS") {
+        cortesUnicos = ["TODAS", ...cortesList];
       }
 
-      atualizarInfoPecaApara();
-      renderTabelaHistoricoAparas();
+      selectCorte.innerHTML = cortesUnicos.map(c => `<option value="${c}">${c === 'TODAS' ? '-- Todas as Proteínas (Geral do Dia) --' : c}</option>`).join('');
+
+      atualizarResumoBaixasDia();
+      renderTabelaHistoricoAparasDiario();
     }
 
-    function atualizarInfoPecaApara() {
-      var selectPeca = document.getElementById('select-peca-apara');
-      var pecaId = parseInt(selectPeca.value);
+    function atualizarResumoBaixasDia() {
+      var dataSel = document.getElementById('apara-diaria-data').value;
+      var corteSel = document.getElementById('apara-diaria-corte').value;
 
-      if(!pecaId) {
-        document.getElementById('display-peso-bruto-apara').value = "0.000 kg";
-        document.getElementById('input-peso-apara').value = "";
-        document.getElementById('input-peso-perda').value = "";
-        calcularRendimentoApara();
-        return;
+      var pecasDoDia = pecasEstoqueList.filter(p => p.dataBaixaEli === dataSel);
+
+      if(corteSel !== "TODAS") {
+        pecasDoDia = pecasDoDia.filter(p => p.corte === corteSel);
       }
 
-      var peca = pecasEstoqueList.find(p => p.id === pecaId);
-      if(peca) {
-        document.getElementById('display-peso-bruto-apara').value = peca.peso.toFixed(3) + " kg";
-        if(peca.dataBaixaEli) {
-          document.getElementById('input-data-apara').value = peca.dataBaixaEli;
-        }
-        calcularRendimentoApara();
-      }
+      var somaPesoBrutoDia = pecasDoDia.reduce((acc, p) => acc + p.peso, 0);
+
+      document.getElementById('apara-diaria-bruto-display').value = somaPesoBrutoDia.toFixed(3) + " kg (" + pecasDoDia.length + " pçs)";
+      calcularRendimentoDiarioVisual();
     }
 
-    function calcularRendimentoApara() {
-      var selectPeca = document.getElementById('select-peca-apara');
-      var pecaId = parseInt(selectPeca.value);
+    function calcularRendimentoDiarioVisual() {
+      var dataSel = document.getElementById('apara-diaria-data').value;
+      var corteSel = document.getElementById('apara-diaria-corte').value;
 
-      var pesoBruto = 0;
-      if(pecaId) {
-        var peca = pecasEstoqueList.find(p => p.id === pecaId);
-        if(peca) pesoBruto = peca.peso;
+      var pecasDoDia = pecasEstoqueList.filter(p => p.dataBaixaEli === dataSel);
+      if(corteSel !== "TODAS") {
+        pecasDoDia = pecasDoDia.filter(p => p.corte === corteSel);
       }
 
-      var pesoApara = parseFloat(document.getElementById('input-peso-apara').value) || 0;
-      var pesoPerda = parseFloat(document.getElementById('input-peso-perda').value) || 0;
+      var pesoBrutoTotal = pecasDoDia.reduce((acc, p) => acc + p.peso, 0);
+      var pesoApara = parseFloat(document.getElementById('apara-diaria-peso-apara').value) || 0;
+      var pesoPerda = parseFloat(document.getElementById('apara-diaria-peso-perda').value) || 0;
 
-      var pesoUtil = pesoBruto - pesoApara - pesoPerda;
+      var pesoUtil = pesoBrutoTotal - pesoApara - pesoPerda;
       if(pesoUtil < 0) pesoUtil = 0;
 
-      var porcUtil = pesoBruto > 0 ? ((pesoUtil / pesoBruto) * 100) : 100;
+      var porcUtil = pesoBrutoTotal > 0 ? ((pesoUtil / pesoBrutoTotal) * 100) : 100;
 
-      document.getElementById('display-rendimento-limpo').innerText = pesoUtil.toFixed(3) + " kg";
-      document.getElementById('display-rendimento-porcentagem').innerText = `(${porcUtil.toFixed(1)}% de aproveitamento útil)`;
+      document.getElementById('apara-diaria-util-display').innerText = pesoUtil.toFixed(3) + " kg";
+      document.getElementById('apara-diaria-porc-display').innerText = `(${porcUtil.toFixed(1)}% de aproveitamento útil no dia)`;
     }
 
-    function handleSalvarAparas(e) {
+    function handleSalvarAparasDiario(e) {
       e.preventDefault();
-      var selectPeca = document.getElementById('select-peca-apara');
-      var pecaId = parseInt(selectPeca.value);
+      var dataSel = document.getElementById('apara-diaria-data').value;
+      var corteSel = document.getElementById('apara-diaria-corte').value;
 
-      if(!pecaId) {
-        alert("Selecione uma peça válida para registrar o rendimento.");
+      if(!dataSel) {
+        alert("Selecione a data do porcionamento.");
         return;
       }
 
-      var peca = pecasEstoqueList.find(p => p.id === pecaId);
-      if(!peca) return;
+      var pecasDoDia = pecasEstoqueList.filter(p => p.dataBaixaEli === dataSel);
+      if(corteSel !== "TODAS") {
+        pecasDoDia = pecasDoDia.filter(p => p.corte === corteSel);
+      }
 
-      var dataLimpeza = document.getElementById('input-data-apara').value;
-      var pesoApara = parseFloat(document.getElementById('input-peso-apara').value) || 0;
-      var pesoPerda = parseFloat(document.getElementById('input-peso-perda').value) || 0;
-      var obs = document.getElementById('input-obs-apara').value.trim();
+      var pesoBrutoTotal = pecasDoDia.reduce((acc, p) => acc + p.peso, 0);
+      var pesoApara = parseFloat(document.getElementById('apara-diaria-peso-apara').value) || 0;
+      var pesoPerda = parseFloat(document.getElementById('apara-diaria-peso-perda').value) || 0;
 
-      var pesoUtil = peca.peso - pesoApara - pesoPerda;
+      var pesoUtil = pesoBrutoTotal - pesoApara - pesoPerda;
       if(pesoUtil < 0) pesoUtil = 0;
-      var porcUtil = peca.peso > 0 ? ((pesoUtil / peca.peso) * 100) : 100;
+      var porcUtil = pesoBrutoTotal > 0 ? ((pesoUtil / pesoBrutoTotal) * 100) : 100;
 
-      var registroRendimento = {
+      var obs = document.getElementById('apara-diaria-obs').value.trim();
+
+      var novoRegistroDiario = {
         id: Date.now(),
-        pecaId: peca.id,
-        tag: peca.tag,
-        corte: peca.corte,
-        dataLimpeza: dataLimpeza,
-        pesoBruto: peca.peso,
+        data: dataSel,
+        corte: corteSel,
+        pesoBruto: pesoBrutoTotal,
         pesoApara: pesoApara,
         pesoPerda: pesoPerda,
         pesoUtil: pesoUtil,
         porcUtil: porcUtil,
-        obs: obs || "Sem observação",
-        nfNumero: peca.nfNumero
+        obs: obs || "Sem observação"
       };
 
-      aparasHistoricoList.unshift(registroRendimento);
-      localStorage.setItem('pel_aparas_historico', JSON.stringify(aparasHistoricoList));
+      aparasDiarioHistorico.unshift(novoRegistroDiario);
+      localStorage.setItem('pel_aparas_diario_hist', JSON.stringify(aparasDiarioHistorico));
 
-      peca.status = "Finalizado";
-      localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
+      document.getElementById('apara-diaria-peso-apara').value = "";
+      document.getElementById('apara-diaria-peso-perda').value = "";
+      document.getElementById('apara-diaria-obs').value = "";
 
-      document.getElementById('form-aparas').reset();
-      document.getElementById('input-data-apara').value = new Date().toISOString().split('T')[0];
-
-      renderEtapa5Aparas();
-      alert(`Rendimento da peça ${peca.tag} registrado com sucesso para o dia ${dataLimpeza}!`);
+      renderTabelaHistoricoAparasDiario();
+      alert(`Rendimento acumulado do dia ${dataSel} (${corteSel}) salvo com sucesso!`);
     }
 
-    function renderTabelaHistoricoAparas() {
-      var tbody = document.getElementById('lista-historico-aparas');
+    function renderTabelaHistoricoAparasDiario() {
+      var tbody = document.getElementById('lista-historico-aparas-diario');
       if(!tbody) return;
 
-      if(aparasHistoricoList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center p-4 text-gray-400">Nenhum registro de rendimento/apara efetuado até o momento.</td></tr>';
+      if(aparasDiarioHistorico.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center p-4 text-gray-400">Nenhum registro de rendimento diário consolidado efetuado até o momento.</td></tr>';
         return;
       }
 
-      tbody.innerHTML = aparasHistoricoList.map(r => `
+      tbody.innerHTML = aparasDiarioHistorico.map(r => `
         <tr class="border-b hover:bg-slate-50">
-          <td class="p-3 font-bold text-slate-800">${r.dataLimpeza}</td>
-          <td class="p-3 font-bold text-red-700">${r.tag}</td>
+          <td class="p-3 font-bold text-slate-800">${r.data}</td>
           <td class="p-3 font-semibold text-slate-800">${r.corte}</td>
           <td class="p-3 font-bold text-slate-900">${r.pesoBruto.toFixed(3)} kg</td>
           <td class="p-3 font-medium text-slate-700">${r.pesoApara.toFixed(3)} kg</td>
           <td class="p-3 font-medium text-red-600">${r.pesoPerda.toFixed(3)} kg</td>
           <td class="p-3 font-bold text-emerald-700">${r.pesoUtil.toFixed(3)} kg (${r.porcUtil.toFixed(1)}%)</td>
           <td class="p-3 text-gray-500">${r.obs}</td>
+          <td class="p-3">
+            <button onclick="excluirAparaDiario(${r.id})" class="text-red-600 hover:underline font-bold">Excluir</button>
+          </td>
         </tr>
       `).join('');
+    }
+
+    function excluirAparaDiario(id) {
+      if(confirm("Deseja excluir este registro de rendimento diário?")) {
+        aparasDiarioHistorico = aparasDiarioHistorico.filter(a => a.id !== id);
+        localStorage.setItem('pel_aparas_diario_hist', JSON.stringify(aparasDiarioHistorico));
+        renderTabelaHistoricoAparasDiario();
+      }
     }
   </script>
 </body>
