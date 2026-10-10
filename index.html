@@ -23,9 +23,9 @@
   <!-- Navegação de Abas -->
   <nav class="bg-white border-b border-gray-200 px-4 flex space-x-4 text-sm overflow-x-auto">
     <button onclick="switchTab('tab-nf')" id="btn-tab-nf" class="py-3 px-2 tab-active transition-all">1. Entrada de Nota Fiscal</button>
-    <button onclick="switchTab('tab-caixas')" id="btn-tab-caixas" class="py-3 px-2 text-gray-600 transition-all font-semibold">2. Caixas & Pesagem de Peças</button>
-    <button onclick="switchTab('tab-estoque')" id="btn-tab-estoque" class="py-3 px-2 text-gray-600 transition-all font-semibold">3. Câmara Fria & Peças</button>
-    <button disabled class="py-3 px-2 text-gray-400 cursor-not-allowed">4. Porcionamento (Em breve)</button>
+    <button onclick="switchTab('tab-caixas')" id="btn-tab-caixas" class="py-3 px-2 text-gray-600 transition-all font-semibold">2. Caixas & Pesagem</button>
+    <button onclick="switchTab('tab-estoque')" id="btn-tab-estoque" class="py-3 px-2 text-gray-600 transition-all font-semibold">3. Câmara Fria</button>
+    <button disabled class="py-3 px-2 text-gray-400 cursor-not-allowed">4. Geladeira do Eli (Em breve)</button>
   </nav>
 
   <!-- Conteúdo Principal -->
@@ -136,7 +136,7 @@
         <div class="border-b pb-3 flex justify-between items-center">
           <div>
             <h2 class="text-lg font-bold text-slate-800">Caixas Fechadas na Câmara Fria</h2>
-            <p class="text-xs text-gray-500">Selecione uma caixa abaixo para abrir e realizar a conferência das peças.</p>
+            <p class="text-xs text-gray-500">Selecione uma caixa para abrir e realizar a conferência individual.</p>
           </div>
           <span class="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-semibold">Etapa 2 de 5</span>
         </div>
@@ -146,7 +146,7 @@
         </div>
       </div>
 
-      <!-- Painel de Abertura & Inspeção da Caixa -->
+      <!-- Painel de Abertura & Inspeção -->
       <div id="painel-pesagem" class="bg-white p-6 rounded-xl shadow-md border-2 border-red-500 space-y-6 hidden">
         <div class="flex justify-between items-center border-b pb-3">
           <div>
@@ -172,7 +172,6 @@
             </div>
           </div>
 
-          <!-- Ajuste de Quantidade de Peças da Caixa -->
           <div class="bg-amber-50 border border-amber-200 p-4 rounded-lg space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
@@ -183,15 +182,14 @@
             </div>
 
             <div id="box-justificativa-qtd" class="hidden border-t border-amber-200 pt-3">
-              <label class="block text-xs font-bold text-amber-900 mb-1">Motivo da Divergência na Contagem de Peças *</label>
+              <label class="block text-xs font-bold text-amber-900 mb-1">Motivo da Divergência na Contagem *</label>
               <select id="select-justificativa-qtd" class="w-full border rounded-lg p-2 text-xs bg-white text-slate-800 font-semibold outline-none">
-                <option value="Divergência de etiqueta/embalagem (Peso bateu)">Divergência de etiqueta/embalagem do frigorífico (Peso da caixa OK)</option>
-                <option value="Falta real de peça / Prejuízo de envio">Falta real de peça no envio (Para cobrança/crédito com fornecedor)</option>
+                <option value="Divergência de etiqueta/embalagem (Peso bateu)">Divergência de etiqueta do frigorífico (Peso da caixa OK)</option>
+                <option value="Falta real de peça / Prejuízo de envio">Falta real de peça no envio (Para cobrança do fornecedor)</option>
               </select>
             </div>
           </div>
 
-          <!-- Inspeção e Pesagem Individual -->
           <div>
             <h4 class="text-xs font-bold text-slate-800 mb-3">Pesagem & Inspeção de Qualidade por Peça</h4>
             <div id="container-inputs-pecas" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
@@ -226,68 +224,83 @@
       </div>
     </section>
 
-    <!-- ETAPA 3: CÂMARA FRIA & GESTÃO DE PEÇAS E MATURAÇÃO -->
+    <!-- ETAPA 3: CÂMARA FRIA (ESTOQUE REAL & SELEÇÃO DE PROTEÍNAS) -->
     <section id="tab-estoque" class="tab-content space-y-6 hidden">
       <div class="border-b pb-3 flex justify-between items-center">
         <div>
-          <h2 class="text-lg font-bold text-slate-800">Estoque de Peças e Controle de Maturação</h2>
-          <p class="text-xs text-gray-500">Gerencie o saldo por ambiente e monitore o tempo de estocagem (dias desde a NF).</p>
+          <h2 class="text-lg font-bold text-slate-800">❄️ Câmara Fria — Estoque de Peças Inteiras</h2>
+          <p class="text-xs text-gray-500">Filtre por proteína para visualizar os pesos, as tags e direcionar para a Geladeira do Eli ou registrar saídas.</p>
         </div>
         <span class="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-semibold">Etapa 3 de 5</span>
       </div>
 
-      <!-- Indicadores de Saldo Global -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center">
-          <div>
-            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">❄️ Saldo na Câmara Fria</span>
-            <span id="saldo-camara-peso" class="text-xl font-bold text-slate-800">0.000 kg</span>
-          </div>
-          <span id="saldo-camara-pecas" class="text-xs bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-full">0 peças</span>
-        </div>
-
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center">
-          <div>
-            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">🧊 Saldo Geladeira de Porcionamento</span>
-            <span id="saldo-geladeira-peso" class="text-xl font-bold text-emerald-700">0.000 kg</span>
-          </div>
-          <span id="saldo-geladeira-pecas" class="text-xs bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-full">0 peças</span>
+      <!-- Seletor / Filtro de Proteína -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <label class="block text-xs font-bold text-slate-700">Filtrar Visão da Câmara Fria:</label>
+        <div id="filtro-proteinas-buttons" class="flex flex-wrap gap-2">
+          <!-- Botões injetados via JS -->
         </div>
       </div>
 
-      <!-- Legenda de Maturação -->
-      <div class="flex items-center gap-4 bg-white p-3 rounded-lg border text-xs">
-        <span class="font-bold text-slate-700">Status de Maturação/Validade:</span>
-        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Fresca (&lt;30 dias)</span>
-        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> Maturação Ideal (30-59 dias)</span>
-        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-red-600 inline-block"></span> Crítico / Usar Primeiro (&ge;60 dias)</span>
+      <!-- Card do Esboço / Resumo da Proteína Selecionada -->
+      <div class="bg-slate-900 text-white p-5 rounded-xl shadow-md grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+        <div>
+          <span class="text-gray-400 block mb-1">Proteína Selecionada:</span>
+          <span id="resumo-corte-nome" class="text-base font-bold text-red-400">Todas as Proteínas</span>
+        </div>
+        <div>
+          <span class="text-gray-400 block mb-1">Saldo Total na Câmara:</span>
+          <span id="resumo-corte-peso" class="text-base font-bold text-white">0.000 kg</span>
+          <span id="resumo-corte-pecas" class="text-gray-400 text-[11px] block">(0 peças)</span>
+        </div>
+        <div>
+          <span class="text-gray-400 block mb-1">Intervalo de Tags Disponíveis:</span>
+          <span id="resumo-corte-tags" class="text-xs font-mono text-emerald-400 block mt-1">Nenhuma peça</span>
+        </div>
       </div>
 
-      <!-- Colunas de Estoque por Localização -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Câmara Fria -->
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-          <h3 class="font-bold text-slate-800 border-b pb-2 flex justify-between items-center">
-            <span>❄️ Peças na Câmara Fria</span>
-          </h3>
-          <div id="cards-estoque-camara" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto p-1">
-            <p class="text-xs text-gray-400 col-span-full">Nenhuma peça na câmara fria.</p>
-          </div>
-        </div>
-
-        <!-- Geladeira Porcionamento -->
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-          <h3 class="font-bold text-slate-800 border-b pb-2 flex justify-between items-center">
-            <span>🧊 Peças na Geladeira de Porcionamento</span>
-          </h3>
-          <div id="cards-estoque-geladeira" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto p-1">
-            <p class="text-xs text-gray-400 col-span-full">Nenhuma peça na geladeira de porcionamento.</p>
-          </div>
+      <!-- Grid de Peças com Menu de 3 Pontinhos (⋮) -->
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+        <h3 class="font-bold text-slate-800 text-sm">Peças Estocadas na Câmara Fria</h3>
+        <div id="grid-pecas-camara" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <p class="text-xs text-gray-400 col-span-full">Nenhuma peça encontrada no filtro selecionado.</p>
         </div>
       </div>
     </section>
 
   </main>
+
+  <!-- MODAL / POPUP PARA SAÍDA DE PEÇA (MENU DE 3 PONTINHOS) -->
+  <div id="modal-saida-peca" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 id="modal-tag-titulo" class="font-bold text-slate-800 text-sm">Registrar Saída de Peça</h3>
+        <button onclick="fecharModalSaida()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Selecione o Destino / Motivo da Saída *</label>
+          <select id="modal-motivo-select" class="w-full border rounded-lg p-2 font-semibold text-slate-800 outline-none bg-slate-50">
+            <option value="Venda de Peça Inteira / Balcão">🛒 Venda de Peça Inteira / Cliente Balcão</option>
+            <option value="Consumo Interno / Evento / Teste">🍳 Consumo Interno / Evento / Teste de Cozinha</option>
+            <option value="Descarte / Avaria na Câmara Fria">🗑️ Descarte / Avaria após estocagem</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Observação / Nome do Cliente (Opcional)</label>
+          <input type="text" id="modal-obs-input" class="w-full border rounded-lg p-2 outline-none" placeholder="Ex: Venda direta p/ Cliente João">
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 border-t pt-4 text-xs">
+        <button onclick="fecharModalSaida()" class="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-lg">Cancelar</button>
+
+        <button onclick="confirmarSaidaPecaEspecial()" class="px-4 py-2 bg-red-600 text-white font-bold rounded-lg shadow hover:bg-red-700">Confirmar Baixa do Estoque</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     let fornecedores = JSON.parse(localStorage.getItem('pel_fornecedores')) || ["A3 Mercado", "Frigorífico Minerva", "JBS / Friboi", "Marfrig"];
@@ -299,6 +312,8 @@
     let sequencialCortes = JSON.parse(localStorage.getItem('pel_seq_cortes')) || {};
 
     let caixaEmPesagemAtual = null;
+    let pecaEmModalSaidaId = null;
+    let filtroProteinaAtual = "TODAS";
 
     window.onload = function() {
       document.getElementById('nf-data').value = new Date().toISOString().split('T')[0];
@@ -307,7 +322,8 @@
       renderNFList();
       renderCaixasFechadasGrid();
       renderCaixasAbertasTable();
-      renderEstoquePecasEtapa3();
+      renderFiltrosProteinaEtapa3();
+      renderEstoqueCamaraFria();
     };
 
     function switchTab(tabId) {
@@ -331,7 +347,8 @@
         renderCaixasAbertasTable();
       }
       if(tabId === 'tab-estoque') {
-        renderEstoquePecasEtapa3();
+        renderFiltrosProteinaEtapa3();
+        renderEstoqueCamaraFria();
       }
     }
 
@@ -549,7 +566,7 @@
       }
     }
 
-    /* --- LÓGICA DA ETAPA 2 (ABERTURA, JUSTIFICATIVAS E INSPEÇÃO) --- */
+    /* --- LÓGICA DA ETAPA 2 (ABERTURA & INSPEÇÃO) --- */
 
     function renderCaixasFechadasGrid() {
       var container = document.getElementById('grid-caixas-fechadas');
@@ -744,12 +761,10 @@
         }
       });
 
-      // Atualiza o sequencial do corte
       var seqAtual = sequencialCortes[caixaEmPesagemAtual.corte] || 0;
       sequencialCortes[caixaEmPesagemAtual.corte] = seqAtual + cardsPecas.length;
       localStorage.setItem('pel_seq_cortes', JSON.stringify(sequencialCortes));
 
-      // Monta resumo de ocorrências
       var ocorrencias = [];
       if(justificativaQtd) ocorrencias.push(`Contagem: ${qtdReal}/${qtdPrevista} pçs (${justificativaQtd})`);
       if(pecasAvariadas.length > 0) ocorrencias.push(`Avarias: ${pecasAvariadas.length} pç(s) [${pecasAvariadas.map(a => a.tag + ': ' + a.motivo).join('; ')}]`);
@@ -779,9 +794,10 @@
       fecharPainelPesagem();
       renderCaixasFechadasGrid();
       renderCaixasAbertasTable();
-      renderEstoquePecasEtapa3();
+      renderFiltrosProteinaEtapa3();
+      renderEstoqueCamaraFria();
 
-      alert(`Caixa processada com sucesso! ${pecasAprovadas.length} peça(s) enviadas ao estoque. ${pecasAvariadas.length} peça(s) registradas como avaria/rejeitadas.`);
+      alert(`Caixa processada com sucesso! ${pecasAprovadas.length} peça(s) enviadas à Câmara Fria.`);
     }
 
     function renderCaixasAbertasTable() {
@@ -811,7 +827,7 @@
       }).join('');
     }
 
-    /* --- LÓGICA DA ETAPA 3 (CÂMARA FRIA & MATURAÇÃO) --- */
+    /* --- LÓGICA DA ETAPA 3 (CÂMARA FRIA & MENU DE 3 PONTINHOS) --- */
 
     function calcularDiasEstoque(dataNF) {
       if(!dataNF) return 0;
@@ -821,85 +837,140 @@
       return Math.floor(diffTime / (1000 * 60 * 60 * 24));
     }
 
-    function renderEstoquePecasEtapa3() {
-      var containerCamara = document.getElementById('cards-estoque-camara');
-      var containerGeladeira = document.getElementById('cards-estoque-geladeira');
+    function renderFiltrosProteinaEtapa3() {
+      var container = document.getElementById('filtro-proteinas-buttons');
+      if(!container) return;
 
-      if(!containerCamara || !containerGeladeira) return;
+      var proteinasPresentes = ["TODAS", ...new Set(pecasEstoqueList.filter(p => p.localizacao === "Câmara Fria" && p.status === "Em Estoque").map(p => p.corte))];
 
-      containerCamara.innerHTML = "";
-      containerGeladeira.innerHTML = "";
+      container.innerHTML = proteinasPresentes.map(prot => {
+        var isSelected = filtroProteinaAtual === prot;
+        var btnStyle = isSelected ? "bg-red-600 text-white font-bold" : "bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold";
+        return `<button onclick="filtrarProteinaEtapa3('${prot}')" class="px-3 py-1.5 rounded-lg text-xs transition-all ${btnStyle}">${prot}</button>`;
+      }).join('');
+    }
 
-      var emEstoque = pecasEstoqueList.filter(p => p.status === "Em Estoque");
+    function filtrarProteinaEtapa3(prot) {
+      filtroProteinaAtual = prot;
+      renderFiltrosProteinaEtapa3();
+      renderEstoqueCamaraFria();
+    }
 
-      var pesoTotalCamara = 0, pecasTotalCamara = 0;
-      var pesoTotalGeladeira = 0, pecasTotalGeladeira = 0;
+    function renderEstoqueCamaraFria() {
+      var containerGrid = document.getElementById('grid-pecas-camara');
+      if(!containerGrid) return;
 
-      if(emEstoque.length === 0) {
-        containerCamara.innerHTML = '<p class="text-xs text-gray-400 col-span-full p-2">Nenhuma peça na câmara fria.</p>';
-        containerGeladeira.innerHTML = '<p class="text-xs text-gray-400 col-span-full p-2">Nenhuma peça na geladeira de porcionamento.</p>';
+      var pecasCamara = pecasEstoqueList.filter(p => p.localizacao === "Câmara Fria" && p.status === "Em Estoque");
+
+      if(filtroProteinaAtual !== "TODAS") {
+        pecasCamara = pecasCamara.filter(p => p.corte === filtroProteinaAtual);
       }
 
-      emEstoque.forEach(p => {
+      // Atualiza o Card de Esboço
+      var totalPeso = pecasCamara.reduce((acc, p) => acc + p.peso, 0);
+      var totalPecas = pecasCamara.length;
+
+      document.getElementById('resumo-corte-nome').innerText = filtroProteinaAtual === "TODAS" ? "Todas as Proteínas" : filtroProteinaAtual;
+      document.getElementById('resumo-corte-peso').innerText = totalPeso.toFixed(3) + " kg";
+      document.getElementById('resumo-corte-pecas').innerText = `(${totalPecas} peça${totalPecas !== 1 ? 's' : ''})`;
+
+      if(totalPecas > 0) {
+        var tagsList = pecasCamara.map(p => p.tag);
+        document.getElementById('resumo-corte-tags').innerText = `${tagsList[0]} até ${tagsList[tagsList.length - 1]}`;
+      } else {
+        document.getElementById('resumo-corte-tags').innerText = "Nenhuma peça disponível";
+      }
+
+      if(pecasCamara.length === 0) {
+        containerGrid.innerHTML = '<p class="text-xs text-gray-400 col-span-full p-2">Nenhuma peça encontrada na câmara fria para este filtro.</p>';
+        return;
+      }
+
+      containerGrid.innerHTML = pecasCamara.map(p => {
         var dias = calcularDiasEstoque(p.dataNF);
         var matBadgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
-        var matText = `${dias} dias (Fresca)`;
+        var matText = `${dias} dias`;
 
         if(dias >= 60) {
           matBadgeClass = "bg-red-100 text-red-800 border-red-300 animate-pulse";
-          matText = `${dias} dias (🔴 Crítico / Vencendo)`;
+          matText = `${dias} dias (🔴 Crítico)`;
         } else if(dias >= 30) {
           matBadgeClass = "bg-amber-100 text-amber-800 border-amber-300";
           matText = `${dias} dias (🟠 Maturação Ideal)`;
         }
 
-        var isCamara = p.localizacao === "Câmara Fria";
-
-        if(isCamara) {
-          pesoTotalCamara += p.peso;
-          pecasTotalCamara++;
-        } else {
-          pesoTotalGeladeira += p.peso;
-          pecasTotalGeladeira++;
-        }
-
-        var btnMover = isCamara ? 
-          `<button onclick="moverPecaLocalizacao(${p.id}, 'Geladeira de Porcionamento')" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold text-[11px] py-1.5 rounded transition-all mt-2">🧊 Mover p/ Geladeira</button>` :
-          `<button onclick="moverPecaLocalizacao(${p.id}, 'Câmara Fria')" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold text-[11px] py-1.5 rounded transition-all mt-2">❄️ Retornar p/ Câmara</button>`;
-
-        var cardHtml = `
-          <div class="bg-slate-50 border border-slate-200 p-3 rounded-lg shadow-sm flex flex-col justify-between">
+        return `
+          <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl shadow-sm flex flex-col justify-between space-y-3">
             <div>
-              <div class="flex justify-between items-center border-b pb-1 mb-1">
+              <div class="flex justify-between items-center border-b pb-1 mb-2">
                 <span class="font-bold text-red-700 text-xs">${p.tag}</span>
-                <span class="text-[10px] border px-1.5 py-0.5 rounded-full font-bold ${matBadgeClass}">${matText}</span>
+                <div class="flex items-center gap-1">
+                  <span class="text-[10px] border px-1.5 py-0.5 rounded-full font-bold ${matBadgeClass}">${matText}</span>
+                  <!-- Botão de 3 Pontinhos -->
+                  <button onclick="abrirModalSaidaPeca(${p.id})" class="text-slate-500 hover:text-slate-800 font-bold px-1 text-sm" title="Outras Ações / Saída">⋮</button>
+                </div>
               </div>
               <span class="font-bold text-slate-800 text-sm block">${p.corte}</span>
               <p class="text-[11px] text-gray-500">NF #${p.nfNumero} (${p.dataNF})</p>
               <p class="text-xs font-bold text-slate-900 mt-1">Peso: ${p.peso.toFixed(3)} kg</p>
             </div>
-            ${btnMover}
+
+            <button onclick="transferirParaGeladeiraEli(${p.id})" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs py-2 rounded-lg transition-all flex items-center justify-center gap-1 shadow-sm">
+              🧊 Mover p/ Geladeira do Eli
+            </button>
           </div>
         `;
-
-        if(isCamara) containerCamara.innerHTML += cardHtml;
-        else containerGeladeira.innerHTML += cardHtml;
-      });
-
-      document.getElementById('saldo-camara-peso').innerText = pesoTotalCamara.toFixed(3) + " kg";
-      document.getElementById('saldo-camara-pecas').innerText = pecasTotalCamara + " peças";
-
-      document.getElementById('saldo-geladeira-peso').innerText = pesoTotalGeladeira.toFixed(3) + " kg";
-      document.getElementById('saldo-geladeira-pecas').innerText = pecasTotalGeladeira + " peças";
+      }).join('');
     }
 
-    function moverPecaLocalizacao(pecaId, novoDestino) {
+    function transferirParaGeladeiraEli(pecaId) {
       var peca = pecasEstoqueList.find(p => p.id === pecaId);
       if(peca) {
-        peca.localizacao = novoDestino;
+        peca.localizacao = "Geladeira do Eli";
         localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
-        renderEstoquePecasEtapa3();
+        renderFiltrosProteinaEtapa3();
+        renderEstoqueCamaraFria();
+        alert(`Peça ${peca.tag} (${peca.corte}) transferida para a Geladeira do Eli com sucesso!`);
       }
+    }
+
+    /* --- LÓGICA DO POPUP DE SAÍDA ESPECIAL (3 PONTINHOS) --- */
+
+    function abrirModalSaidaPeca(pecaId) {
+      var peca = pecasEstoqueList.find(p => p.id === pecaId);
+      if(!peca) return;
+
+      pecaEmModalSaidaId = pecaId;
+      document.getElementById('modal-tag-titulo').innerText = `Saída Direta — ${peca.tag} (${peca.corte} - ${peca.peso.toFixed(3)}kg)`;
+      document.getElementById('modal-obs-input').value = "";
+      document.getElementById('modal-saida-peca').classList.remove('hidden');
+    }
+
+    function fecharModalSaida() {
+      pecaEmModalSaidaId = null;
+      document.getElementById('modal-saida-peca').classList.add('hidden');
+    }
+
+    function confirmarSaidaPecaEspecial() {
+      if(!pecaEmModalSaidaId) return;
+
+      var peca = pecasEstoqueList.find(p => p.id === pecaEmModalSaidaId);
+      if(!peca) return;
+
+      var motivo = document.getElementById('modal-motivo-select').value;
+      var obs = document.getElementById('modal-obs-input').value.trim();
+
+      peca.status = "Baixado";
+      peca.motivoSaida = motivo + (obs ? ` (${obs})` : "");
+      peca.dataSaida = new Date().toISOString().split('T')[0];
+
+      localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
+
+      fecharModalSaida();
+      renderFiltrosProteinaEtapa3();
+      renderEstoqueCamaraFria();
+
+      alert(`Baixa registrada! A peça ${peca.tag} teve sua saída confirmada por: ${motivo}.`);
     }
   </script>
 </body>
