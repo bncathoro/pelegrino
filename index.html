@@ -17,7 +17,7 @@
     <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1 rounded-full text-gray-300">Módulo 1: Entradas NF</span>
   </header>
 
-  <!-- Navegação de Abas (Apenas Etapa 1 Ativa) -->
+  <!-- Navegação de Abas -->
   <nav class="bg-white border-b border-gray-200 px-4 flex space-x-4 text-sm">
     <button class="py-3 px-2 border-b-2 border-red-600 text-red-600 font-bold">1. Entrada de Nota Fiscal</button>
   </nav>
@@ -30,7 +30,7 @@
       <div class="border-b pb-3 flex justify-between items-center">
         <div>
           <h2 class="text-lg font-bold text-slate-800">Registrar Entrada de Nota Fiscal</h2>
-          <p class="text-xs text-gray-500">Cadastre os dados de recebimento e o detalhamento das caixas do frigorífico.</p>
+          <p class="text-xs text-gray-500">Cadastre a nota e adicione individualmente cada caixa recebida com seu peso e peças exatas.</p>
         </div>
         <span class="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-semibold">Etapa 1 de 5</span>
       </div>
@@ -63,11 +63,16 @@
           </div>
         </div>
 
-        <!-- Detalhamento dos Cortes e Caixas -->
+        <!-- Detalhamento das Caixas Individuais -->
         <div>
           <div class="flex justify-between items-center mb-3">
-            <h3 class="text-sm font-bold text-slate-800">Detalhamento por Caixa e Proteína</h3>
-            <button type="button" onclick="addNFCorteRow()" class="text-xs bg-slate-800 hover:bg-slate-900 text-white font-medium px-3 py-1.5 rounded-lg shadow-sm transition-all">+ Adicionar Caixa / Corte</button>
+            <div>
+              <h3 class="text-sm font-bold text-slate-800">Detalhamento de Caixas (1 caixa por linha)</h3>
+              <p class="text-[11px] text-gray-500">Cada clique no botão adiciona 1 caixa específica com seu peso e peças.</p>
+            </div>
+            <button type="button" onclick="addNFCorteRow()" class="text-xs bg-slate-800 hover:bg-slate-900 text-white font-medium px-3 py-2 rounded-lg shadow-sm transition-all flex items-center gap-1">
+              + Adicionar Caixa / Corte
+            </button>
           </div>
 
           <div id="nf-cortes-container" class="space-y-3">
@@ -75,18 +80,22 @@
         </div>
 
         <!-- Resumo do Lançamento -->
-        <div class="flex flex-wrap justify-between items-center bg-gray-50 p-4 rounded-lg border text-xs">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-gray-50 p-4 rounded-lg border text-xs">
+          <div>
+            <span class="text-gray-500 block">Total de Caixas:</span>
+            <span id="resumo-total-caixas" class="text-sm font-bold text-slate-800">0 caixas</span>
+          </div>
           <div>
             <span class="text-gray-500 block">Total de Peças:</span>
             <span id="resumo-total-pecas" class="text-sm font-bold text-slate-800">0 peças</span>
           </div>
           <div>
-            <span class="text-gray-500 block">Soma do Peso das Caixas:</span>
+            <span class="text-gray-500 block">Soma dos Pesos das Caixas:</span>
             <span id="resumo-soma-peso" class="text-sm font-bold text-slate-800">0.000 kg</span>
           </div>
           <div>
             <span class="text-gray-500 block">Balanço com a NF:</span>
-            <span id="resumo-status-balanco" class="text-xs font-bold px-2 py-0.5 rounded bg-gray-200 text-gray-700">Aguardando dados</span>
+            <span id="resumo-status-balanco" class="text-xs font-bold px-2 py-1 rounded bg-gray-200 text-gray-700 inline-block mt-0.5">Aguardando dados</span>
           </div>
         </div>
 
@@ -109,7 +118,7 @@
               <th class="p-3">Data Rec.</th>
               <th class="p-3">Fornecedor</th>
               <th class="p-3">Peso NF</th>
-              <th class="p-3">Detalhamento (Corte / CXs / Peças)</th>
+              <th class="p-3">Detalhamento das Caixas (Proteína / Peso / Peças)</th>
               <th class="p-3">Ação</th>
             </tr>
           </thead>
@@ -155,33 +164,34 @@
       var container = document.getElementById('nf-cortes-container');
       var rowId = Date.now() + Math.floor(Math.random() * 1000);
       var optionsCortes = cortesList.map(c => `<option value="${c}">${c}</option>`).join('');
+      var numCaixaAtual = container.children.length + 1;
 
       var rowHtml = `
         <div id="row-${rowId}" class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs">
-          <div class="sm:col-span-4">
+          <div class="sm:col-span-1 text-center font-bold text-slate-700 bg-slate-200 py-2 rounded">
+            CX #${numCaixaAtual}
+          </div>
+          <div class="sm:col-span-5">
             <label class="block text-[10px] font-bold text-gray-500 mb-0.5">Proteína / Corte</label>
             <select class="item-corte border rounded-md p-1.5 w-full bg-white font-bold text-slate-800 outline-none">
               ${optionsCortes}
             </select>
           </div>
-          <div class="sm:col-span-2">
-            <label class="block text-[10px] font-bold text-gray-500 mb-0.5">Qtd. Caixas</label>
-            <input type="number" min="1" value="1" oninput="calcularTotalNF()" class="item-caixas border rounded-md p-1.5 w-full bg-white font-medium outline-none" required>
-          </div>
           <div class="sm:col-span-3">
-            <label class="block text-[10px] font-bold text-gray-500 mb-0.5">Peso por Caixa (kg)</label>
-            <input type="number" step="0.001" placeholder="Ex: 5.000" oninput="calcularTotalNF()" class="item-peso-cx border rounded-md p-1.5 w-full bg-white font-medium outline-none" required>
+            <label class="block text-[10px] font-bold text-gray-500 mb-0.5">Peso desta Caixa (kg) *</label>
+            <input type="number" step="0.001" placeholder="Ex: 5.250" oninput="calcularTotalNF()" class="item-peso-cx border rounded-md p-1.5 w-full bg-white font-medium outline-none" required>
           </div>
           <div class="sm:col-span-2">
-            <label class="block text-[10px] font-bold text-gray-500 mb-0.5">Peças por Caixa</label>
+            <label class="block text-[10px] font-bold text-gray-500 mb-0.5">Nº Peças *</label>
             <input type="number" min="1" placeholder="Ex: 5" oninput="calcularTotalNF()" class="item-pecas-cx border rounded-md p-1.5 w-full bg-white font-medium outline-none" required>
           </div>
           <div class="sm:col-span-1 flex justify-center items-end">
-            <button type="button" onclick="removeNFCorteRow('row-${rowId}')" class="text-red-600 hover:text-red-800 font-bold p-1">✕</button>
+            <button type="button" onclick="removeNFCorteRow('row-${rowId}')" class="text-red-600 hover:text-red-800 font-bold p-1 text-base" title="Remover esta caixa">✕</button>
           </div>
         </div>
       `;
       container.insertAdjacentHTML('beforeend', rowHtml);
+      renumerarCaixasVisual();
       calcularTotalNF();
     }
 
@@ -189,26 +199,36 @@
       var container = document.getElementById('nf-cortes-container');
       if(container.children.length > 1) {
         document.getElementById(id)?.remove();
+        renumerarCaixasVisual();
         calcularTotalNF();
       } else {
-        alert("A Nota Fiscal precisa conter ao menos 1 caixa/item cadastrado.");
+        alert("A Nota Fiscal precisa conter ao menos 1 caixa cadastrada.");
       }
+    }
+
+    function renumerarCaixasVisual() {
+      var rows = document.querySelectorAll('#nf-cortes-container > div');
+      rows.forEach((r, idx) => {
+        var badge = r.querySelector('div:first-child');
+        if(badge) badge.innerText = `CX #${idx + 1}`;
+      });
     }
 
     function calcularTotalNF() {
       var rows = document.querySelectorAll('#nf-cortes-container > div');
+      var totalCaixas = rows.length;
       var totalPecas = 0;
       var somaPesoCaixas = 0;
 
       rows.forEach(r => {
-        var cxs = parseInt(r.querySelector('.item-caixas').value) || 0;
         var pesoCx = parseFloat(r.querySelector('.item-peso-cx').value) || 0;
         var pecasCx = parseInt(r.querySelector('.item-pecas-cx').value) || 0;
 
-        somaPesoCaixas += (cxs * pesoCx);
-        totalPecas += (cxs * pecasCx);
+        somaPesoCaixas += pesoCx;
+        totalPecas += pecasCx;
       });
 
+      document.getElementById('resumo-total-caixas').innerText = totalCaixas + " caixa(s)";
       document.getElementById('resumo-total-pecas').innerText = totalPecas + " peças";
       document.getElementById('resumo-soma-peso').innerText = somaPesoCaixas.toFixed(3) + " kg";
 
@@ -217,16 +237,16 @@
       var statusSpan = document.getElementById('resumo-status-balanco');
 
       if(pesoDeclaradoNF === 0) {
-        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-gray-200 text-gray-700";
+        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-gray-200 text-gray-700 inline-block mt-0.5";
         statusSpan.innerText = "Informe o peso total da NF";
       } else if(diff === 0) {
-        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800";
+        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 inline-block mt-0.5";
         statusSpan.innerText = "🟢 Conforme (Bateu 100%)";
       } else if(diff <= 0.5) {
-        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800";
+        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 inline-block mt-0.5";
         statusSpan.innerText = `🟠 Tolerância Aceitável (Dif: ${diff.toFixed(3)}kg)`;
       } else {
-        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-red-100 text-red-800";
+        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-red-100 text-red-800 inline-block mt-0.5";
         statusSpan.innerText = `🔴 Divergente da NF (Dif: ${diff.toFixed(3)}kg)`;
       }
     }
@@ -234,26 +254,29 @@
     function handleNFSubmit(e) {
       e.preventDefault();
       var rows = document.querySelectorAll('#nf-cortes-container > div');
-      var itensNF = [];
-      var totalCaixasNF = 0;
+      var caixasDetalhadas = [];
       var totalPecasNF = 0;
+      var somaPesoCaixas = 0;
 
       var nfNumero = document.getElementById('nf-numero').value.trim();
       var fornecedor = document.getElementById('nf-fornecedor').value;
       var dataRec = document.getElementById('nf-data').value;
       var pesoTotalNF = parseFloat(document.getElementById('nf-peso-total').value) || 0;
 
-      rows.forEach(r => {
+      rows.forEach((r, idx) => {
         var corte = r.querySelector('.item-corte').value;
-        var cxs = parseInt(r.querySelector('.item-caixas').value) || 0;
         var pesoCx = parseFloat(r.querySelector('.item-peso-cx').value) || 0;
         var pecasCx = parseInt(r.querySelector('.item-pecas-cx').value) || 0;
 
-        if(cxs > 0) {
-          itensNF.push({ corte, caixas: cxs, pesoPorCaixa: pesoCx, pecasPorCaixa: pecasCx });
-          totalCaixasNF += cxs;
-          totalPecasNF += (cxs * pecasCx);
-        }
+        caixasDetalhadas.push({
+          caixaNum: idx + 1,
+          corte: corte,
+          pesoCaixa: pesoCx,
+          pecasPorCaixa: pecasCx
+        });
+
+        somaPesoCaixas += pesoCx;
+        totalPecasNF += pecasCx;
       });
 
       var newNF = {
@@ -262,9 +285,10 @@
         fornecedor: fornecedor,
         data: dataRec,
         pesoTotal: pesoTotalNF,
-        totalCaixas: totalCaixasNF,
+        somaPesoCaixas: somaPesoCaixas,
+        totalCaixas: caixasDetalhadas.length,
         totalPecas: totalPecasNF,
-        itens: itensNF,
+        caixas: caixasDetalhadas,
         status: "Recebida"
       };
 
@@ -278,7 +302,7 @@
       addNFCorteRow();
       renderNFList();
 
-      alert(`Nota Fiscal #${nfNumero} salva com sucesso!`);
+      alert(`Nota Fiscal #${nfNumero} registrada com sucesso! (${caixasDetalhadas.length} caixas e ${totalPecasNF} peças gravadas)`);
     }
 
     function renderNFList() {
@@ -291,7 +315,7 @@
       }
 
       tbody.innerHTML = nfsList.map(nf => {
-        var detalhe = nf.itens.map(i => `${i.caixas} cx(s) ${i.corte} (${i.pecasPorCaixa} pçs/cx - ${i.pesoPorCaixa.toFixed(3)}kg/cx)`).join('<br>');
+        var detalhe = nf.caixas.map(c => `<strong>CX #${c.caixaNum}:</strong> ${c.corte} - ${c.pesoCaixa.toFixed(3)}kg (${c.pecasPorCaixa} pçs)`).join('<br>');
         return `
           <tr class="border-b hover:bg-slate-50">
             <td class="p-3 font-bold text-red-700">NF #${nf.numero}</td>
