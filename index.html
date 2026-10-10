@@ -17,15 +17,16 @@
       <h1 class="text-xl font-bold tracking-wide text-red-500">Pellegrino</h1>
       <p class="text-xs text-gray-400">Controle de Estoque de Carnes & Rastreabilidade</p>
     </div>
-    <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1 rounded-full text-gray-300">Módulos 1, 2 e 3 Ativos</span>
+    <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1 rounded-full text-gray-300">Sistema Completo (Etapas 1 a 5)</span>
   </header>
 
   <!-- Navegação de Abas -->
   <nav class="bg-white border-b border-gray-200 px-4 flex space-x-4 text-sm overflow-x-auto">
-    <button onclick="switchTab('tab-nf')" id="btn-tab-nf" class="py-3 px-2 tab-active transition-all">1. Entrada de Nota Fiscal</button>
+    <button onclick="switchTab('tab-nf')" id="btn-tab-nf" class="py-3 px-2 tab-active transition-all">1. Entrada NF</button>
     <button onclick="switchTab('tab-caixas')" id="btn-tab-caixas" class="py-3 px-2 text-gray-600 transition-all font-semibold">2. Caixas & Pesagem</button>
     <button onclick="switchTab('tab-estoque')" id="btn-tab-estoque" class="py-3 px-2 text-gray-600 transition-all font-semibold">3. Câmara Fria</button>
-    <button disabled class="py-3 px-2 text-gray-400 cursor-not-allowed">4. Geladeira do Eli (Em breve)</button>
+    <button onclick="switchTab('tab-eli')" id="btn-tab-eli" class="py-3 px-2 text-gray-600 transition-all font-semibold">4. Geladeira do Eli</button>
+    <button onclick="switchTab('tab-aparas')" id="btn-tab-aparas" class="py-3 px-2 text-gray-600 transition-all font-semibold">5. Aparas & Rendimento</button>
   </nav>
 
   <!-- Conteúdo Principal -->
@@ -146,7 +147,6 @@
         </div>
       </div>
 
-      <!-- Painel de Abertura & Inspeção -->
       <div id="painel-pesagem" class="bg-white p-6 rounded-xl shadow-md border-2 border-red-500 space-y-6 hidden">
         <div class="flex justify-between items-center border-b pb-3">
           <div>
@@ -203,7 +203,6 @@
         </form>
       </div>
 
-      <!-- Histórico de Caixas Já Abertas -->
       <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
         <h3 class="text-md font-bold text-slate-800 mb-4">Histórico de Caixas Abertas e Ocorrências</h3>
         <div class="overflow-x-auto">
@@ -224,25 +223,21 @@
       </div>
     </section>
 
-    <!-- ETAPA 3: CÂMARA FRIA (ESTOQUE REAL & SELEÇÃO DE PROTEÍNAS) -->
+    <!-- ETAPA 3: CÂMARA FRIA -->
     <section id="tab-estoque" class="tab-content space-y-6 hidden">
       <div class="border-b pb-3 flex justify-between items-center">
         <div>
           <h2 class="text-lg font-bold text-slate-800">❄️ Câmara Fria — Estoque de Peças Inteiras</h2>
-          <p class="text-xs text-gray-500">Filtre por proteína para visualizar os pesos, as tags e direcionar para a Geladeira do Eli ou registrar saídas.</p>
+          <p class="text-xs text-gray-500">Filtre por proteína para visualizar os pesos, as tags e direcionar para a Geladeira do Eli.</p>
         </div>
         <span class="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-semibold">Etapa 3 de 5</span>
       </div>
 
-      <!-- Seletor / Filtro de Proteína -->
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
         <label class="block text-xs font-bold text-slate-700">Filtrar Visão da Câmara Fria:</label>
-        <div id="filtro-proteinas-buttons" class="flex flex-wrap gap-2">
-          <!-- Botões injetados via JS -->
-        </div>
+        <div id="filtro-proteinas-buttons" class="flex flex-wrap gap-2"></div>
       </div>
 
-      <!-- Card do Esboço / Resumo da Proteína Selecionada -->
       <div class="bg-slate-900 text-white p-5 rounded-xl shadow-md grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
         <div>
           <span class="text-gray-400 block mb-1">Proteína Selecionada:</span>
@@ -259,7 +254,6 @@
         </div>
       </div>
 
-      <!-- Grid de Peças com Menu de 3 Pontinhos (⋮) -->
       <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
         <h3 class="font-bold text-slate-800 text-sm">Peças Estocadas na Câmara Fria</h3>
         <div id="grid-pecas-camara" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -268,9 +262,169 @@
       </div>
     </section>
 
+    <!-- ETAPA 4: GELADEIRA DO ELI & BAIXA RETROATIVA DA ETIQUETA -->
+    <section id="tab-eli" class="tab-content space-y-6 hidden">
+      <div class="border-b pb-3 flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800">🧊 Geladeira do Eli — Produção & Baixa do Caderninho</h2>
+          <p class="text-xs text-gray-500">Selecione as peças do caderno do Eli e a data real em que foram consumidas.</p>
+        </div>
+        <span class="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-semibold">Etapa 4 de 5</span>
+      </div>
+
+      <div class="bg-slate-800 text-white p-5 rounded-xl shadow-md grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+        <div>
+          <span class="text-gray-400 block mb-1">Saldo Atual na Geladeira do Eli:</span>
+          <span id="eli-saldo-peso" class="text-xl font-bold text-emerald-400">0.000 kg</span>
+        </div>
+        <div>
+          <span class="text-gray-400 block mb-1">Quantidade de Peças Inteiras no Saldo:</span>
+          <span id="eli-saldo-pecas" class="text-xl font-bold text-white">0 peças</span>
+        </div>
+      </div>
+
+      <!-- Painel de Baixa com Data Editável -->
+      <div class="bg-white p-6 rounded-xl border-2 border-slate-800 shadow-sm space-y-4">
+        <div class="flex flex-wrap justify-between items-center gap-3 border-b pb-3">
+          <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+            <span>📝 Registrar Uso (Caderninho do Eli)</span>
+          </h3>
+
+          <!-- Campo de Seleção da Data de Uso -->
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-slate-700">Data do Consumo *</label>
+            <input type="date" id="input-data-baixa-eli" class="border rounded-lg p-1.5 text-xs font-bold text-red-700 bg-slate-50 outline-none focus:ring-2 focus:ring-red-500">
+          </div>
+        </div>
+
+        <p class="text-xs text-gray-500">Marque abaixo as peças que constam no caderno para a data selecionada acima:</p>
+
+        <div id="container-selecao-baixa-eli" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[300px] overflow-y-auto p-1 border rounded-lg bg-slate-50">
+          <p class="text-xs text-gray-400 col-span-full p-3 text-center">Nenhuma peça disponível na Geladeira do Eli no momento.</p>
+        </div>
+
+        <div class="flex justify-between items-center border-t pt-4">
+          <span id="resumo-baixa-selecionados" class="text-xs font-bold text-slate-700">0 peça(s) selecionada(s)</span>
+          <button onclick="confirmarBaixaLoteEli()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-5 py-2.5 rounded-lg shadow transition-all">
+            Dar Baixa nas Peças Selecionadas
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabela de Histórico de Baixas -->
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <h3 class="text-md font-bold text-slate-800 mb-4">Histórico de Peças Baixadas (Com Data do Uso)</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600">
+            <thead class="bg-slate-100 text-slate-700 uppercase border-b">
+              <tr>
+                <th class="p-3">Data do Uso</th>
+                <th class="p-3">Tag Peça</th>
+                <th class="p-3">Proteína</th>
+                <th class="p-3">Peso Bruto</th>
+                <th class="p-3">NF Origem</th>
+                <th class="p-3">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="lista-historico-baixas-eli"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ETAPA 5: APARAS, PERDAS & RENDIMENTO DIÁRIO -->
+    <section id="tab-aparas" class="tab-content space-y-6 hidden">
+      <div class="border-b pb-3 flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800">🥩 Aparas, Perdas & Rendimento Diário</h2>
+          <p class="text-xs text-gray-500">Informe o aproveitamento de aparas e perdas das peças utilizadas (Data editável).</p>
+        </div>
+        <span class="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-semibold">Etapa 5 de 5</span>
+      </div>
+
+      <!-- Formulário de Lançamento de Aparas/Perdas -->
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
+        <h3 class="text-sm font-bold text-slate-800 border-b pb-2">Lançar Rendimento de Peça Utilizada</h3>
+
+        <form id="form-aparas" onsubmit="handleSalvarAparas(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-lg border text-xs">
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Selecione a Peça Utilizada *</label>
+              <select id="select-peca-apara" onchange="atualizarInfoPecaApara()" required class="w-full border rounded-lg p-2 font-bold text-slate-800 bg-white outline-none">
+                <option value="">-- Nenhuma peça aguardando --</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Data da Limpeza/Porcionamento *</label>
+              <input type="date" id="input-data-apara" required class="w-full border rounded-lg p-2 font-bold text-red-700 bg-white outline-none">
+            </div>
+
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Peso Bruto da Peça (kg)</label>
+              <input type="text" id="display-peso-bruto-apara" readonly class="w-full border rounded-lg p-2 font-bold text-slate-800 bg-gray-100 outline-none" value="0.000 kg">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div>
+              <label class="block font-bold text-slate-800 mb-1">Aparas / Gordura Útil (kg)</label>
+              <p class="text-[10px] text-gray-500 mb-1">Ex: Moída, hambúrguer, recheios.</p>
+              <input type="number" step="0.001" id="input-peso-apara" oninput="calcularRendimentoApara()" placeholder="Ex: 0.400" class="w-full border rounded-lg p-2 font-bold text-slate-800 outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-800 mb-1">Perdas / Descarte (kg)</label>
+              <p class="text-[10px] text-gray-500 mb-1">Ex: Sebo impróprio, membranas.</p>
+              <input type="number" step="0.001" id="input-peso-perda" oninput="calcularRendimentoApara()" placeholder="Ex: 0.200" class="w-full border rounded-lg p-2 font-bold text-red-600 outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+
+            <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-200">
+              <span class="block text-[11px] font-bold text-emerald-800 mb-0.5">Rendimento Útil Calculado (Bife Limpo):</span>
+              <span id="display-rendimento-limpo" class="text-lg font-bold text-emerald-700 block">0.000 kg</span>
+              <span id="display-rendimento-porcentagem" class="text-[11px] text-emerald-800 font-semibold block">(100.0% de aproveitamento)</span>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Observação / Anotação (Opcional)</label>
+            <input type="text" id="input-obs-apara" placeholder="Ex: Limpeza padrão para bifes de 300g" class="w-full border rounded-lg p-2 text-xs outline-none">
+          </div>
+
+          <div class="flex justify-end pt-2">
+            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-6 py-2.5 rounded-lg shadow transition-all">
+              Registrar Rendimento & Salvar
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Tabela do Histórico de Rendimentos -->
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <h3 class="text-md font-bold text-slate-800 mb-4">Relatório Diário de Rendimento e Quebra de Peças</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600">
+            <thead class="bg-slate-100 text-slate-700 uppercase border-b">
+              <tr>
+                <th class="p-3">Data Limpeza</th>
+                <th class="p-3">Tag Peça</th>
+                <th class="p-3">Proteína</th>
+                <th class="p-3">Peso Bruto</th>
+                <th class="p-3">Aparas (kg)</th>
+                <th class="p-3">Perdas (kg)</th>
+                <th class="p-3">Útil (kg) / %</th>
+                <th class="p-3">Obs</th>
+              </tr>
+            </thead>
+            <tbody id="lista-historico-aparas"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
   </main>
 
-  <!-- MODAL / POPUP PARA SAÍDA DE PEÇA (MENU DE 3 PONTINHOS) -->
+  <!-- MODAL PARA SAÍDA DE PEÇA (MENU DE 3 PONTINHOS) -->
   <div id="modal-saida-peca" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-white rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
       <div class="flex justify-between items-center border-b pb-3">
@@ -296,7 +450,6 @@
 
       <div class="flex justify-end gap-2 border-t pt-4 text-xs">
         <button onclick="fecharModalSaida()" class="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-lg">Cancelar</button>
-
         <button onclick="confirmarSaidaPecaEspecial()" class="px-4 py-2 bg-red-600 text-white font-bold rounded-lg shadow hover:bg-red-700">Confirmar Baixa do Estoque</button>
       </div>
     </div>
@@ -309,6 +462,7 @@
     let caixasPendentesList = JSON.parse(localStorage.getItem('pel_caixas_pendentes')) || [];
     let caixasAbertasList = JSON.parse(localStorage.getItem('pel_caixas_abertas')) || [];
     let pecasEstoqueList = JSON.parse(localStorage.getItem('pel_pecas_estoque')) || [];
+    let aparasHistoricoList = JSON.parse(localStorage.getItem('pel_aparas_historico')) || [];
     let sequencialCortes = JSON.parse(localStorage.getItem('pel_seq_cortes')) || {};
 
     let caixaEmPesagemAtual = null;
@@ -316,7 +470,11 @@
     let filtroProteinaAtual = "TODAS";
 
     window.onload = function() {
-      document.getElementById('nf-data').value = new Date().toISOString().split('T')[0];
+      var hojeStr = new Date().toISOString().split('T')[0];
+      document.getElementById('nf-data').value = hojeStr;
+      document.getElementById('input-data-baixa-eli').value = hojeStr;
+      document.getElementById('input-data-apara').value = hojeStr;
+
       renderFornecedoresSelect();
       addNFCorteRow();
       renderNFList();
@@ -324,6 +482,8 @@
       renderCaixasAbertasTable();
       renderFiltrosProteinaEtapa3();
       renderEstoqueCamaraFria();
+      renderGeladeiraEliEtapa4();
+      renderEtapa5Aparas();
     };
 
     function switchTab(tabId) {
@@ -342,14 +502,10 @@
         activeBtn.classList.remove('text-gray-600');
       }
 
-      if(tabId === 'tab-caixas') {
-        renderCaixasFechadasGrid();
-        renderCaixasAbertasTable();
-      }
-      if(tabId === 'tab-estoque') {
-        renderFiltrosProteinaEtapa3();
-        renderEstoqueCamaraFria();
-      }
+      if(tabId === 'tab-caixas') { renderCaixasFechadasGrid(); renderCaixasAbertasTable(); }
+      if(tabId === 'tab-estoque') { renderFiltrosProteinaEtapa3(); renderEstoqueCamaraFria(); }
+      if(tabId === 'tab-eli') { renderGeladeiraEliEtapa4(); }
+      if(tabId === 'tab-aparas') { renderEtapa5Aparas(); }
     }
 
     function renderFornecedoresSelect() {
@@ -566,7 +722,7 @@
       }
     }
 
-    /* --- LÓGICA DA ETAPA 2 (ABERTURA & INSPEÇÃO) --- */
+    /* --- LÓGICA DA ETAPA 2 --- */
 
     function renderCaixasFechadasGrid() {
       var container = document.getElementById('grid-caixas-fechadas');
@@ -827,7 +983,7 @@
       }).join('');
     }
 
-    /* --- LÓGICA DA ETAPA 3 (CÂMARA FRIA & MENU DE 3 PONTINHOS) --- */
+    /* --- LÓGICA DA ETAPA 3 --- */
 
     function calcularDiasEstoque(dataNF) {
       if(!dataNF) return 0;
@@ -866,7 +1022,6 @@
         pecasCamara = pecasCamara.filter(p => p.corte === filtroProteinaAtual);
       }
 
-      // Atualiza o Card de Esboço
       var totalPeso = pecasCamara.reduce((acc, p) => acc + p.peso, 0);
       var totalPecas = pecasCamara.length;
 
@@ -906,7 +1061,6 @@
                 <span class="font-bold text-red-700 text-xs">${p.tag}</span>
                 <div class="flex items-center gap-1">
                   <span class="text-[10px] border px-1.5 py-0.5 rounded-full font-bold ${matBadgeClass}">${matText}</span>
-                  <!-- Botão de 3 Pontinhos -->
                   <button onclick="abrirModalSaidaPeca(${p.id})" class="text-slate-500 hover:text-slate-800 font-bold px-1 text-sm" title="Outras Ações / Saída">⋮</button>
                 </div>
               </div>
@@ -930,11 +1084,11 @@
         localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
         renderFiltrosProteinaEtapa3();
         renderEstoqueCamaraFria();
-        alert(`Peça ${peca.tag} (${peca.corte}) transferida para a Geladeira do Eli com sucesso!`);
+        renderGeladeiraEliEtapa4();
+        renderEtapa5Aparas();
+        alert(`Peça ${peca.tag} (${peca.corte}) enviada para a Geladeira do Eli!`);
       }
     }
-
-    /* --- LÓGICA DO POPUP DE SAÍDA ESPECIAL (3 PONTINHOS) --- */
 
     function abrirModalSaidaPeca(pecaId) {
       var peca = pecasEstoqueList.find(p => p.id === pecaId);
@@ -969,8 +1123,252 @@
       fecharModalSaida();
       renderFiltrosProteinaEtapa3();
       renderEstoqueCamaraFria();
+      renderGeladeiraEliEtapa4();
 
       alert(`Baixa registrada! A peça ${peca.tag} teve sua saída confirmada por: ${motivo}.`);
+    }
+
+    /* --- LÓGICA DA ETAPA 4 --- */
+
+    function renderGeladeiraEliEtapa4() {
+      var containerSelecao = document.getElementById('container-selecao-baixa-eli');
+      var tbodyHistorico = document.getElementById('lista-historico-baixas-eli');
+
+      if(!containerSelecao) return;
+
+      var pecasGeladeira = pecasEstoqueList.filter(p => p.localizacao === "Geladeira do Eli" && p.status === "Em Estoque");
+      var pesoTotalEli = pecasGeladeira.reduce((acc, p) => acc + p.peso, 0);
+
+      document.getElementById('eli-saldo-peso').innerText = pesoTotalEli.toFixed(3) + " kg";
+      document.getElementById('eli-saldo-pecas').innerText = pecasGeladeira.length + " peças";
+
+      if(pecasGeladeira.length === 0) {
+        containerSelecao.innerHTML = '<p class="text-xs text-gray-400 col-span-full p-3 text-center">Nenhuma peça disponível na Geladeira do Eli no momento.</p>';
+      } else {
+        containerSelecao.innerHTML = pecasGeladeira.map(p => `
+          <label class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-red-400 transition-all">
+            <div class="flex items-center gap-2">
+              <input type="checkbox" value="${p.id}" onchange="atualizarContadorBaixaEli()" class="chk-baixa-eli rounded text-red-600 focus:ring-red-500 w-4 h-4">
+              <div>
+                <span class="font-bold text-slate-800 text-xs block">${p.tag} (${p.corte})</span>
+                <span class="text-[10px] text-gray-500">NF #${p.nfNumero}</span>
+              </div>
+            </div>
+            <span class="font-bold text-red-700 text-xs">${p.peso.toFixed(3)} kg</span>
+          </label>
+        `).join('');
+      }
+
+      atualizarContadorBaixaEli();
+
+      var pecasBaixadasEli = pecasEstoqueList.filter(p => p.localizacao === "Geladeira do Eli" && p.status === "Enviada p/ Aparas");
+
+      if(!tbodyHistorico) return;
+
+      if(pecasBaixadasEli.length === 0) {
+        tbodyHistorico.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-gray-400">Nenhuma baixa efetuada na geladeira do Eli até o momento.</td></tr>';
+        return;
+      }
+
+      tbodyHistorico.innerHTML = pecasBaixadasEli.map(p => `
+        <tr class="border-b hover:bg-slate-50">
+          <td class="p-3 font-bold text-slate-800">${p.dataBaixaEli || '-'}</td>
+          <td class="p-3 font-bold text-red-700">${p.tag}</td>
+          <td class="p-3 font-semibold text-slate-800">${p.corte}</td>
+          <td class="p-3 font-bold text-slate-900">${p.peso.toFixed(3)} kg</td>
+          <td class="p-3 text-gray-600">NF #${p.nfNumero}</td>
+          <td class="p-3">
+            <button onclick="desfazerBaixaEli(${p.id})" class="text-red-600 hover:underline font-bold text-[11px]">Estornar Baixa</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function atualizarContadorBaixaEli() {
+      var selecionados = document.querySelectorAll('.chk-baixa-eli:checked').length;
+      document.getElementById('resumo-baixa-selecionados').innerText = `${selecionados} peça(s) selecionada(s) do caderninho`;
+    }
+
+    function confirmarBaixaLoteEli() {
+      var checkboxes = document.querySelectorAll('.chk-baixa-eli:checked');
+      if(checkboxes.length === 0) {
+        alert("Selecione ao menos 1 peça na lista para confirmar a baixa.");
+        return;
+      }
+
+      var dataConsumo = document.getElementById('input-data-baixa-eli').value;
+      if(!dataConsumo) {
+        alert("Por favor, selecione a Data do Consumo antes de confirmar.");
+        return;
+      }
+
+      if(confirm(`Confirmar a baixa de ${checkboxes.length} peça(s) para a data ${dataConsumo}?`)) {
+        checkboxes.forEach(chk => {
+          var pecaId = parseInt(chk.value);
+          var peca = pecasEstoqueList.find(p => p.id === pecaId);
+          if(peca) {
+            peca.status = "Enviada p/ Aparas";
+            peca.dataBaixaEli = dataConsumo;
+          }
+        });
+
+        localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
+        renderGeladeiraEliEtapa4();
+        renderEtapa5Aparas();
+        alert(`${checkboxes.length} peça(s) baixada(s) com sucesso para a data ${dataConsumo}! Liberadas para Aparas na Etapa 5.`);
+      }
+    }
+
+    function desfazerBaixaEli(pecaId) {
+      if(confirm("Deseja estornar a baixa desta peça e devolvê-la para o saldo da Geladeira do Eli?")) {
+        var peca = pecasEstoqueList.find(p => p.id === pecaId);
+        if(peca) {
+          peca.status = "Em Estoque";
+          delete peca.dataBaixaEli;
+          localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
+          renderGeladeiraEliEtapa4();
+          renderEtapa5Aparas();
+        }
+      }
+    }
+
+    /* --- LÓGICA DA ETAPA 5 (APARAS, PERDAS & RENDIMENTO DIÁRIO) --- */
+
+    function renderEtapa5Aparas() {
+      var selectPeca = document.getElementById('select-peca-apara');
+      var tbodyHist = document.getElementById('lista-historico-aparas');
+
+      if(!selectPeca) return;
+
+      var pecasAguardando = pecasEstoqueList.filter(p => p.status === "Enviada p/ Aparas");
+
+      if(pecasAguardando.length === 0) {
+        selectPeca.innerHTML = '<option value="">-- Nenhuma peça aguardando rendimento --</option>';
+        document.getElementById('display-peso-bruto-apara').value = "0.000 kg";
+      } else {
+        selectPeca.innerHTML = '<option value="">-- Selecione uma peça para calcular rendimento --</option>' +
+          pecasAguardando.map(p => `<option value="${p.id}">${p.tag} - ${p.corte} (${p.peso.toFixed(3)}kg) [Uso: ${p.dataBaixaEli}]</option>`).join('');
+      }
+
+      atualizarInfoPecaApara();
+      renderTabelaHistoricoAparas();
+    }
+
+    function atualizarInfoPecaApara() {
+      var selectPeca = document.getElementById('select-peca-apara');
+      var pecaId = parseInt(selectPeca.value);
+
+      if(!pecaId) {
+        document.getElementById('display-peso-bruto-apara').value = "0.000 kg";
+        document.getElementById('input-peso-apara').value = "";
+        document.getElementById('input-peso-perda').value = "";
+        calcularRendimentoApara();
+        return;
+      }
+
+      var peca = pecasEstoqueList.find(p => p.id === pecaId);
+      if(peca) {
+        document.getElementById('display-peso-bruto-apara').value = peca.peso.toFixed(3) + " kg";
+        if(peca.dataBaixaEli) {
+          document.getElementById('input-data-apara').value = peca.dataBaixaEli;
+        }
+        calcularRendimentoApara();
+      }
+    }
+
+    function calcularRendimentoApara() {
+      var selectPeca = document.getElementById('select-peca-apara');
+      var pecaId = parseInt(selectPeca.value);
+
+      var pesoBruto = 0;
+      if(pecaId) {
+        var peca = pecasEstoqueList.find(p => p.id === pecaId);
+        if(peca) pesoBruto = peca.peso;
+      }
+
+      var pesoApara = parseFloat(document.getElementById('input-peso-apara').value) || 0;
+      var pesoPerda = parseFloat(document.getElementById('input-peso-perda').value) || 0;
+
+      var pesoUtil = pesoBruto - pesoApara - pesoPerda;
+      if(pesoUtil < 0) pesoUtil = 0;
+
+      var porcUtil = pesoBruto > 0 ? ((pesoUtil / pesoBruto) * 100) : 100;
+
+      document.getElementById('display-rendimento-limpo').innerText = pesoUtil.toFixed(3) + " kg";
+      document.getElementById('display-rendimento-porcentagem').innerText = `(${porcUtil.toFixed(1)}% de aproveitamento útil)`;
+    }
+
+    function handleSalvarAparas(e) {
+      e.preventDefault();
+      var selectPeca = document.getElementById('select-peca-apara');
+      var pecaId = parseInt(selectPeca.value);
+
+      if(!pecaId) {
+        alert("Selecione uma peça válida para registrar o rendimento.");
+        return;
+      }
+
+      var peca = pecasEstoqueList.find(p => p.id === pecaId);
+      if(!peca) return;
+
+      var dataLimpeza = document.getElementById('input-data-apara').value;
+      var pesoApara = parseFloat(document.getElementById('input-peso-apara').value) || 0;
+      var pesoPerda = parseFloat(document.getElementById('input-peso-perda').value) || 0;
+      var obs = document.getElementById('input-obs-apara').value.trim();
+
+      var pesoUtil = peca.peso - pesoApara - pesoPerda;
+      if(pesoUtil < 0) pesoUtil = 0;
+      var porcUtil = peca.peso > 0 ? ((pesoUtil / peca.peso) * 100) : 100;
+
+      var registroRendimento = {
+        id: Date.now(),
+        pecaId: peca.id,
+        tag: peca.tag,
+        corte: peca.corte,
+        dataLimpeza: dataLimpeza,
+        pesoBruto: peca.peso,
+        pesoApara: pesoApara,
+        pesoPerda: pesoPerda,
+        pesoUtil: pesoUtil,
+        porcUtil: porcUtil,
+        obs: obs || "Sem observação",
+        nfNumero: peca.nfNumero
+      };
+
+      aparasHistoricoList.unshift(registroRendimento);
+      localStorage.setItem('pel_aparas_historico', JSON.stringify(aparasHistoricoList));
+
+      peca.status = "Finalizado";
+      localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
+
+      document.getElementById('form-aparas').reset();
+      document.getElementById('input-data-apara').value = new Date().toISOString().split('T')[0];
+
+      renderEtapa5Aparas();
+      alert(`Rendimento da peça ${peca.tag} registrado com sucesso para o dia ${dataLimpeza}!`);
+    }
+
+    function renderTabelaHistoricoAparas() {
+      var tbody = document.getElementById('lista-historico-aparas');
+      if(!tbody) return;
+
+      if(aparasHistoricoList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center p-4 text-gray-400">Nenhum registro de rendimento/apara efetuado até o momento.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = aparasHistoricoList.map(r => `
+        <tr class="border-b hover:bg-slate-50">
+          <td class="p-3 font-bold text-slate-800">${r.dataLimpeza}</td>
+          <td class="p-3 font-bold text-red-700">${r.tag}</td>
+          <td class="p-3 font-semibold text-slate-800">${r.corte}</td>
+          <td class="p-3 font-bold text-slate-900">${r.pesoBruto.toFixed(3)} kg</td>
+          <td class="p-3 font-medium text-slate-700">${r.pesoApara.toFixed(3)} kg</td>
+          <td class="p-3 font-medium text-red-600">${r.pesoPerda.toFixed(3)} kg</td>
+          <td class="p-3 font-bold text-emerald-700">${r.pesoUtil.toFixed(3)} kg (${r.porcUtil.toFixed(1)}%)</td>
+          <td class="p-3 text-gray-500">${r.obs}</td>
+        </tr>
+      `).join('');
     }
   </script>
 </body>
