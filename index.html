@@ -5,126 +5,205 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Controle de Estoque de Carnes - Pellegrino</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .tab-active { border-bottom: 3px solid #dc2626; color: #dc2626; font-weight: bold; }
+  </style>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
 
-  <!-- Header Limpo -->
+  <!-- Header -->
   <header class="bg-slate-900 text-white p-4 shadow-md flex justify-between items-center">
     <div>
       <h1 class="text-xl font-bold tracking-wide text-red-500">Pellegrino</h1>
       <p class="text-xs text-gray-400">Controle de Estoque de Carnes & Rastreabilidade</p>
     </div>
-    <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1 rounded-full text-gray-300">Módulo 1: Entradas NF</span>
+    <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1 rounded-full text-gray-300">Módulos 1 e 2 Ativos</span>
   </header>
 
   <!-- Navegação de Abas -->
-  <nav class="bg-white border-b border-gray-200 px-4 flex space-x-4 text-sm">
-    <button class="py-3 px-2 border-b-2 border-red-600 text-red-600 font-bold">1. Entrada de Nota Fiscal</button>
+  <nav class="bg-white border-b border-gray-200 px-4 flex space-x-4 text-sm overflow-x-auto">
+    <button onclick="switchTab('tab-nf')" id="btn-tab-nf" class="py-3 px-2 tab-active transition-all">1. Entrada de Nota Fiscal</button>
+    <button onclick="switchTab('tab-caixas')" id="btn-tab-caixas" class="py-3 px-2 text-gray-600 transition-all font-semibold">2. Caixas & Pesagem de Peças</button>
+    <button disabled class="py-3 px-2 text-gray-400 cursor-not-allowed">3. Câmara Fria & Peças (Em breve)</button>
   </nav>
 
   <!-- Conteúdo Principal -->
   <main class="flex-1 p-4 max-w-5xl mx-auto w-full space-y-6">
 
-    <!-- FORMULÁRIO DE ENTRADA DE NF -->
-    <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
-      <div class="border-b pb-3 flex justify-between items-center">
-        <div>
-          <h2 class="text-lg font-bold text-slate-800">Registrar Entrada de Nota Fiscal</h2>
-          <p class="text-xs text-gray-500">Cadastre a nota e adicione individualmente cada caixa recebida com seu peso e peças exatas.</p>
-        </div>
-        <span class="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-semibold">Etapa 1 de 5</span>
-      </div>
-
-      <form id="form-nf" onsubmit="handleNFSubmit(event)" class="space-y-6">
-        <!-- Cabeçalho da NF -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
+    <!-- ETAPA 1: ENTRADA DE NOTA FISCAL -->
+    <section id="tab-nf" class="tab-content space-y-6">
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
+        <div class="border-b pb-3 flex justify-between items-center">
           <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Número da NF *</label>
-            <input type="text" id="nf-numero" required class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 0001">
+            <h2 class="text-lg font-bold text-slate-800">Registrar Entrada de Nota Fiscal</h2>
+            <p class="text-xs text-gray-500">Cadastre a nota e adicione individualmente cada caixa recebida.</p>
           </div>
-
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="block text-xs font-semibold text-gray-700">Fornecedor *</label>
-              <button type="button" onclick="novoFornecedorPrompt()" class="text-[10px] text-red-600 font-bold hover:underline">+ Cadastrar</button>
-            </div>
-            <select id="nf-fornecedor" required class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none">
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Data de Recebimento *</label>
-            <input type="date" id="nf-data" required class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none">
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Peso Total da NF (kg) *</label>
-            <input type="number" step="0.001" id="nf-peso-total" required oninput="calcularTotalNF()" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none font-bold text-slate-800" placeholder="Ex: 10.000">
-          </div>
+          <span class="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-semibold">Etapa 1 de 5</span>
         </div>
 
-        <!-- Detalhamento das Caixas Individuais -->
-        <div>
-          <div class="flex justify-between items-center mb-3">
+        <form id="form-nf" onsubmit="handleNFSubmit(event)" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
             <div>
-              <h3 class="text-sm font-bold text-slate-800">Detalhamento de Caixas (1 caixa por linha)</h3>
-              <p class="text-[11px] text-gray-500">Cada clique no botão adiciona 1 caixa específica com seu peso e peças.</p>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Número da NF *</label>
+              <input type="text" id="nf-numero" required class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 0001">
             </div>
-            <button type="button" onclick="addNFCorteRow()" class="text-xs bg-slate-800 hover:bg-slate-900 text-white font-medium px-3 py-2 rounded-lg shadow-sm transition-all flex items-center gap-1">
-              + Adicionar Caixa / Corte
+
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="block text-xs font-semibold text-gray-700">Fornecedor *</label>
+                <button type="button" onclick="novoFornecedorPrompt()" class="text-[10px] text-red-600 font-bold hover:underline">+ Cadastrar</button>
+              </div>
+              <select id="nf-fornecedor" required class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none">
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Data de Recebimento *</label>
+              <input type="date" id="nf-data" required class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Peso Total da NF (kg) *</label>
+              <input type="number" step="0.001" id="nf-peso-total" required oninput="calcularTotalNF()" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none font-bold text-slate-800" placeholder="Ex: 10.000">
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-3">
+              <div>
+                <h3 class="text-sm font-bold text-slate-800">Detalhamento de Caixas (1 caixa por linha)</h3>
+                <p class="text-[11px] text-gray-500">Cada caixa lançada ficará disponível para abertura na Etapa 2.</p>
+              </div>
+              <button type="button" onclick="addNFCorteRow()" class="text-xs bg-slate-800 hover:bg-slate-900 text-white font-medium px-3 py-2 rounded-lg shadow-sm transition-all">
+                + Adicionar Caixa / Corte
+              </button>
+            </div>
+
+            <div id="nf-cortes-container" class="space-y-3"></div>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-gray-50 p-4 rounded-lg border text-xs">
+            <div>
+              <span class="text-gray-500 block">Total de Caixas:</span>
+              <span id="resumo-total-caixas" class="text-sm font-bold text-slate-800">0 caixas</span>
+            </div>
+            <div>
+              <span class="text-gray-500 block">Total de Peças:</span>
+              <span id="resumo-total-pecas" class="text-sm font-bold text-slate-800">0 peças</span>
+            </div>
+            <div>
+              <span class="text-gray-500 block">Soma dos Pesos:</span>
+              <span id="resumo-soma-peso" class="text-sm font-bold text-slate-800">0.000 kg</span>
+            </div>
+            <div>
+              <span class="text-gray-500 block">Balanço com a NF:</span>
+              <span id="resumo-status-balanco" class="text-xs font-bold px-2 py-1 rounded bg-gray-200 text-gray-700 inline-block mt-0.5">Aguardando dados</span>
+            </div>
+          </div>
+
+          <div class="flex justify-end border-t pt-4">
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-lg shadow transition-all text-sm w-full md:w-auto">
+              Registrar Entrada de Nota Fiscal
             </button>
           </div>
+        </form>
+      </div>
 
-          <div id="nf-cortes-container" class="space-y-3">
-          </div>
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <h3 class="text-md font-bold text-slate-800 mb-4">Notas Fiscais Registradas</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600">
+            <thead class="bg-slate-100 text-slate-700 uppercase border-b">
+              <tr>
+                <th class="p-3">NF</th>
+                <th class="p-3">Data Rec.</th>
+                <th class="p-3">Fornecedor</th>
+                <th class="p-3">Peso NF</th>
+                <th class="p-3">Caixas Registradas</th>
+                <th class="p-3">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="lista-nfs"></tbody>
+          </table>
         </div>
-
-        <!-- Resumo do Lançamento -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-gray-50 p-4 rounded-lg border text-xs">
-          <div>
-            <span class="text-gray-500 block">Total de Caixas:</span>
-            <span id="resumo-total-caixas" class="text-sm font-bold text-slate-800">0 caixas</span>
-          </div>
-          <div>
-            <span class="text-gray-500 block">Total de Peças:</span>
-            <span id="resumo-total-pecas" class="text-sm font-bold text-slate-800">0 peças</span>
-          </div>
-          <div>
-            <span class="text-gray-500 block">Soma dos Pesos das Caixas:</span>
-            <span id="resumo-soma-peso" class="text-sm font-bold text-slate-800">0.000 kg</span>
-          </div>
-          <div>
-            <span class="text-gray-500 block">Balanço com a NF:</span>
-            <span id="resumo-status-balanco" class="text-xs font-bold px-2 py-1 rounded bg-gray-200 text-gray-700 inline-block mt-0.5">Aguardando dados</span>
-          </div>
-        </div>
-
-        <div class="flex justify-end border-t pt-4">
-          <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-lg shadow transition-all text-sm w-full md:w-auto">
-            Registrar Entrada de Nota Fiscal
-          </button>
-        </div>
-      </form>
+      </div>
     </section>
 
-    <!-- LISTA DE NOTAS FISCAIS CADASTRADAS -->
-    <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-      <h3 class="text-md font-bold text-slate-800 mb-4">Notas Fiscais Registradas</h3>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs text-gray-600">
-          <thead class="bg-slate-100 text-slate-700 uppercase border-b">
-            <tr>
-              <th class="p-3">NF</th>
-              <th class="p-3">Data Rec.</th>
-              <th class="p-3">Fornecedor</th>
-              <th class="p-3">Peso NF</th>
-              <th class="p-3">Detalhamento das Caixas (Proteína / Peso / Peças)</th>
-              <th class="p-3">Ação</th>
-            </tr>
-          </thead>
-          <tbody id="lista-nfs">
-          </tbody>
-        </table>
+    <!-- ETAPA 2: CAIXAS & PESAGEM DE PEÇAS -->
+    <section id="tab-caixas" class="tab-content space-y-6 hidden">
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
+        <div class="border-b pb-3 flex justify-between items-center">
+          <div>
+            <h2 class="text-lg font-bold text-slate-800">Caixas Fechadas na Câmara Fria</h2>
+            <p class="text-xs text-gray-500">Selecione uma caixa abaixo para abrir e informar o peso individual de cada peça.</p>
+          </div>
+          <span class="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-semibold">Etapa 2 de 5</span>
+        </div>
+
+        <!-- Grid de Cards de Caixas Fechadas -->
+        <div id="grid-caixas-fechadas" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <p class="text-xs text-gray-400 col-span-full p-2">Nenhuma caixa fechada pendente no momento.</p>
+        </div>
+      </div>
+
+      <!-- Painel de Pesagem Individual da Caixa Selecionada -->
+      <div id="painel-pesagem" class="bg-white p-6 rounded-xl shadow-md border-2 border-red-500 space-y-6 hidden">
+        <div class="flex justify-between items-center border-b pb-3">
+          <div>
+            <h3 id="pesagem-titulo-caixa" class="text-md font-bold text-red-700">Abrindo Caixa...</h3>
+            <p id="pesagem-subtitulo-caixa" class="text-xs text-gray-500">Informe o peso de cada peça. A numeração segue sequencial por proteína.</p>
+          </div>
+          <button onclick="fecharPainelPesagem()" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-3 py-1.5 rounded-lg">Cancelar</button>
+        </div>
+
+        <form id="form-pesagem-pecas" onsubmit="handleSalvarPesagemCaixa(event)" class="space-y-6">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-lg border text-xs">
+            <div>
+              <span class="text-gray-500 block">Peso Declarado da Caixa (NF):</span>
+              <span id="pesagem-peso-declarado" class="text-sm font-bold text-slate-800">0.000 kg</span>
+            </div>
+            <div>
+              <span class="text-gray-500 block">Soma Atual Aferida:</span>
+              <span id="pesagem-peso-aferido" class="text-sm font-bold text-red-600">0.000 kg</span>
+            </div>
+            <div>
+              <span class="text-gray-500 block">Status de Tolerância (±500g):</span>
+              <span id="pesagem-status-tolerancia" class="text-xs font-bold px-2 py-0.5 rounded bg-gray-200 text-gray-700 inline-block mt-0.5">Aguardando pesagem</span>
+            </div>
+          </div>
+
+          <!-- Inputs Individuais de Cada Peça -->
+          <div>
+            <h4 class="text-xs font-bold text-slate-800 mb-3">Pesagem Individual das Peças</h4>
+            <div id="container-inputs-pecas" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3"></div>
+          </div>
+
+          <div class="flex justify-end border-t pt-4">
+            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2.5 rounded-lg shadow transition-all text-sm w-full md:w-auto">
+              Confirmar Abertura & Registrar Peças no Estoque
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Histórico de Caixas Já Abertas -->
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <h3 class="text-md font-bold text-slate-800 mb-4">Histórico de Caixas Abertas e Processadas</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600">
+            <thead class="bg-slate-100 text-slate-700 uppercase border-b">
+              <tr>
+                <th class="p-3">NF Origem</th>
+                <th class="p-3">Data NF</th>
+                <th class="p-3">Proteína</th>
+                <th class="p-3">Peso NF vs Aferido</th>
+                <th class="p-3">Tags Geradas</th>
+                <th class="p-3">Status</th>
+              </tr>
+            </thead>
+            <tbody id="lista-caixas-abertas"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -134,13 +213,43 @@
     let fornecedores = JSON.parse(localStorage.getItem('pel_fornecedores')) || ["A3 Mercado", "Frigorífico Minerva", "JBS / Friboi", "Marfrig"];
     let cortesList = JSON.parse(localStorage.getItem('pel_cortes')) || ["Ancho", "Chorizo", "Picanha", "Tomahawk", "Fraldinha"];
     let nfsList = JSON.parse(localStorage.getItem('pel_nfs')) || [];
+    let caixasPendentesList = JSON.parse(localStorage.getItem('pel_caixas_pendentes')) || [];
+    let caixasAbertasList = JSON.parse(localStorage.getItem('pel_caixas_abertas')) || [];
+    let pecasEstoqueList = JSON.parse(localStorage.getItem('pel_pecas_estoque')) || [];
+    let sequencialCortes = JSON.parse(localStorage.getItem('pel_seq_cortes')) || {};
+
+    let caixaEmPesagemAtual = null;
 
     window.onload = function() {
       document.getElementById('nf-data').value = new Date().toISOString().split('T')[0];
       renderFornecedoresSelect();
       addNFCorteRow();
       renderNFList();
+      renderCaixasFechadasGrid();
+      renderCaixasAbertasTable();
     };
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('nav button').forEach(el => {
+        el.classList.remove('tab-active');
+        el.classList.add('text-gray-600');
+      });
+
+      var target = document.getElementById(tabId);
+      if(target) target.classList.remove('hidden');
+
+      var activeBtn = document.getElementById('btn-' + tabId);
+      if(activeBtn) {
+        activeBtn.classList.add('tab-active');
+        activeBtn.classList.remove('text-gray-600');
+      }
+
+      if(tabId === 'tab-caixas') {
+        renderCaixasFechadasGrid();
+        renderCaixasAbertasTable();
+      }
+    }
 
     function renderFornecedoresSelect() {
       var sel = document.getElementById('nf-fornecedor');
@@ -254,26 +363,35 @@
     function handleNFSubmit(e) {
       e.preventDefault();
       var rows = document.querySelectorAll('#nf-cortes-container > div');
-      var caixasDetalhadas = [];
-      var totalPecasNF = 0;
-      var somaPesoCaixas = 0;
 
       var nfNumero = document.getElementById('nf-numero').value.trim();
       var fornecedor = document.getElementById('nf-fornecedor').value;
       var dataRec = document.getElementById('nf-data').value;
       var pesoTotalNF = parseFloat(document.getElementById('nf-peso-total').value) || 0;
 
+      var caixasGravadas = [];
+      var totalPecasNF = 0;
+      var somaPesoCaixas = 0;
+
       rows.forEach((r, idx) => {
         var corte = r.querySelector('.item-corte').value;
         var pesoCx = parseFloat(r.querySelector('.item-peso-cx').value) || 0;
         var pecasCx = parseInt(r.querySelector('.item-pecas-cx').value) || 0;
 
-        caixasDetalhadas.push({
+        var newCaixa = {
+          id: Date.now() + Math.floor(Math.random() * 100000),
+          nfNumero: nfNumero,
+          fornecedor: fornecedor,
+          dataNF: dataRec,
           caixaNum: idx + 1,
           corte: corte,
-          pesoCaixa: pesoCx,
-          pecasPorCaixa: pecasCx
-        });
+          pesoDeclarado: pesoCx,
+          qtdPecas: pecasCx,
+          status: "Fechada"
+        };
+
+        caixasPendentesList.push(newCaixa);
+        caixasGravadas.push(newCaixa);
 
         somaPesoCaixas += pesoCx;
         totalPecasNF += pecasCx;
@@ -286,14 +404,14 @@
         data: dataRec,
         pesoTotal: pesoTotalNF,
         somaPesoCaixas: somaPesoCaixas,
-        totalCaixas: caixasDetalhadas.length,
+        totalCaixas: caixasGravadas.length,
         totalPecas: totalPecasNF,
-        caixas: caixasDetalhadas,
-        status: "Recebida"
+        caixas: caixasGravadas
       };
 
       nfsList.unshift(newNF);
       localStorage.setItem('pel_nfs', JSON.stringify(nfsList));
+      localStorage.setItem('pel_caixas_pendentes', JSON.stringify(caixasPendentesList));
 
       document.getElementById('form-nf').reset();
       document.getElementById('nf-cortes-container').innerHTML = "";
@@ -301,8 +419,9 @@
       renderFornecedoresSelect();
       addNFCorteRow();
       renderNFList();
+      renderCaixasFechadasGrid();
 
-      alert(`Nota Fiscal #${nfNumero} registrada com sucesso! (${caixasDetalhadas.length} caixas e ${totalPecasNF} peças gravadas)`);
+      alert(`Nota Fiscal #${nfNumero} registrada com sucesso! ${caixasGravadas.length} caixa(s) liberadas na Etapa 2.`);
     }
 
     function renderNFList() {
@@ -315,7 +434,7 @@
       }
 
       tbody.innerHTML = nfsList.map(nf => {
-        var detalhe = nf.caixas.map(c => `<strong>CX #${c.caixaNum}:</strong> ${c.corte} - ${c.pesoCaixa.toFixed(3)}kg (${c.pecasPorCaixa} pçs)`).join('<br>');
+        var detalhe = nf.caixas.map(c => `<strong>CX #${c.caixaNum}:</strong> ${c.corte} - ${c.pesoDeclarado.toFixed(3)}kg (${c.qtdPecas} pçs)`).join('<br>');
         return `
           <tr class="border-b hover:bg-slate-50">
             <td class="p-3 font-bold text-red-700">NF #${nf.numero}</td>
@@ -332,11 +451,205 @@
     }
 
     function excluirNF(id) {
-      if(confirm("Deseja excluir este registro de Nota Fiscal?")) {
+      if(confirm("Deseja excluir este registro de Nota Fiscal? As caixas pendentes associadas também serão removidas.")) {
+        var nfObj = nfsList.find(n => n.id === id);
+        if(nfObj) {
+          caixasPendentesList = caixasPendentesList.filter(c => c.nfNumero !== nfObj.numero);
+          localStorage.setItem('pel_caixas_pendentes', JSON.stringify(caixasPendentesList));
+        }
+
         nfsList = nfsList.filter(n => n.id !== id);
         localStorage.setItem('pel_nfs', JSON.stringify(nfsList));
         renderNFList();
+        renderCaixasFechadasGrid();
       }
+    }
+
+    /* --- LÓGICA DA ETAPA 2 (ABERTURA DE CAIXAS) --- */
+
+    function renderCaixasFechadasGrid() {
+      var container = document.getElementById('grid-caixas-fechadas');
+      if(!container) return;
+
+      if(caixasPendentesList.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400 col-span-full p-2">Nenhuma caixa fechada pendente no momento na câmara fria.</p>';
+        return;
+      }
+
+      container.innerHTML = caixasPendentesList.map(cx => `
+        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl shadow-sm flex flex-col justify-between space-y-3">
+          <div>
+            <div class="flex justify-between items-center border-b pb-1.5 mb-2">
+              <span class="font-bold text-red-700 text-xs">NF #${cx.nfNumero} (${cx.dataNF})</span>
+              <span class="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-bold">CX #${cx.caixaNum}</span>
+            </div>
+            <span class="font-bold text-slate-800 text-base block">${cx.corte}</span>
+            <p class="text-xs text-gray-600 mt-1">Qtd Peças Declarada: <strong>${cx.qtdPecas} peças</strong></p>
+            <p class="text-xs text-gray-600">Peso Declarado (NF): <strong>${cx.pesoDeclarado.toFixed(3)} kg</strong></p>
+          </div>
+          <button onclick="iniciarPesagemCaixa(${cx.id})" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs py-2.5 rounded-lg shadow-sm transition-all flex items-center justify-center gap-1">
+            📦 Abrir Caixa & Pesar Peças
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function iniciarPesagemCaixa(caixaId) {
+      var cx = caixasPendentesList.find(c => c.id === caixaId);
+      if(!cx) return;
+
+      caixaEmPesagemAtual = cx;
+
+      document.getElementById('pesagem-titulo-caixa').innerText = `Abrindo Caixa de ${cx.corte} (NF #${cx.nfNumero})`;
+      document.getElementById('pesagem-subtitulo-caixa').innerText = `Caixa #${cx.caixaNum} | Fornecedor: ${cx.fornecedor} | Data NF: ${cx.dataNF}`;
+      document.getElementById('pesagem-peso-declarado').innerText = cx.pesoDeclarado.toFixed(3) + " kg";
+
+      var container = document.getElementById('container-inputs-pecas');
+      container.innerHTML = "";
+
+      var seqInicio = sequencialCortes[cx.corte] || 0;
+
+      for(var i = 1; i <= cx.qtdPecas; i++) {
+        var numTagSeq = seqInicio + i;
+        var tagCompleta = `${cx.corte}-P${numTagSeq}`;
+
+        var inputHtml = `
+          <div class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
+            <label class="block text-xs font-bold text-slate-800 mb-1">${tagCompleta} (kg)</label>
+            <input type="number" step="0.001" data-tag="${tagCompleta}" oninput="calcularPesagemCaixa()" class="input-peso-peca w-full border rounded-md p-1.5 text-sm font-bold text-red-700 outline-none focus:ring-2 focus:ring-red-500" placeholder="Ex: 2.100" required>
+          </div>
+        `;
+        container.insertAdjacentHTML('beforeend', inputHtml);
+      }
+
+      document.getElementById('painel-pesagem').classList.remove('hidden');
+      calcularPesagemCaixa();
+      document.getElementById('painel-pesagem').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function fecharPainelPesagem() {
+      caixaEmPesagemAtual = null;
+      document.getElementById('painel-pesagem').classList.add('hidden');
+    }
+
+    function calcularPesagemCaixa() {
+      if(!caixaEmPesagemAtual) return;
+
+      var inputs = document.querySelectorAll('.input-peso-peca');
+      var somaAferida = 0;
+
+      inputs.forEach(inp => {
+        somaAferida += parseFloat(inp.value) || 0;
+      });
+
+      document.getElementById('pesagem-peso-aferido').innerText = somaAferida.toFixed(3) + " kg";
+
+      var pesoDeclarado = caixaEmPesagemAtual.pesoDeclarado;
+      var diff = Math.abs(somaAferida - pesoDeclarado);
+      var statusSpan = document.getElementById('pesagem-status-tolerancia');
+
+      if(somaAferida === 0) {
+        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-gray-200 text-gray-700 inline-block mt-0.5";
+        statusSpan.innerText = "Aguardando pesagem";
+      } else if(diff === 0) {
+        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 inline-block mt-0.5";
+        statusSpan.innerText = "🟢 Exato (Bateu 100%)";
+      } else if(diff <= 0.5) {
+        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 inline-block mt-0.5";
+        statusSpan.innerText = `🟠 Tolerância Aceitável (Dif: ${diff.toFixed(3)}kg)`;
+      } else {
+        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-red-100 text-red-800 inline-block mt-0.5";
+        statusSpan.innerText = `🔴 Divergente da NF (Dif: ${diff.toFixed(3)}kg)`;
+      }
+    }
+
+    function handleSalvarPesagemCaixa(e) {
+      e.preventDefault();
+      if(!caixaEmPesagemAtual) return;
+
+      var inputs = document.querySelectorAll('.input-peso-peca');
+      var somaAferida = 0;
+      var pecasAbertas = [];
+
+      inputs.forEach(inp => {
+        var pesoVal = parseFloat(inp.value) || 0;
+        var tagSpec = inp.getAttribute('data-tag');
+
+        var newPeca = {
+          id: Date.now() + Math.floor(Math.random() * 100000),
+          tag: tagSpec,
+          corte: caixaEmPesagemAtual.corte,
+          nfNumero: caixaEmPesagemAtual.nfNumero,
+          fornecedor: caixaEmPesagemAtual.fornecedor,
+          dataNF: caixaEmPesagemAtual.dataNF,
+          peso: pesoVal,
+          localizacao: "Câmara Fria",
+          status: "Em Estoque"
+        };
+
+        pecasEstoqueList.push(newPeca);
+        pecasAbertas.push(newPeca);
+        somaAferida += pesoVal;
+      });
+
+      // Atualiza sequencial por proteína
+      var seqAtual = sequencialCortes[caixaEmPesagemAtual.corte] || 0;
+      sequencialCortes[caixaEmPesagemAtual.corte] = seqAtual + inputs.length;
+      localStorage.setItem('pel_seq_cortes', JSON.stringify(sequencialCortes));
+
+      // Grava no histórico de caixas abertas
+      var caixaProcessada = {
+        id: caixaEmPesagemAtual.id,
+        nfNumero: caixaEmPesagemAtual.nfNumero,
+        dataNF: caixaEmPesagemAtual.dataNF,
+        corte: caixaEmPesagemAtual.corte,
+        pesoDeclarado: caixaEmPesagemAtual.pesoDeclarado,
+        pesoAferido: somaAferida,
+        qtdPecas: inputs.length,
+        tags: pecasAbertas.map(p => p.tag).join(', ')
+      };
+
+      caixasAbertasList.unshift(caixaProcessada);
+      localStorage.setItem('pel_caixas_abertas', JSON.stringify(caixasAbertasList));
+
+      // Remove da lista de caixas pendentes
+      caixasPendentesList = caixasPendentesList.filter(c => c.id !== caixaEmPesagemAtual.id);
+      localStorage.setItem('pel_caixas_pendentes', JSON.stringify(caixasPendentesList));
+      localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
+
+      fecharPainelPesagem();
+      renderCaixasFechadasGrid();
+      renderCaixasAbertasTable();
+
+      alert(`Caixa de ${caixaProcessada.corte} aberta com sucesso! ${inputs.length} peças registradas e enviadas para o estoque da Câmara Fria.`);
+    }
+
+    function renderCaixasAbertasTable() {
+      var tbody = document.getElementById('lista-caixas-abertas');
+      if(!tbody) return;
+
+      if(caixasAbertasList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-gray-400">Nenhuma caixa aberta e processada até o momento.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = caixasAbertasList.map(c => {
+        var diff = Math.abs(c.pesoAferido - c.pesoDeclarado);
+        var badgeStatus = diff <= 0.5 ? 
+          '<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded font-bold">🟢 Processada</span>' : 
+          '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded font-bold">🟠 Com Divergência</span>';
+
+        return `
+          <tr class="border-b hover:bg-slate-50">
+            <td class="p-3 font-bold text-red-700">NF #${c.nfNumero}</td>
+            <td class="p-3 font-medium">${c.dataNF}</td>
+            <td class="p-3 font-semibold text-slate-800">${c.corte}</td>
+            <td class="p-3 text-slate-700">NF: ${c.pesoDeclarado.toFixed(3)}kg | Real: <strong>${c.pesoAferido.toFixed(3)}kg</strong></td>
+            <td class="p-3 font-mono text-[11px] text-slate-800">${c.tags}</td>
+            <td class="p-3">${badgeStatus}</td>
+          </tr>
+        `;
+      }).join('');
     }
   </script>
 </body>
