@@ -17,14 +17,15 @@
       <h1 class="text-xl font-bold tracking-wide text-red-500">Pellegrino</h1>
       <p class="text-xs text-gray-400">Controle de Estoque de Carnes & Rastreabilidade</p>
     </div>
-    <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1 rounded-full text-gray-300">Módulos 1 e 2 Ativos</span>
+    <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1 rounded-full text-gray-300">Módulos 1, 2 e 3 Ativos</span>
   </header>
 
   <!-- Navegação de Abas -->
   <nav class="bg-white border-b border-gray-200 px-4 flex space-x-4 text-sm overflow-x-auto">
     <button onclick="switchTab('tab-nf')" id="btn-tab-nf" class="py-3 px-2 tab-active transition-all">1. Entrada de Nota Fiscal</button>
     <button onclick="switchTab('tab-caixas')" id="btn-tab-caixas" class="py-3 px-2 text-gray-600 transition-all font-semibold">2. Caixas & Pesagem de Peças</button>
-    <button disabled class="py-3 px-2 text-gray-400 cursor-not-allowed">3. Câmara Fria & Peças (Em breve)</button>
+    <button onclick="switchTab('tab-estoque')" id="btn-tab-estoque" class="py-3 px-2 text-gray-600 transition-all font-semibold">3. Câmara Fria & Peças</button>
+    <button disabled class="py-3 px-2 text-gray-400 cursor-not-allowed">4. Porcionamento (Em breve)</button>
   </nav>
 
   <!-- Conteúdo Principal -->
@@ -135,35 +136,34 @@
         <div class="border-b pb-3 flex justify-between items-center">
           <div>
             <h2 class="text-lg font-bold text-slate-800">Caixas Fechadas na Câmara Fria</h2>
-            <p class="text-xs text-gray-500">Selecione uma caixa abaixo para abrir e informar o peso individual de cada peça.</p>
+            <p class="text-xs text-gray-500">Selecione uma caixa abaixo para abrir e realizar a conferência das peças.</p>
           </div>
           <span class="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-semibold">Etapa 2 de 5</span>
         </div>
 
-        <!-- Grid de Cards de Caixas Fechadas -->
         <div id="grid-caixas-fechadas" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <p class="text-xs text-gray-400 col-span-full p-2">Nenhuma caixa fechada pendente no momento.</p>
+          <p class="text-xs text-gray-400 col-span-full p-2">Nenhuma caixa fechada pendente no momento na câmara fria.</p>
         </div>
       </div>
 
-      <!-- Painel de Pesagem Individual da Caixa Selecionada -->
+      <!-- Painel de Abertura & Inspeção da Caixa -->
       <div id="painel-pesagem" class="bg-white p-6 rounded-xl shadow-md border-2 border-red-500 space-y-6 hidden">
         <div class="flex justify-between items-center border-b pb-3">
           <div>
             <h3 id="pesagem-titulo-caixa" class="text-md font-bold text-red-700">Abrindo Caixa...</h3>
-            <p id="pesagem-subtitulo-caixa" class="text-xs text-gray-500">Informe o peso de cada peça. A numeração segue sequencial por proteína.</p>
+            <p id="pesagem-subtitulo-caixa" class="text-xs text-gray-500">Confira a quantidade de peças e a qualidade individual de cada item.</p>
           </div>
           <button onclick="fecharPainelPesagem()" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-3 py-1.5 rounded-lg">Cancelar</button>
         </div>
 
         <form id="form-pesagem-pecas" onsubmit="handleSalvarPesagemCaixa(event)" class="space-y-6">
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-lg border text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-lg border text-xs">
             <div>
               <span class="text-gray-500 block">Peso Declarado da Caixa (NF):</span>
               <span id="pesagem-peso-declarado" class="text-sm font-bold text-slate-800">0.000 kg</span>
             </div>
             <div>
-              <span class="text-gray-500 block">Soma Atual Aferida:</span>
+              <span class="text-gray-500 block">Soma Aferida na Bancada:</span>
               <span id="pesagem-peso-aferido" class="text-sm font-bold text-red-600">0.000 kg</span>
             </div>
             <div>
@@ -172,10 +172,29 @@
             </div>
           </div>
 
-          <!-- Inputs Individuais de Cada Peça -->
+          <!-- Ajuste de Quantidade de Peças da Caixa -->
+          <div class="bg-amber-50 border border-amber-200 p-4 rounded-lg space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-800">Qtd. de Peças Reais na Bancada *</label>
+                <p class="text-[11px] text-gray-500">Previsto na NF: <strong id="pesagem-qtd-prevista-display">0</strong> peças</p>
+              </div>
+              <input type="number" min="1" id="input-qtd-real-pecas" onchange="regerarFieldsPecasReal()" class="w-24 border rounded-lg p-2 text-sm font-bold text-center bg-white focus:ring-2 focus:ring-amber-500 outline-none">
+            </div>
+
+            <div id="box-justificativa-qtd" class="hidden border-t border-amber-200 pt-3">
+              <label class="block text-xs font-bold text-amber-900 mb-1">Motivo da Divergência na Contagem de Peças *</label>
+              <select id="select-justificativa-qtd" class="w-full border rounded-lg p-2 text-xs bg-white text-slate-800 font-semibold outline-none">
+                <option value="Divergência de etiqueta/embalagem (Peso bateu)">Divergência de etiqueta/embalagem do frigorífico (Peso da caixa OK)</option>
+                <option value="Falta real de peça / Prejuízo de envio">Falta real de peça no envio (Para cobrança/crédito com fornecedor)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Inspeção e Pesagem Individual -->
           <div>
-            <h4 class="text-xs font-bold text-slate-800 mb-3">Pesagem Individual das Peças</h4>
-            <div id="container-inputs-pecas" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3"></div>
+            <h4 class="text-xs font-bold text-slate-800 mb-3">Pesagem & Inspeção de Qualidade por Peça</h4>
+            <div id="container-inputs-pecas" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
           </div>
 
           <div class="flex justify-end border-t pt-4">
@@ -188,7 +207,7 @@
 
       <!-- Histórico de Caixas Já Abertas -->
       <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-        <h3 class="text-md font-bold text-slate-800 mb-4">Histórico de Caixas Abertas e Processadas</h3>
+        <h3 class="text-md font-bold text-slate-800 mb-4">Histórico de Caixas Abertas e Ocorrências</h3>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-gray-600">
             <thead class="bg-slate-100 text-slate-700 uppercase border-b">
@@ -197,12 +216,73 @@
                 <th class="p-3">Data NF</th>
                 <th class="p-3">Proteína</th>
                 <th class="p-3">Peso NF vs Aferido</th>
-                <th class="p-3">Tags Geradas</th>
+                <th class="p-3">Ocorrências / Observações</th>
                 <th class="p-3">Status</th>
               </tr>
             </thead>
             <tbody id="lista-caixas-abertas"></tbody>
           </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ETAPA 3: CÂMARA FRIA & GESTÃO DE PEÇAS E MATURAÇÃO -->
+    <section id="tab-estoque" class="tab-content space-y-6 hidden">
+      <div class="border-b pb-3 flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800">Estoque de Peças e Controle de Maturação</h2>
+          <p class="text-xs text-gray-500">Gerencie o saldo por ambiente e monitore o tempo de estocagem (dias desde a NF).</p>
+        </div>
+        <span class="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-semibold">Etapa 3 de 5</span>
+      </div>
+
+      <!-- Indicadores de Saldo Global -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center">
+          <div>
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">❄️ Saldo na Câmara Fria</span>
+            <span id="saldo-camara-peso" class="text-xl font-bold text-slate-800">0.000 kg</span>
+          </div>
+          <span id="saldo-camara-pecas" class="text-xs bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-full">0 peças</span>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center">
+          <div>
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">🧊 Saldo Geladeira de Porcionamento</span>
+            <span id="saldo-geladeira-peso" class="text-xl font-bold text-emerald-700">0.000 kg</span>
+          </div>
+          <span id="saldo-geladeira-pecas" class="text-xs bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-full">0 peças</span>
+        </div>
+      </div>
+
+      <!-- Legenda de Maturação -->
+      <div class="flex items-center gap-4 bg-white p-3 rounded-lg border text-xs">
+        <span class="font-bold text-slate-700">Status de Maturação/Validade:</span>
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Fresca (&lt;30 dias)</span>
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> Maturação Ideal (30-59 dias)</span>
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-red-600 inline-block"></span> Crítico / Usar Primeiro (&ge;60 dias)</span>
+      </div>
+
+      <!-- Colunas de Estoque por Localização -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Câmara Fria -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+          <h3 class="font-bold text-slate-800 border-b pb-2 flex justify-between items-center">
+            <span>❄️ Peças na Câmara Fria</span>
+          </h3>
+          <div id="cards-estoque-camara" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto p-1">
+            <p class="text-xs text-gray-400 col-span-full">Nenhuma peça na câmara fria.</p>
+          </div>
+        </div>
+
+        <!-- Geladeira Porcionamento -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+          <h3 class="font-bold text-slate-800 border-b pb-2 flex justify-between items-center">
+            <span>🧊 Peças na Geladeira de Porcionamento</span>
+          </h3>
+          <div id="cards-estoque-geladeira" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto p-1">
+            <p class="text-xs text-gray-400 col-span-full">Nenhuma peça na geladeira de porcionamento.</p>
+          </div>
         </div>
       </div>
     </section>
@@ -227,6 +307,7 @@
       renderNFList();
       renderCaixasFechadasGrid();
       renderCaixasAbertasTable();
+      renderEstoquePecasEtapa3();
     };
 
     function switchTab(tabId) {
@@ -248,6 +329,9 @@
       if(tabId === 'tab-caixas') {
         renderCaixasFechadasGrid();
         renderCaixasAbertasTable();
+      }
+      if(tabId === 'tab-estoque') {
+        renderEstoquePecasEtapa3();
       }
     }
 
@@ -465,7 +549,7 @@
       }
     }
 
-    /* --- LÓGICA DA ETAPA 2 (ABERTURA DE CAIXAS) --- */
+    /* --- LÓGICA DA ETAPA 2 (ABERTURA, JUSTIFICATIVAS E INSPEÇÃO) --- */
 
     function renderCaixasFechadasGrid() {
       var container = document.getElementById('grid-caixas-fechadas');
@@ -488,7 +572,7 @@
             <p class="text-xs text-gray-600">Peso Declarado (NF): <strong>${cx.pesoDeclarado.toFixed(3)} kg</strong></p>
           </div>
           <button onclick="iniciarPesagemCaixa(${cx.id})" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs py-2.5 rounded-lg shadow-sm transition-all flex items-center justify-center gap-1">
-            📦 Abrir Caixa & Pesar Peças
+            📦 Abrir Caixa & Inspecionar
           </button>
         </div>
       `).join('');
@@ -503,28 +587,85 @@
       document.getElementById('pesagem-titulo-caixa').innerText = `Abrindo Caixa de ${cx.corte} (NF #${cx.nfNumero})`;
       document.getElementById('pesagem-subtitulo-caixa').innerText = `Caixa #${cx.caixaNum} | Fornecedor: ${cx.fornecedor} | Data NF: ${cx.dataNF}`;
       document.getElementById('pesagem-peso-declarado').innerText = cx.pesoDeclarado.toFixed(3) + " kg";
+      document.getElementById('pesagem-qtd-prevista-display').innerText = cx.qtdPecas;
+
+      var inputQtdReal = document.getElementById('input-qtd-real-pecas');
+      inputQtdReal.value = cx.qtdPecas;
+
+      regerarFieldsPecasReal();
+
+      document.getElementById('painel-pesagem').classList.remove('hidden');
+      document.getElementById('painel-pesagem').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function regerarFieldsPecasReal() {
+      if(!caixaEmPesagemAtual) return;
+
+      var qtdPrevista = caixaEmPesagemAtual.qtdPecas;
+      var qtdReal = parseInt(document.getElementById('input-qtd-real-pecas').value) || 0;
+      var boxJust = document.getElementById('box-justificativa-qtd');
+
+      if(qtdReal !== qtdPrevista) {
+        boxJust.classList.remove('hidden');
+      } else {
+        boxJust.classList.add('hidden');
+      }
 
       var container = document.getElementById('container-inputs-pecas');
       container.innerHTML = "";
 
-      var seqInicio = sequencialCortes[cx.corte] || 0;
+      var seqInicio = sequencialCortes[caixaEmPesagemAtual.corte] || 0;
 
-      for(var i = 1; i <= cx.qtdPecas; i++) {
+      for(var i = 1; i <= qtdReal; i++) {
         var numTagSeq = seqInicio + i;
-        var tagCompleta = `${cx.corte}-P${numTagSeq}`;
+        var tagCompleta = `${caixaEmPesagemAtual.corte}-P${numTagSeq}`;
 
         var inputHtml = `
-          <div class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
-            <label class="block text-xs font-bold text-slate-800 mb-1">${tagCompleta} (kg)</label>
-            <input type="number" step="0.001" data-tag="${tagCompleta}" oninput="calcularPesagemCaixa()" class="input-peso-peca w-full border rounded-md p-1.5 text-sm font-bold text-red-700 outline-none focus:ring-2 focus:ring-red-500" placeholder="Ex: 2.100" required>
+          <div id="peca-card-${i}" class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm space-y-2 text-xs">
+            <div class="flex justify-between items-center border-b pb-1">
+              <span class="font-bold text-slate-800">${tagCompleta}</span>
+              <select onchange="toggleQualidadePeca(${i})" class="select-qualidade border rounded p-1 text-[11px] font-bold bg-emerald-50 text-emerald-800 outline-none">
+                <option value="Conforme">🟢 Própria p/ Uso</option>
+                <option value="Avariada">🔴 Imprópria / Avariada</option>
+              </select>
+            </div>
+
+            <div class="box-peso-peca">
+              <label class="block text-[10px] font-bold text-gray-500 mb-0.5">Peso (kg) *</label>
+              <input type="number" step="0.001" data-tag="${tagCompleta}" oninput="calcularPesagemCaixa()" class="input-peso-peca w-full border rounded-md p-1.5 text-sm font-bold text-red-700 outline-none focus:ring-2 focus:ring-red-500" placeholder="Ex: 2.100" required>
+            </div>
+
+            <div class="box-motivo-avaria hidden border-t pt-2">
+              <label class="block text-[10px] font-bold text-red-700 mb-0.5">Motivo da Avaria *</label>
+              <select class="select-motivo-avaria w-full border rounded p-1 text-[11px] bg-red-50 text-red-900 outline-none">
+                <option value="Cheiro forte / Perda de vácuo">💨 Cheiro forte / Vácuo perdido</option>
+                <option value="Excesso de gordura / Sebo">🥩 Qualidade inadequada / Excesso sebo</option>
+                <option value="Corte fora do padrão">⚖️ Corte fora do padrão físico</option>
+              </select>
+            </div>
           </div>
         `;
         container.insertAdjacentHTML('beforeend', inputHtml);
       }
 
-      document.getElementById('painel-pesagem').classList.remove('hidden');
       calcularPesagemCaixa();
-      document.getElementById('painel-pesagem').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function toggleQualidadePeca(index) {
+      var card = document.getElementById(`peca-card-${index}`);
+      var selQualidade = card.querySelector('.select-qualidade');
+      var boxMotivo = card.querySelector('.box-motivo-avaria');
+
+      if(selQualidade.value === "Avariada") {
+        selQualidade.className = "select-qualidade border rounded p-1 text-[11px] font-bold bg-red-100 text-red-800 outline-none";
+        boxMotivo.classList.remove('hidden');
+        card.classList.add('bg-red-50', 'border-red-300');
+      } else {
+        selQualidade.className = "select-qualidade border rounded p-1 text-[11px] font-bold bg-emerald-50 text-emerald-800 outline-none";
+        boxMotivo.classList.add('hidden');
+        card.classList.remove('bg-red-50', 'border-red-300');
+      }
+      calcularPesagemCaixa();
     }
 
     function fecharPainelPesagem() {
@@ -567,52 +708,70 @@
       e.preventDefault();
       if(!caixaEmPesagemAtual) return;
 
-      var inputs = document.querySelectorAll('.input-peso-peca');
-      var somaAferida = 0;
-      var pecasAbertas = [];
+      var qtdPrevista = caixaEmPesagemAtual.qtdPecas;
+      var qtdReal = parseInt(document.getElementById('input-qtd-real-pecas').value) || 0;
+      var justificativaQtd = qtdReal !== qtdPrevista ? document.getElementById('select-justificativa-qtd').value : null;
 
-      inputs.forEach(inp => {
-        var pesoVal = parseFloat(inp.value) || 0;
-        var tagSpec = inp.getAttribute('data-tag');
+      var cardsPecas = document.querySelectorAll('#container-inputs-pecas > div');
+      var pecasAprovadas = [];
+      var pecasAvariadas = [];
+      var somaAferidaTotal = 0;
 
-        var newPeca = {
-          id: Date.now() + Math.floor(Math.random() * 100000),
-          tag: tagSpec,
-          corte: caixaEmPesagemAtual.corte,
-          nfNumero: caixaEmPesagemAtual.nfNumero,
-          fornecedor: caixaEmPesagemAtual.fornecedor,
-          dataNF: caixaEmPesagemAtual.dataNF,
-          peso: pesoVal,
-          localizacao: "Câmara Fria",
-          status: "Em Estoque"
-        };
+      cardsPecas.forEach(card => {
+        var tagSpec = card.querySelector('.input-peso-peca').getAttribute('data-tag');
+        var pesoVal = parseFloat(card.querySelector('.input-peso-peca').value) || 0;
+        var qualidade = card.querySelector('.select-qualidade').value;
 
-        pecasEstoqueList.push(newPeca);
-        pecasAbertas.push(newPeca);
-        somaAferida += pesoVal;
+        somaAferidaTotal += pesoVal;
+
+        if(qualidade === "Conforme") {
+          var newPeca = {
+            id: Date.now() + Math.floor(Math.random() * 100000),
+            tag: tagSpec,
+            corte: caixaEmPesagemAtual.corte,
+            nfNumero: caixaEmPesagemAtual.nfNumero,
+            fornecedor: caixaEmPesagemAtual.fornecedor,
+            dataNF: caixaEmPesagemAtual.dataNF,
+            peso: pesoVal,
+            localizacao: "Câmara Fria",
+            status: "Em Estoque"
+          };
+          pecasEstoqueList.push(newPeca);
+          pecasAprovadas.push(newPeca);
+        } else {
+          var motivo = card.querySelector('.select-motivo-avaria').value;
+          pecasAvariadas.push({ tag: tagSpec, peso: pesoVal, motivo: motivo });
+        }
       });
 
-      // Atualiza sequencial por proteína
+      // Atualiza o sequencial do corte
       var seqAtual = sequencialCortes[caixaEmPesagemAtual.corte] || 0;
-      sequencialCortes[caixaEmPesagemAtual.corte] = seqAtual + inputs.length;
+      sequencialCortes[caixaEmPesagemAtual.corte] = seqAtual + cardsPecas.length;
       localStorage.setItem('pel_seq_cortes', JSON.stringify(sequencialCortes));
 
-      // Grava no histórico de caixas abertas
+      // Monta resumo de ocorrências
+      var ocorrencias = [];
+      if(justificativaQtd) ocorrencias.push(`Contagem: ${qtdReal}/${qtdPrevista} pçs (${justificativaQtd})`);
+      if(pecasAvariadas.length > 0) ocorrencias.push(`Avarias: ${pecasAvariadas.length} pç(s) [${pecasAvariadas.map(a => a.tag + ': ' + a.motivo).join('; ')}]`);
+
+      var statusCaixaTxt = ocorrencias.length > 0 ? "Com Ressalvas" : "Conforme";
+
       var caixaProcessada = {
         id: caixaEmPesagemAtual.id,
         nfNumero: caixaEmPesagemAtual.nfNumero,
         dataNF: caixaEmPesagemAtual.dataNF,
         corte: caixaEmPesagemAtual.corte,
         pesoDeclarado: caixaEmPesagemAtual.pesoDeclarado,
-        pesoAferido: somaAferida,
-        qtdPecas: inputs.length,
-        tags: pecasAbertas.map(p => p.tag).join(', ')
+        pesoAferido: somaAferidaTotal,
+        qtdPecasReal: cardsPecas.length,
+        ocorrencias: ocorrencias.length > 0 ? ocorrencias.join(' | ') : "Nenhuma ocorrência",
+        tagsAprovadas: pecasAprovadas.length > 0 ? pecasAprovadas.map(p => p.tag).join(', ') : "Nenhuma",
+        status: statusCaixaTxt
       };
 
       caixasAbertasList.unshift(caixaProcessada);
       localStorage.setItem('pel_caixas_abertas', JSON.stringify(caixasAbertasList));
 
-      // Remove da lista de caixas pendentes
       caixasPendentesList = caixasPendentesList.filter(c => c.id !== caixaEmPesagemAtual.id);
       localStorage.setItem('pel_caixas_pendentes', JSON.stringify(caixasPendentesList));
       localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
@@ -620,8 +779,9 @@
       fecharPainelPesagem();
       renderCaixasFechadasGrid();
       renderCaixasAbertasTable();
+      renderEstoquePecasEtapa3();
 
-      alert(`Caixa de ${caixaProcessada.corte} aberta com sucesso! ${inputs.length} peças registradas e enviadas para o estoque da Câmara Fria.`);
+      alert(`Caixa processada com sucesso! ${pecasAprovadas.length} peça(s) enviadas ao estoque. ${pecasAvariadas.length} peça(s) registradas como avaria/rejeitadas.`);
     }
 
     function renderCaixasAbertasTable() {
@@ -634,10 +794,9 @@
       }
 
       tbody.innerHTML = caixasAbertasList.map(c => {
-        var diff = Math.abs(c.pesoAferido - c.pesoDeclarado);
-        var badgeStatus = diff <= 0.5 ? 
-          '<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded font-bold">🟢 Processada</span>' : 
-          '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded font-bold">🟠 Com Divergência</span>';
+        var badgeStatus = c.status === "Conforme" ? 
+          '<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded font-bold">🟢 Conforme</span>' : 
+          '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded font-bold">🟠 Com Ressalvas</span>';
 
         return `
           <tr class="border-b hover:bg-slate-50">
@@ -645,11 +804,102 @@
             <td class="p-3 font-medium">${c.dataNF}</td>
             <td class="p-3 font-semibold text-slate-800">${c.corte}</td>
             <td class="p-3 text-slate-700">NF: ${c.pesoDeclarado.toFixed(3)}kg | Real: <strong>${c.pesoAferido.toFixed(3)}kg</strong></td>
-            <td class="p-3 font-mono text-[11px] text-slate-800">${c.tags}</td>
+            <td class="p-3 text-gray-700 leading-relaxed">${c.ocorrencias}</td>
             <td class="p-3">${badgeStatus}</td>
           </tr>
         `;
       }).join('');
+    }
+
+    /* --- LÓGICA DA ETAPA 3 (CÂMARA FRIA & MATURAÇÃO) --- */
+
+    function calcularDiasEstoque(dataNF) {
+      if(!dataNF) return 0;
+      var dNF = new Date(dataNF);
+      var dHoje = new Date();
+      var diffTime = Math.abs(dHoje - dNF);
+      return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    function renderEstoquePecasEtapa3() {
+      var containerCamara = document.getElementById('cards-estoque-camara');
+      var containerGeladeira = document.getElementById('cards-estoque-geladeira');
+
+      if(!containerCamara || !containerGeladeira) return;
+
+      containerCamara.innerHTML = "";
+      containerGeladeira.innerHTML = "";
+
+      var emEstoque = pecasEstoqueList.filter(p => p.status === "Em Estoque");
+
+      var pesoTotalCamara = 0, pecasTotalCamara = 0;
+      var pesoTotalGeladeira = 0, pecasTotalGeladeira = 0;
+
+      if(emEstoque.length === 0) {
+        containerCamara.innerHTML = '<p class="text-xs text-gray-400 col-span-full p-2">Nenhuma peça na câmara fria.</p>';
+        containerGeladeira.innerHTML = '<p class="text-xs text-gray-400 col-span-full p-2">Nenhuma peça na geladeira de porcionamento.</p>';
+      }
+
+      emEstoque.forEach(p => {
+        var dias = calcularDiasEstoque(p.dataNF);
+        var matBadgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
+        var matText = `${dias} dias (Fresca)`;
+
+        if(dias >= 60) {
+          matBadgeClass = "bg-red-100 text-red-800 border-red-300 animate-pulse";
+          matText = `${dias} dias (🔴 Crítico / Vencendo)`;
+        } else if(dias >= 30) {
+          matBadgeClass = "bg-amber-100 text-amber-800 border-amber-300";
+          matText = `${dias} dias (🟠 Maturação Ideal)`;
+        }
+
+        var isCamara = p.localizacao === "Câmara Fria";
+
+        if(isCamara) {
+          pesoTotalCamara += p.peso;
+          pecasTotalCamara++;
+        } else {
+          pesoTotalGeladeira += p.peso;
+          pecasTotalGeladeira++;
+        }
+
+        var btnMover = isCamara ? 
+          `<button onclick="moverPecaLocalizacao(${p.id}, 'Geladeira de Porcionamento')" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold text-[11px] py-1.5 rounded transition-all mt-2">🧊 Mover p/ Geladeira</button>` :
+          `<button onclick="moverPecaLocalizacao(${p.id}, 'Câmara Fria')" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold text-[11px] py-1.5 rounded transition-all mt-2">❄️ Retornar p/ Câmara</button>`;
+
+        var cardHtml = `
+          <div class="bg-slate-50 border border-slate-200 p-3 rounded-lg shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-center border-b pb-1 mb-1">
+                <span class="font-bold text-red-700 text-xs">${p.tag}</span>
+                <span class="text-[10px] border px-1.5 py-0.5 rounded-full font-bold ${matBadgeClass}">${matText}</span>
+              </div>
+              <span class="font-bold text-slate-800 text-sm block">${p.corte}</span>
+              <p class="text-[11px] text-gray-500">NF #${p.nfNumero} (${p.dataNF})</p>
+              <p class="text-xs font-bold text-slate-900 mt-1">Peso: ${p.peso.toFixed(3)} kg</p>
+            </div>
+            ${btnMover}
+          </div>
+        `;
+
+        if(isCamara) containerCamara.innerHTML += cardHtml;
+        else containerGeladeira.innerHTML += cardHtml;
+      });
+
+      document.getElementById('saldo-camara-peso').innerText = pesoTotalCamara.toFixed(3) + " kg";
+      document.getElementById('saldo-camara-pecas').innerText = pecasTotalCamara + " peças";
+
+      document.getElementById('saldo-geladeira-peso').innerText = pesoTotalGeladeira.toFixed(3) + " kg";
+      document.getElementById('saldo-geladeira-pecas').innerText = pecasTotalGeladeira + " peças";
+    }
+
+    function moverPecaLocalizacao(pecaId, novoDestino) {
+      var peca = pecasEstoqueList.find(p => p.id === pecaId);
+      if(peca) {
+        peca.localizacao = novoDestino;
+        localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
+        renderEstoquePecasEtapa3();
+      }
     }
   </script>
 </body>
