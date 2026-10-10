@@ -17,23 +17,109 @@
       <h1 class="text-xl font-bold tracking-wide text-red-500">Pellegrino</h1>
       <p class="text-xs text-gray-400">Controle de Estoque de Carnes & Rastreabilidade</p>
     </div>
-    <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1 rounded-full text-gray-300">Sistema Completo (Etapas 1 a 5)</span>
+    <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1 rounded-full text-gray-300">Módulos 0 a 5 Ativos</span>
   </header>
 
   <!-- Navegação de Abas -->
   <nav class="bg-white border-b border-gray-200 px-4 flex space-x-4 text-sm overflow-x-auto">
-    <button onclick="switchTab('tab-nf')" id="btn-tab-nf" class="py-3 px-2 tab-active transition-all">1. Entrada NF</button>
+    <button onclick="switchTab('tab-dash')" id="btn-tab-dash" class="py-3 px-2 tab-active transition-all">0. Visão Geral (Dashboard)</button>
+    <button onclick="switchTab('tab-nf')" id="btn-tab-nf" class="py-3 px-2 text-gray-600 transition-all font-semibold">1. Entrada NF</button>
     <button onclick="switchTab('tab-caixas')" id="btn-tab-caixas" class="py-3 px-2 text-gray-600 transition-all font-semibold">2. Caixas & Pesagem</button>
     <button onclick="switchTab('tab-estoque')" id="btn-tab-estoque" class="py-3 px-2 text-gray-600 transition-all font-semibold">3. Câmara Fria</button>
     <button onclick="switchTab('tab-eli')" id="btn-tab-eli" class="py-3 px-2 text-gray-600 transition-all font-semibold">4. Geladeira do Eli</button>
-    <button onclick="switchTab('tab-aparas')" id="btn-tab-aparas" class="py-3 px-2 text-gray-600 transition-all font-semibold">5. Aparas & Rendimento Diário</button>
+    <button onclick="switchTab('tab-aparas')" id="btn-tab-aparas" class="py-3 px-2 text-gray-600 transition-all font-semibold">5. Aparas & Rendimento</button>
   </nav>
 
   <!-- Conteúdo Principal -->
   <main class="flex-1 p-4 max-w-5xl mx-auto w-full space-y-6">
 
+    <!-- ETAPA 0: VISÃO GERAL / DASHBOARD -->
+    <section id="tab-dash" class="tab-content space-y-6">
+      <div class="border-b pb-3 flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800">📊 Painel de Controle & Visão Geral</h2>
+          <p class="text-xs text-gray-500">Resumo consolidado do estoque, alertas de pedidos e rastreabilidade.</p>
+        </div>
+        <span class="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-lg font-semibold">Visão Geral</span>
+      </div>
+
+      <!-- Cards de Indicadores Globais -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <span class="text-gray-500 block mb-1">Total em Estoque (kg)</span>
+          <span id="dash-total-peso" class="text-lg font-bold text-slate-900">0.000 kg</span>
+          <span class="text-[10px] text-gray-400 block mt-0.5">Câmara + Geladeira Eli</span>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <span class="text-gray-500 block mb-1">Peças na Câmara Fria</span>
+          <span id="dash-total-pecas" class="text-lg font-bold text-red-600">0 peças</span>
+          <span class="text-[10px] text-gray-400 block mt-0.5">Com tag ativa</span>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <span class="text-gray-500 block mb-1">Alerta Maturação (60+ dias)</span>
+          <span id="dash-total-criticas" class="text-lg font-bold text-amber-600">0 peças</span>
+          <span class="text-[10px] text-gray-400 block mt-0.5">Priorizar uso</span>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <span class="text-gray-500 block mb-1">Aproveitamento Médio</span>
+          <span id="dash-aproveitamento-medio" class="text-lg font-bold text-emerald-600">100.0%</span>
+          <span class="text-[10px] text-gray-400 block mt-0.5">Bife limpo vs. Aparas</span>
+        </div>
+      </div>
+
+      <!-- CARD DE ALERTA DE RECOMPRA / PEDIDOS URGENTES -->
+      <div class="bg-white p-6 rounded-xl border-2 border-amber-400 shadow-sm space-y-4">
+        <div class="flex justify-between items-center border-b pb-2">
+          <div>
+            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+              <span>🚚 Alerta de Recompra (Ponto de Pedido)</span>
+            </h3>
+            <p class="text-[11px] text-gray-500">Regra: 🟡 7 a 5 peças (Atenção) | 🔴 4 peças ou menos (Fazer Pedido Urgente - Prazo 1 a 2 dias)</p>
+          </div>
+          <span class="text-[11px] bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full font-bold">Base: Câmara Fria</span>
+        </div>
+
+        <div id="container-alertas-recompra" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          <p class="text-xs text-gray-400 col-span-full">Verificando níveis de estoque da câmara fria...</p>
+        </div>
+      </div>
+
+      <!-- Rastreabilidade / Busca Rápida por Tag ou NF -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+        <h3 class="font-bold text-slate-800 text-sm">🔍 Rastreabilidade Rápida de Peça ou Nota Fiscal</h3>
+        <div class="flex gap-2">
+          <input type="text" id="input-busca-rastreio" placeholder="Digite a Tag (Ex: Ancho-P1) ou Nº da NF" class="w-full border rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-red-500">
+          <button onclick="buscarRastreioPeca()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-lg transition-all">Buscar</button>
+        </div>
+
+        <div id="resultado-busca-container" class="hidden bg-slate-50 p-4 rounded-lg border border-slate-200 text-xs space-y-2">
+          <h4 class="font-bold text-red-700 text-sm" id="rastreio-titulo">Resultado da Busca</h4>
+          <div id="rastreio-detalhes" class="space-y-1 text-slate-700"></div>
+        </div>
+      </div>
+
+      <!-- Ações de Backup e Exportação -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-wrap justify-between items-center gap-4 text-xs">
+        <div>
+          <h3 class="font-bold text-slate-800">Exportação & Backup de Dados</h3>
+          <p class="text-gray-500">Baixe um relatório em formato CSV (abrival em Excel) para guardar seu histórico.</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="exportarDadosCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-lg shadow transition-all">
+            📥 Baixar Relatório (Excel/CSV)
+          </button>
+          <button onclick="resetarDadosSistema()" class="bg-slate-200 hover:bg-red-100 hover:text-red-700 text-slate-700 font-bold px-4 py-2 rounded-lg transition-all">
+            ⚙️ Resetar Dados de Teste
+          </button>
+        </div>
+      </div>
+    </section>
+
     <!-- ETAPA 1: ENTRADA DE NOTA FISCAL -->
-    <section id="tab-nf" class="tab-content space-y-6">
+    <section id="tab-nf" class="tab-content space-y-6 hidden">
       <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
         <div class="border-b pb-3 flex justify-between items-center">
           <div>
@@ -329,7 +415,7 @@
       </div>
     </section>
 
-    <!-- ETAPA 5: APARAS, PERDAS & RENDIMENTO DIÁRIO (CONSOLIDADO POR DIA) -->
+    <!-- ETAPA 5: APARAS, PERDAS & RENDIMENTO DIÁRIO -->
     <section id="tab-aparas" class="tab-content space-y-6 hidden">
       <div class="border-b pb-3 flex justify-between items-center">
         <div>
@@ -395,7 +481,6 @@
         </form>
       </div>
 
-      <!-- Tabela do Histórico Consolidado por Dia -->
       <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
         <h3 class="text-md font-bold text-slate-800 mb-4">Histórico de Rendimento Diário de Produção</h3>
         <div class="overflow-x-auto">
@@ -480,6 +565,7 @@
       renderEstoqueCamaraFria();
       renderGeladeiraEliEtapa4();
       renderEtapa5AparasDiario();
+      renderDashboardEtapa0();
     };
 
     function switchTab(tabId) {
@@ -498,11 +584,157 @@
         activeBtn.classList.remove('text-gray-600');
       }
 
+      if(tabId === 'tab-dash') { renderDashboardEtapa0(); }
       if(tabId === 'tab-caixas') { renderCaixasFechadasGrid(); renderCaixasAbertasTable(); }
       if(tabId === 'tab-estoque') { renderFiltrosProteinaEtapa3(); renderEstoqueCamaraFria(); }
       if(tabId === 'tab-eli') { renderGeladeiraEliEtapa4(); }
       if(tabId === 'tab-aparas') { renderEtapa5AparasDiario(); }
     }
+
+    /* --- LÓGICA DA ETAPA 0 (DASHBOARD & RECOMPRA) --- */
+
+    function renderDashboardEtapa0() {
+      var pecasCamara = pecasEstoqueList.filter(p => p.localizacao === "Câmara Fria" && p.status === "Em Estoque");
+      var pecasGeral = pecasEstoqueList.filter(p => p.status === "Em Estoque");
+      var pesoTotal = pecasGeral.reduce((acc, p) => acc + p.peso, 0);
+
+      document.getElementById('dash-total-peso').innerText = pesoTotal.toFixed(3) + " kg";
+      document.getElementById('dash-total-pecas').innerText = pecasCamara.length + " peças";
+
+      var peçasCriticas = pecasGeral.filter(p => calcularDiasEstoque(p.dataNF) >= 60).length;
+      document.getElementById('dash-total-criticas').innerText = peçasCriticas + " peças";
+
+      if(aparasDiarioHistorico.length > 0) {
+        var somaPorc = aparasDiarioHistorico.reduce((acc, h) => acc + h.porcUtil, 0);
+        var media = somaPorc / aparasDiarioHistorico.length;
+        document.getElementById('dash-aproveitamento-medio').innerText = media.toFixed(1) + "%";
+      } else {
+        document.getElementById('dash-aproveitamento-medio').innerText = "100.0%";
+      }
+
+      renderAlertasRecompra(pecasCamara);
+    }
+
+    function renderAlertasRecompra(pecasCamara) {
+      var container = document.getElementById('container-alertas-recompra');
+      if(!container) return;
+
+      var contagemPorCorte = {};
+      cortesList.forEach(c => contagemPorCorte[c] = 0);
+
+      pecasCamara.forEach(p => {
+        if(contagemPorCorte[p.corte] !== undefined) {
+          contagemPorCorte[p.corte]++;
+        } else {
+          contagemPorCorte[p.corte] = 1;
+        }
+      });
+
+      var htmlAlertas = [];
+
+      for(var corte in contagemPorCorte) {
+        var qtd = contagemPorCorte[corte];
+
+        if(qtd <= 4) {
+          htmlAlertas.push(`
+            <div class="bg-red-50 border-2 border-red-500 p-3 rounded-lg flex justify-between items-center text-xs shadow-sm">
+              <div>
+                <span class="font-bold text-red-900 block text-sm">${corte}</span>
+                <span class="text-red-700 font-semibold block mt-0.5">🚨 FAZER PEDIDO URGENTE</span>
+                <span class="text-[10px] text-red-600 block">Prazo fornecedor: 1 a 2 dias</span>
+              </div>
+              <span class="text-lg font-bold text-red-700 bg-red-100 px-3 py-1 rounded-full">${qtd} pçs</span>
+            </div>
+          `);
+        } else if(qtd <= 7) {
+          htmlAlertas.push(`
+            <div class="bg-amber-50 border-2 border-amber-400 p-3 rounded-lg flex justify-between items-center text-xs shadow-sm">
+              <div>
+                <span class="font-bold text-amber-900 block text-sm">${corte}</span>
+                <span class="text-amber-800 font-semibold block mt-0.5">⚠️ Estoque Baixando</span>
+                <span class="text-[10px] text-amber-700 block">Atenção ao giro</span>
+              </div>
+              <span class="text-lg font-bold text-amber-800 bg-amber-100 px-3 py-1 rounded-full">${qtd} pçs</span>
+            </div>
+          `);
+        } else {
+          htmlAlertas.push(`
+            <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-lg flex justify-between items-center text-xs">
+              <div>
+                <span class="font-bold text-slate-800 block">${corte}</span>
+                <span class="text-emerald-700 font-semibold block text-[11px]">🟢 Estoque Conforme</span>
+              </div>
+              <span class="text-sm font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full">${qtd} pçs</span>
+            </div>
+          `);
+        }
+      }
+
+      container.innerHTML = htmlAlertas.join('');
+    }
+
+    function buscarRastreioPeca() {
+      var termo = document.getElementById('input-busca-rastreio').value.trim().toLowerCase();
+      var containerRes = document.getElementById('resultado-busca-container');
+      var divDetalhes = document.getElementById('rastreio-detalhes');
+
+      if(!termo) {
+        alert("Digite um termo para buscar (Ex: Ancho-P1 ou número da NF).");
+        return;
+      }
+
+      var pecasEncontradas = pecasEstoqueList.filter(p => p.tag.toLowerCase().includes(termo) || p.nfNumero.toLowerCase().includes(termo));
+
+      containerRes.classList.remove('hidden');
+
+      if(pecasEncontradas.length === 0) {
+        divDetalhes.innerHTML = `<p class="text-red-600 font-bold">Nenhum registro localizado para "${termo}".</p>`;
+        return;
+      }
+
+      divDetalhes.innerHTML = pecasEncontradas.map(p => {
+        var dias = calcularDiasEstoque(p.dataNF);
+        return `
+          <div class="border-b pb-2 mb-2">
+            <p><strong>Tag:</strong> <span class="text-red-700 font-bold">${p.tag}</span> | <strong>Corte:</strong> ${p.corte} | <strong>Peso:</strong> ${p.peso.toFixed(3)}kg</p>
+            <p><strong>NF Origem:</strong> #${p.nfNumero} (${p.dataNF}) | <strong>Fornecedor:</strong> ${p.fornecedor}</p>
+            <p><strong>Localização Atual:</strong> ${p.localizacao} | <strong>Status:</strong> ${p.status}</p>
+            <p><strong>Tempo em Estoque:</strong> ${dias} dias</p>
+            ${p.dataBaixaEli ? `<p><strong>Baixada pelo Eli em:</strong> ${p.dataBaixaEli}</p>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function exportarDadosCSV() {
+      if(pecasEstoqueList.length === 0) {
+        alert("Nenhum dado de estoque disponível para exportar.");
+        return;
+      }
+
+      var csvContent = "data:text/csv;charset=utf-8,Tag,Corte,Peso_kg,NF,Fornecedor,Data_NF,Localizacao,Status\n";
+
+      pecasEstoqueList.forEach(p => {
+        csvContent += `${p.tag},${p.corte},${p.peso.toFixed(3)},${p.nfNumero},${p.fornecedor},${p.dataNF},${p.localizacao},${p.status}\n`;
+      });
+
+      var encodedUri = encodeURI(csvContent);
+      var link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `estoque_pellegrino_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function resetarDadosSistema() {
+      if(confirm("⚠️ ATENÇÃO: Deseja apagar TODOS os dados e zerar o estoque do sistema? Esta ação é irreversível.")) {
+        localStorage.clear();
+        location.reload();
+      }
+    }
+
+    /* --- DEMAIS ETAPAS MANTIDAS INTEGRALMENTE --- */
 
     function renderFornecedoresSelect() {
       var sel = document.getElementById('nf-fornecedor');
@@ -673,6 +905,7 @@
       addNFCorteRow();
       renderNFList();
       renderCaixasFechadasGrid();
+      renderDashboardEtapa0();
 
       alert(`Nota Fiscal #${nfNumero} registrada com sucesso! ${caixasGravadas.length} caixa(s) liberadas na Etapa 2.`);
     }
@@ -715,6 +948,7 @@
         localStorage.setItem('pel_nfs', JSON.stringify(nfsList));
         renderNFList();
         renderCaixasFechadasGrid();
+        renderDashboardEtapa0();
       }
     }
 
@@ -948,6 +1182,7 @@
       renderCaixasAbertasTable();
       renderFiltrosProteinaEtapa3();
       renderEstoqueCamaraFria();
+      renderDashboardEtapa0();
 
       alert(`Caixa processada com sucesso! ${pecasAprovadas.length} peça(s) enviadas à Câmara Fria.`);
     }
@@ -1082,6 +1317,7 @@
         renderEstoqueCamaraFria();
         renderGeladeiraEliEtapa4();
         renderEtapa5AparasDiario();
+        renderDashboardEtapa0();
         alert(`Peça ${peca.tag} (${peca.corte}) enviada para a Geladeira do Eli!`);
       }
     }
@@ -1120,6 +1356,7 @@
       renderFiltrosProteinaEtapa3();
       renderEstoqueCamaraFria();
       renderGeladeiraEliEtapa4();
+      renderDashboardEtapa0();
 
       alert(`Baixa registrada! A peça ${peca.tag} teve sua saída confirmada por: ${motivo}.`);
     }
@@ -1211,6 +1448,7 @@
         localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
         renderGeladeiraEliEtapa4();
         renderEtapa5AparasDiario();
+        renderDashboardEtapa0();
         alert(`${checkboxes.length} peça(s) baixada(s) com sucesso para a data ${dataConsumo}! Liberadas para Aparas na Etapa 5.`);
       }
     }
@@ -1224,11 +1462,12 @@
           localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
           renderGeladeiraEliEtapa4();
           renderEtapa5AparasDiario();
+          renderDashboardEtapa0();
         }
       }
     }
 
-    /* --- LÓGICA DA ETAPA 5 (APARAS CONSOLIDADAS POR DIA) --- */
+    /* --- LÓGICA DA ETAPA 5 --- */
 
     function renderEtapa5AparasDiario() {
       var selectCorte = document.getElementById('apara-diaria-corte');
@@ -1328,6 +1567,7 @@
       document.getElementById('apara-diaria-obs').value = "";
 
       renderTabelaHistoricoAparasDiario();
+      renderDashboardEtapa0();
       alert(`Rendimento acumulado do dia ${dataSel} (${corteSel}) salvo com sucesso!`);
     }
 
@@ -1361,6 +1601,7 @@
         aparasDiarioHistorico = aparasDiarioHistorico.filter(a => a.id !== id);
         localStorage.setItem('pel_aparas_diario_hist', JSON.stringify(aparasDiarioHistorico));
         renderTabelaHistoricoAparasDiario();
+        renderDashboardEtapa0();
       }
     }
   </script>
