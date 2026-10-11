@@ -17,7 +17,9 @@
       <h1 class="text-xl font-bold tracking-wide text-red-500">Pellegrino</h1>
       <p class="text-xs text-gray-400">Controle de Estoque de Carnes & Rastreabilidade</p>
     </div>
-    <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1 rounded-full text-gray-300">Modo Administrador Total</span>
+    <div class="flex items-center gap-3">
+      <span id="badge-adm-status" class="text-xs bg-slate-800 border border-slate-700 px-3 py-1 rounded-full text-gray-400">🔒 ADM Bloqueado</span>
+    </div>
   </header>
 
   <!-- Navegação de Abas -->
@@ -28,7 +30,8 @@
     <button onclick="switchTab('tab-estoque')" id="btn-tab-estoque" class="py-3 px-2 text-gray-600 transition-all font-semibold">3. Câmara Fria</button>
     <button onclick="switchTab('tab-eli')" id="btn-tab-eli" class="py-3 px-2 text-gray-600 transition-all font-semibold">4. Geladeira do Eli</button>
     <button onclick="switchTab('tab-aparas')" id="btn-tab-aparas" class="py-3 px-2 text-gray-600 transition-all font-semibold">5. Aparas & Rendimento</button>
-    <button onclick="switchTab('tab-cadastros')" id="btn-tab-cadastros" class="py-3 px-2 text-gray-600 transition-all font-semibold">⚙️ Cadastros & Ajustes</button>
+    <button onclick="switchTab('tab-steaks')" id="btn-tab-steaks" class="py-3 px-2 text-gray-600 transition-all font-semibold">6. Steaks Vendidos (Patrão)</button>
+    <button onclick="switchTab('tab-cadastros')" id="btn-tab-cadastros" class="py-3 px-2 text-gray-600 transition-all font-semibold">⚙️ Central de Cadastros & Ajustes</button>
   </nav>
 
   <!-- Conteúdo Principal -->
@@ -39,7 +42,7 @@
       <div class="border-b pb-3 flex justify-between items-center">
         <div>
           <h2 class="text-lg font-bold text-slate-800">📊 Painel de Controle & Visão Geral</h2>
-          <p class="text-xs text-gray-500">Resumo consolidado do estoque, alertas de pedidos e rastreabilidade.</p>
+          <p class="text-xs text-gray-500">Resumo consolidado do estoque, alertas de giro de lote e recompra.</p>
         </div>
         <span class="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-lg font-semibold">Visão Geral</span>
       </div>
@@ -71,6 +74,17 @@
         </div>
       </div>
 
+      <!-- CARD DE ALERTA DE GIRO DE LOTE -->
+      <div id="card-alerta-lote-antigo" class="hidden bg-amber-50 border-2 border-amber-500 p-4 rounded-xl shadow-sm space-y-2">
+        <div class="flex items-center justify-between">
+          <h3 class="font-bold text-amber-900 text-sm flex items-center gap-2">
+            <span>⚠️ Alerta de Prioridade de Uso (Giro de Lotes)</span>
+          </h3>
+          <span class="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-bold">Lote Antigo Fica Atrás</span>
+        </div>
+        <p id="txt-alerta-lote-antigo" class="text-xs text-amber-800 leading-relaxed"></p>
+      </div>
+
       <!-- CARD DE ALERTA DE RECOMPRA -->
       <div class="bg-white p-6 rounded-xl border-2 border-amber-400 shadow-sm space-y-4">
         <div class="flex justify-between items-center border-b pb-2">
@@ -78,7 +92,7 @@
             <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
               <span>🚚 Alerta de Recompra (Ponto de Pedido)</span>
             </h3>
-            <p class="text-[11px] text-gray-500">Regra: 🟡 7 a 5 peças (Atenção) | 🔴 4 peças ou menos (Fazer Pedido Urgente - Prazo 1 a 2 dias)</p>
+            <p class="text-[11px] text-gray-500">Regra: 🟡 7 a 5 peças (Atenção) | 🔴 4 peças ou menos (Fazer Pedido Urgente)</p>
           </div>
           <span class="text-[11px] bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full font-bold">Base: Câmara Fria</span>
         </div>
@@ -88,11 +102,11 @@
         </div>
       </div>
 
-      <!-- Rastreabilidade e Edição Rápida de Peça -->
+      <!-- Rastreabilidade de Peça -->
       <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-        <h3 class="font-bold text-slate-800 text-sm">🔍 Rastreabilidade & Edição Rápida (Administrador)</h3>
+        <h3 class="font-bold text-slate-800 text-sm">🔍 Rastreabilidade & Busca de Peça</h3>
         <div class="flex gap-2">
-          <input type="text" id="input-busca-rastreio" placeholder="Digite a Tag (Ex: Ancho-P5) ou Nº da NF" class="w-full border rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-red-500">
+          <input type="text" id="input-busca-rastreio" placeholder="Digite a Tag (Ex: Ancho-P50) ou Nº da NF" class="w-full border rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-red-500">
           <button onclick="buscarRastreioPeca()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-lg transition-all">Buscar</button>
         </div>
 
@@ -504,42 +518,188 @@
       </div>
     </section>
 
-    <!-- ABA ⚙️ CADASTROS & AJUSTES (ADMINISTRADOR) -->
+    <!-- ETAPA 6: STEAKS VENDIDOS & MÉDIA REAL DO DIA (PATRÃO) -->
+    <section id="tab-steaks" class="tab-content space-y-6 hidden">
+      <div class="border-b pb-3 flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800">🍽️ Steaks Vendidos no Salão & Peso Médio Real</h2>
+          <p class="text-xs text-gray-500">Informe a quantidade de steaks vendidos passados pelo patrão para calcular o peso médio real do dia.</p>
+        </div>
+        <span class="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-semibold">Etapa 6</span>
+      </div>
+
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
+        <div class="flex flex-wrap justify-between items-center gap-3 border-b pb-3">
+          <h3 class="text-sm font-bold text-slate-800">Lançamento de Vendas do Dia (Média Real por Steak)</h3>
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-slate-700">Data do Serviço *</label>
+            <input type="date" id="steaks-data" onchange="calcularMediaRealSteaksDia()" class="border rounded-lg p-1.5 text-xs font-bold text-red-700 bg-slate-50 outline-none">
+          </div>
+        </div>
+
+        <form id="form-steaks-diario" onsubmit="handleSalvarSteaksVendidos(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-lg border text-xs">
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Proteína / Corte *</label>
+              <select id="steaks-corte" onchange="calcularMediaRealSteaksDia()" required class="w-full border rounded-lg p-2 font-bold text-slate-800 bg-white outline-none">
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Quantidade de Steaks Vendidos *</label>
+              <input type="number" min="1" id="steaks-qtd-vendida" oninput="calcularMediaRealSteaksDia()" placeholder="Ex: 120" required class="w-full border rounded-lg p-2 font-bold text-slate-800 bg-white outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Carne Limpa Disponível no Dia (kg)</label>
+              <input type="text" id="steaks-carne-limpa-display" readonly class="w-full border rounded-lg p-2 font-bold text-emerald-700 bg-gray-100 outline-none" value="0.000 kg">
+            </div>
+          </div>
+
+          <!-- RESULTADO DA MÉDIA REAL DO DIA -->
+          <div class="bg-slate-900 text-white p-5 rounded-xl shadow-md grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div>
+              <span class="text-gray-400 block mb-1">Peso Médio Real Calculado por Steak:</span>
+              <span id="steaks-media-gramas-display" class="text-2xl font-bold text-emerald-400">0.0 g / steak</span>
+              <span class="text-[10px] text-gray-400 block mt-0.5">Matemática pura: (Carne Limpa ÷ Qtd Steaks)</span>
+            </div>
+
+            <div>
+              <span class="text-gray-400 block mb-1">Diagnóstico Diário de Porcionamento:</span>
+              <span id="steaks-diagnostico-display" class="text-xs font-semibold block mt-1 text-gray-300">Aguardando preenchimento dos dados do dia...</span>
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-2">
+            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-6 py-2.5 rounded-lg shadow transition-all">
+              Salvar Fechamento de Média do Dia
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <h3 class="text-md font-bold text-slate-800 mb-4">Histórico Comparativo de Média Real por Steak</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600">
+            <thead class="bg-slate-100 text-slate-700 uppercase border-b">
+              <tr>
+                <th class="p-3">Data</th>
+                <th class="p-3">Proteína</th>
+                <th class="p-3">Carne Limpa Usada</th>
+                <th class="p-3">Steaks Vendidos</th>
+                <th class="p-3">Média Real (g/steak)</th>
+                <th class="p-3">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="lista-historico-steaks-diario"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ETAPA 7: CENTRAL DE CADASTROS & AJUSTES (PROTEGIDA) -->
     <section id="tab-cadastros" class="tab-content space-y-6 hidden">
       <div class="border-b pb-3 flex justify-between items-center">
         <div>
-          <h2 class="text-lg font-bold text-slate-800">⚙️ Central de Cadastros & Ajustes de Estoque</h2>
-          <p class="text-xs text-gray-500">Cadastre novas proteínas e fornecedores para o sistema.</p>
+          <h2 class="text-lg font-bold text-slate-800">⚙️ Central de Cadastros & Ajustes Administrador</h2>
+          <p class="text-xs text-gray-500">Gerencie contadores sequenciais (P1), proteínas, fornecedores e usuários do sistema.</p>
         </div>
-        <span class="text-xs bg-red-100 text-red-800 border border-red-300 px-2.5 py-1 rounded-lg font-bold">Painel do Administrador</span>
+        <span class="text-xs bg-red-100 text-red-800 border border-red-300 px-2.5 py-1 rounded-lg font-bold">Acesso Restrito</span>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Cadastrar Novas Proteínas -->
+      <!-- PAINEL DE BLOQUEIO POR SENHA ADM -->
+      <div id="box-login-adm" class="bg-slate-900 text-white p-6 rounded-xl shadow-md space-y-4 max-w-md mx-auto">
+        <div class="text-center">
+          <span class="text-2xl block mb-1">🔐</span>
+          <h3 class="font-bold text-base text-red-500">Painel do Administrador Protegido</h3>
+          <p class="text-xs text-gray-400">Digite a senha master para liberar os cadastros e edições.</p>
+        </div>
+
+        <div class="space-y-3">
+          <input type="password" id="input-senha-adm" placeholder="Digite a Senha do ADM" class="w-full border rounded-lg p-2.5 text-slate-900 text-center font-bold text-sm outline-none">
+          <button onclick="validarSenhaADM()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2.5 rounded-lg shadow">
+            Desbloquear Painel ADM
+          </button>
+        </div>
+      </div>
+
+      <!-- CONTEÚDO LIBERADO APÓS SENHA -->
+      <div id="conteudo-adm-liberado" class="hidden space-y-6">
+
+        <!-- VIRADA DE MÊS: RESET DE SEQUENCIAL (P1) -->
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-          <h3 class="font-bold text-slate-800 text-sm border-b pb-2">🥩 Cadastrar Nova Proteína / Corte</h3>
-          <div class="flex gap-2">
-            <input type="text" id="input-nova-proteina" placeholder="Ex: Denver Cut, Prime Rib..." class="w-full border rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-red-500">
-            <button onclick="cadastrarNovaProteina()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow">Cadastrar</button>
+          <div class="flex justify-between items-center border-b pb-3">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm">🗓️ Virada de Mês — Zerar Sequencial de Peças (P1)</h3>
+              <p class="text-[11px] text-gray-500">Ao clicar, a próxima caixa aberta da proteína selecionada voltará a contar a partir de <strong>P1</strong> para o novo mês.</p>
+            </div>
+            <button onclick="resetarTodosSequenciaisViradaMes()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-3.5 py-2 rounded-lg shadow">
+              🔄 Virada de Mês (Zerar TODAS para P1)
+            </button>
           </div>
-          <div>
-            <span class="text-xs font-bold text-gray-500 block mb-2">Proteínas Ativas no Sistema:</span>
-            <div id="lista-proteinas-tags" class="flex flex-wrap gap-1.5"></div>
+
+          <div id="grid-reset-sequenciais" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs"></div>
+        </div>
+
+        <!-- PAINEL DE GESTÃO DE USUÁRIOS E SENHAS -->
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+          <h3 class="font-bold text-slate-800 text-sm border-b pb-2">👥 Cadastro de Usuários & Senhas</h3>
+          <form id="form-novo-usuario" onsubmit="handleCadastrarUsuario(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Nome do Funcionário *</label>
+              <input type="text" id="usr-nome" required placeholder="Ex: Eli (Açougue)" class="w-full border rounded-lg p-2 outline-none">
+            </div>
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Senha de Acesso *</label>
+              <input type="password" id="usr-senha" required placeholder="Ex: 1234" class="w-full border rounded-lg p-2 outline-none">
+            </div>
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Perfil de Acesso *</label>
+              <select id="usr-perfil" class="w-full border rounded-lg p-2 outline-none bg-slate-50 font-bold text-slate-800">
+                <option value="Administrador">👑 Administrador (Acesso Total)</option>
+                <option value="Producao">🥩 Produção / Açougue (Câmara & Eli)</option>
+                <option value="Consulta">👁️ Somente Consulta (Leitura)</option>
+              </select>
+            </div>
+            <div class="sm:col-span-3 flex justify-end pt-2">
+              <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-lg shadow">Cadastrar Usuário</button>
+            </div>
+          </form>
+
+          <div class="border-t pt-3">
+            <span class="text-xs font-bold text-gray-700 block mb-2">Usuários Cadastrados no Sistema:</span>
+            <div id="lista-usuarios-cadastrados" class="space-y-2 text-xs"></div>
           </div>
         </div>
 
-        <!-- Cadastrar Novos Fornecedores -->
-        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-          <h3 class="font-bold text-slate-800 text-sm border-b pb-2">🏭 Cadastrar Novo Fornecedor</h3>
-          <div class="flex gap-2">
-            <input type="text" id="input-novo-fornecedor-admin" placeholder="Ex: Frigorífico Swift..." class="w-full border rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-red-500">
-            <button onclick="cadastrarNovoFornecedorAdmin()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-lg shadow">Cadastrar</button>
+        <!-- CENTRAL DE CADASTROS DE PROTEÍNAS E FORNECEDORES -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <h3 class="font-bold text-slate-800 text-sm border-b pb-2">🥩 Cadastrar Nova Proteína / Corte</h3>
+            <div class="flex gap-2">
+              <input type="text" id="input-nova-proteina" placeholder="Ex: Denver Cut, Prime Rib..." class="w-full border rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-red-500">
+              <button onclick="cadastrarNovaProteina()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow">Cadastrar</button>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-gray-500 block mb-2">Proteínas Ativas:</span>
+              <div id="lista-proteinas-tags" class="flex flex-wrap gap-1.5"></div>
+            </div>
           </div>
-          <div>
-            <span class="text-xs font-bold text-gray-500 block mb-2">Fornecedores Ativos:</span>
-            <div id="lista-fornecedores-tags" class="flex flex-wrap gap-1.5"></div>
+
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <h3 class="font-bold text-slate-800 text-sm border-b pb-2">🏭 Cadastrar Novo Fornecedor</h3>
+            <div class="flex gap-2">
+              <input type="text" id="input-novo-fornecedor-admin" placeholder="Ex: Frigorífico Swift..." class="w-full border rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-red-500">
+              <button onclick="cadastrarNovoFornecedorAdmin()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-lg shadow">Cadastrar</button>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-gray-500 block mb-2">Fornecedores Ativos:</span>
+              <div id="lista-fornecedores-tags" class="flex flex-wrap gap-1.5"></div>
+            </div>
           </div>
         </div>
+
       </div>
     </section>
 
@@ -549,7 +709,7 @@
   <div id="modal-editar-peca" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-white rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
       <div class="flex justify-between items-center border-b pb-3">
-        <h3 id="modal-edit-tag-titulo" class="font-bold text-slate-800 text-sm">✏️ Editar Ficha da Peça</h3>
+        <h3 id="modal-edit-tag-titulo" class="font-bold text-slate-800 text-sm">✏️ Editar Ficha da Peça (ADM)</h3>
         <button onclick="fecharModalEditarPeca()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
       </div>
 
@@ -571,9 +731,15 @@
           <label class="block font-bold text-gray-700 mb-1">Status no Sistema *</label>
           <select id="modal-edit-status" class="w-full border rounded-lg p-2 font-semibold text-slate-800 outline-none bg-slate-50">
             <option value="Em Estoque">🟢 Em Estoque (Ativa)</option>
-            <option value="Enviada p/ Aparas">🟡 Enviada p/ Aparas (Baixada pelo Eli)</option>
+            <option value="Enviada p/ Aparas">🟡 Enviada p/ Aparas (Baixada no Eli)</option>
+            <option value="Descarte / Estrago">🗑️ Descarte por Estrago / Avaria</option>
             <option value="Baixado">🔴 Baixada / Venda Direta</option>
           </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Motivo do Descarte / Alteração (Se aplicável)</label>
+          <input type="text" id="modal-edit-motivo" placeholder="Ex: Perda de vácuo / Queda de energia" class="w-full border rounded-lg p-2 outline-none">
         </div>
       </div>
 
@@ -584,38 +750,10 @@
     </div>
   </div>
 
-  <!-- MODAL PARA SAÍDA DE PEÇA -->
-  <div id="modal-saida-peca" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h3 id="modal-tag-titulo" class="font-bold text-slate-800 text-sm">Registrar Saída de Peça</h3>
-        <button onclick="fecharModalSaida()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
-      </div>
-
-      <div class="space-y-3 text-xs">
-        <div>
-          <label class="block font-bold text-gray-700 mb-1">Selecione o Destino / Motivo da Saída *</label>
-          <select id="modal-motivo-select" class="w-full border rounded-lg p-2 font-semibold text-slate-800 outline-none bg-slate-50">
-            <option value="Venda de Peça Inteira / Balcão">🛒 Venda de Peça Inteira / Cliente Balcão</option>
-            <option value="Consumo Interno / Evento / Teste">🍳 Consumo Interno / Evento / Teste de Cozinha</option>
-            <option value="Descarte / Avaria na Câmara Fria">🗑️ Descarte / Avaria após estocagem</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block font-bold text-gray-700 mb-1">Observação / Nome do Cliente (Opcional)</label>
-          <input type="text" id="modal-obs-input" class="w-full border rounded-lg p-2 outline-none" placeholder="Ex: Venda direta p/ Cliente João">
-        </div>
-      </div>
-
-      <div class="flex justify-end gap-2 border-t pt-4 text-xs">
-        <button onclick="fecharModalSaida()" class="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-lg">Cancelar</button>
-        <button onclick="confirmarSaidaPecaEspecial()" class="px-4 py-2 bg-red-600 text-white font-bold rounded-lg shadow hover:bg-red-700">Confirmar Baixa do Estoque</button>
-      </div>
-    </div>
-  </div>
-
   <script>
+    const SENHA_ADM_MASTER = "990992";
+    let admAutenticado = false;
+
     let fornecedores = JSON.parse(localStorage.getItem('pel_fornecedores')) || ["A3 Mercado", "Frigorífico Minerva", "JBS / Friboi", "Marfrig"];
     let cortesList = JSON.parse(localStorage.getItem('pel_cortes')) || ["Ancho", "Chorizo", "Picanha", "Tomahawk", "Fraldinha"];
     let nfsList = JSON.parse(localStorage.getItem('pel_nfs')) || [];
@@ -623,10 +761,14 @@
     let caixasAbertasList = JSON.parse(localStorage.getItem('pel_caixas_abertas')) || [];
     let pecasEstoqueList = JSON.parse(localStorage.getItem('pel_pecas_estoque')) || [];
     let aparasDiarioHistorico = JSON.parse(localStorage.getItem('pel_aparas_diario_hist')) || [];
+    let steaksVendidosHistorico = JSON.parse(localStorage.getItem('pel_steaks_vendidos_hist')) || [];
     let sequencialCortes = JSON.parse(localStorage.getItem('pel_seq_cortes')) || {};
+    let usuariosList = JSON.parse(localStorage.getItem('pel_usuarios')) || [
+      { id: 1, nome: "Fábio (Master)", perfil: "Administrador", senha: "admin" },
+      { id: 2, nome: "Eli (Cozinha)", perfil: "Producao", senha: "123" }
+    ];
 
     let caixaEmPesagemAtual = null;
-    let pecaEmModalSaidaId = null;
     let pecaEmEdicaoAdminId = null;
     let filtroProteinaAtual = "TODAS";
 
@@ -635,6 +777,7 @@
       document.getElementById('nf-data').value = hojeStr;
       document.getElementById('input-data-baixa-eli').value = hojeStr;
       document.getElementById('apara-diaria-data').value = hojeStr;
+      document.getElementById('steaks-data').value = hojeStr;
 
       renderFornecedoresSelect();
       addNFCorteRow();
@@ -645,9 +788,23 @@
       renderEstoqueCamaraFria();
       renderGeladeiraEliEtapa4();
       renderEtapa5AparasDiario();
+      renderEtapa6SteaksVendidos();
       renderDashboardEtapa0();
-      renderCadastrosAdminTab();
     };
+
+    function validarSenhaADM() {
+      var senhaInp = document.getElementById('input-senha-adm').value.trim();
+      if(senhaInp === SENHA_ADM_MASTER) {
+        admAutenticado = true;
+        document.getElementById('box-login-adm').classList.add('hidden');
+        document.getElementById('conteudo-adm-liberado').classList.remove('hidden');
+        document.getElementById('badge-adm-status').className = "text-xs bg-emerald-900 border border-emerald-700 px-3 py-1 rounded-full text-emerald-300 font-bold";
+        document.getElementById('badge-adm-status').innerText = "🔓 ADM Desbloqueado";
+        renderCadastrosAdminTab();
+      } else {
+        alert("Senha incorreta! Digite a senha master do Administrador.");
+      }
+    }
 
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -670,14 +827,147 @@
       if(tabId === 'tab-estoque') { renderFiltrosProteinaEtapa3(); renderEstoqueCamaraFria(); }
       if(tabId === 'tab-eli') { renderGeladeiraEliEtapa4(); }
       if(tabId === 'tab-aparas') { renderEtapa5AparasDiario(); }
-      if(tabId === 'tab-cadastros') { renderCadastrosAdminTab(); }
+      if(tabId === 'tab-steaks') { renderEtapa6SteaksVendidos(); }
+      if(tabId === 'tab-cadastros' && admAutenticado) { renderCadastrosAdminTab(); }
     }
 
-    /* --- CADASTROS & EDIÇÃO ADMIN --- */
+    /* --- ETAPA 6: STEAKS VENDIDOS & MÉDIA REAL DO DIA (PATRÃO) --- */
+
+    function renderEtapa6SteaksVendidos() {
+      var selCorte = document.getElementById('steaks-corte');
+      if(!selCorte) return;
+
+      selCorte.innerHTML = cortesList.map(c => `<option value="${c}">${c}</option>`).join('');
+      calcularMediaRealSteaksDia();
+      renderTabelaHistoricoSteaksVendidos();
+    }
+
+    function calcularMediaRealSteaksDia() {
+      var dataSel = document.getElementById('steaks-data').value;
+      var corteSel = document.getElementById('steaks-corte').value;
+      var qtdVendida = parseInt(document.getElementById('steaks-qtd-vendida').value) || 0;
+
+      var regApara = aparasDiarioHistorico.find(a => a.data === dataSel && (a.corte === corteSel || a.corte === "TODAS"));
+      var pesoCarneLimpa = 0;
+
+      if(regApara) {
+        pesoCarneLimpa = regApara.pesoUtil;
+      } else {
+        var pecasDoDia = pecasEstoqueList.filter(p => p.dataBaixaEli === dataSel && p.corte === corteSel);
+        pesoCarneLimpa = pecasDoDia.reduce((acc, p) => acc + p.peso, 0);
+      }
+
+      document.getElementById('steaks-carne-limpa-display').value = pesoCarneLimpa.toFixed(3) + " kg";
+
+      var displayMedia = document.getElementById('steaks-media-gramas-display');
+      var displayDiag = document.getElementById('steaks-diagnostico-display');
+
+      if(pesoCarneLimpa === 0 || qtdVendida === 0) {
+        displayMedia.innerText = "0.0 g / steak";
+        displayDiag.innerText = "Informe a quantidade de steaks e certifique-se de que houve baixa na Geladeira do Eli para esta data.";
+        return;
+      }
+
+      var mediaGramas = (pesoCarneLimpa * 1000) / qtdVendida;
+      displayMedia.innerText = mediaGramas.toFixed(1) + " g / steak";
+
+      var histCorte = steaksVendidosHistorico.filter(h => h.corte === corteSel);
+      if(histCorte.length > 0) {
+        var mediaAnterior = histCorte[0].mediaGramas;
+        var diff = mediaGramas - mediaAnterior;
+
+        if(Math.abs(diff) <= 15) {
+          displayDiag.className = "text-xs font-bold block mt-1 text-emerald-400";
+          displayDiag.innerText = `🟢 Média estável em relação ao último lançamento (${mediaAnterior.toFixed(1)}g/steak).`;
+        } else if(diff > 15) {
+          displayDiag.className = "text-xs font-bold block mt-1 text-amber-400";
+          displayDiag.innerText = `🟠 Média +${diff.toFixed(1)}g mais pesada por steak que a última do ${corteSel}. Peças maiores ou corte mais espesso.`;
+        } else {
+          displayDiag.className = "text-xs font-bold block mt-1 text-sky-400";
+          displayDiag.innerText = `🔵 Média ${Math.abs(diff).toFixed(1)}g mais leve por steak que a última do ${corteSel}.`;
+        }
+      } else {
+        displayDiag.className = "text-xs font-semibold block mt-1 text-emerald-400";
+        displayDiag.innerText = `🟢 Primeiro lançamento de média para o ${corteSel} registrado!`;
+      }
+    }
+
+    function handleSalvarSteaksVendidos(e) {
+      e.preventDefault();
+      var dataSel = document.getElementById('steaks-data').value;
+      var corteSel = document.getElementById('steaks-corte').value;
+      var qtdVendida = parseInt(document.getElementById('steaks-qtd-vendida').value) || 0;
+
+      var regApara = aparasDiarioHistorico.find(a => a.data === dataSel && (a.corte === corteSel || a.corte === "TODAS"));
+      var pesoCarneLimpa = regApara ? regApara.pesoUtil : 0;
+
+      if(pesoCarneLimpa === 0) {
+        var pecasDoDia = pecasEstoqueList.filter(p => p.dataBaixaEli === dataSel && p.corte === corteSel);
+        pesoCarneLimpa = pecasDoDia.reduce((acc, p) => acc + p.peso, 0);
+      }
+
+      if(pesoCarneLimpa === 0) {
+        alert("Atenção: Não há registros de baixa no Eli ou Aparas para este corte nesta data.");
+        return;
+      }
+
+      var mediaGramas = (pesoCarneLimpa * 1000) / qtdVendida;
+
+      var novoReg = {
+        id: Date.now(),
+        data: dataSel,
+        corte: corteSel,
+        carneLimpaKg: pesoCarneLimpa,
+        qtdVendida: qtdVendida,
+        mediaGramas: mediaGramas
+      };
+
+      steaksVendidosHistorico.unshift(novoReg);
+      localStorage.setItem('pel_steaks_vendidos_hist', JSON.stringify(steaksVendidosHistorico));
+
+      document.getElementById('steaks-qtd-vendida').value = "";
+      renderTabelaHistoricoSteaksVendidos();
+      alert(`Média de ${mediaGramas.toFixed(1)}g por steak de ${corteSel} salva com sucesso!`);
+    }
+
+    function renderTabelaHistoricoSteaksVendidos() {
+      var tbody = document.getElementById('lista-historico-steaks-diario');
+      if(!tbody) return;
+
+      if(steaksVendidosHistorico.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-gray-400">Nenhum lançamento de steaks efetuado até o momento.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = steaksVendidosHistorico.map(h => `
+        <tr class="border-b hover:bg-slate-50">
+          <td class="p-3 font-bold text-slate-800">${h.data}</td>
+          <td class="p-3 font-semibold text-slate-800">${h.corte}</td>
+          <td class="p-3 font-bold text-emerald-700">${h.carneLimpaKg.toFixed(3)} kg</td>
+          <td class="p-3 font-bold text-slate-900">${h.qtdVendida} steaks</td>
+          <td class="p-3 font-bold text-red-700 text-sm">${h.mediaGramas.toFixed(1)} g / steak</td>
+          <td class="p-3">
+            <button onclick="excluirSteakHistorico(${h.id})" class="text-red-600 hover:underline font-bold">Excluir</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function excluirSteakHistorico(id) {
+      if(confirm("Deseja excluir este registro do histórico de steaks?")) {
+        steaksVendidosHistorico = steaksVendidosHistorico.filter(h => h.id !== id);
+        localStorage.setItem('pel_steaks_vendidos_hist', JSON.stringify(steaksVendidosHistorico));
+        renderTabelaHistoricoSteaksVendidos();
+      }
+    }
+
+    /* --- CADASTROS ADM & USUÁRIOS --- */
 
     function renderCadastrosAdminTab() {
       var containerProt = document.getElementById('lista-proteinas-tags');
       var containerForn = document.getElementById('lista-fornecedores-tags');
+      var containerResets = document.getElementById('grid-reset-sequenciais');
+      var containerUsrs = document.getElementById('lista-usuarios-cadastrados');
 
       if(containerProt) {
         containerProt.innerHTML = cortesList.map(c => `
@@ -694,6 +984,77 @@
           </span>
         `).join('');
       }
+
+      if(containerResets) {
+        containerResets.innerHTML = cortesList.map(c => {
+          var seqAtual = sequencialCortes[c] || 0;
+          return `
+            <div class="bg-slate-50 border border-slate-200 p-3 rounded-lg flex justify-between items-center">
+              <div>
+                <span class="font-bold text-slate-800 block">${c}</span>
+                <span class="text-[10px] text-gray-500">Última tag gerada: P${seqAtual}</span>
+              </div>
+              <button onclick="resetarSequencialProteina('${c}')" class="bg-amber-100 text-amber-900 hover:bg-amber-200 font-bold px-2.5 py-1 rounded text-[11px]">
+                Zerar p/ P1
+              </button>
+            </div>
+          `;
+        }).join('');
+      }
+
+      if(containerUsrs) {
+        containerUsrs.innerHTML = usuariosList.map(u => `
+          <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-lg flex justify-between items-center">
+            <div>
+              <span class="font-bold text-slate-800 block">${u.nome}</span>
+              <span class="text-[10px] text-gray-500">Perfil: ${u.perfil}</span>
+            </div>
+            <button onclick="removerUsuarioAdmin(${u.id})" class="text-red-600 font-bold hover:underline">Excluir</button>
+          </div>
+        `).join('');
+      }
+    }
+
+    function resetarSequencialProteina(corte) {
+      if(confirm(`Confirmar virada de mês para ${corte}? As próximas caixas abertas começarão no P1.`)) {
+        sequencialCortes[corte] = 0;
+        localStorage.setItem('pel_seq_cortes', JSON.stringify(sequencialCortes));
+        renderCadastrosAdminTab();
+        alert(`Virada de mês ativada para ${corte}! Próxima peça será P1.`);
+      }
+    }
+
+    function resetarTodosSequenciaisViradaMes() {
+      if(confirm("⚠️ ATENÇÃO: Confirmar Virada de Mês para TODAS as proteínas? Todas as próximas caixas começarão pelo P1.")) {
+        cortesList.forEach(c => sequencialCortes[c] = 0);
+        localStorage.setItem('pel_seq_cortes', JSON.stringify(sequencialCortes));
+        renderCadastrosAdminTab();
+        alert("Virada de Mês Geral concluída! Todos os contadores zeraram para P1.");
+      }
+    }
+
+    function handleCadastrarUsuario(e) {
+      e.preventDefault();
+      var nome = document.getElementById('usr-nome').value.trim();
+      var senha = document.getElementById('usr-senha').value.trim();
+      var perfil = document.getElementById('usr-perfil').value;
+
+      if(nome && senha) {
+        var newUsr = { id: Date.now(), nome: nome, senha: senha, perfil: perfil };
+        usuariosList.push(newUsr);
+        localStorage.setItem('pel_usuarios', JSON.stringify(usuariosList));
+        document.getElementById('form-novo-usuario').reset();
+        renderCadastrosAdminTab();
+        alert(`Usuário ${nome} cadastrado!`);
+      }
+    }
+
+    function removerUsuarioAdmin(id) {
+      if(confirm("Remover este usuário do sistema?")) {
+        usuariosList = usuariosList.filter(u => u.id !== id);
+        localStorage.setItem('pel_usuarios', JSON.stringify(usuariosList));
+        renderCadastrosAdminTab();
+      }
     }
 
     function cadastrarNovaProteina() {
@@ -706,6 +1067,7 @@
           inp.value = "";
           renderCadastrosAdminTab();
           renderFiltrosProteinaEtapa3();
+          renderEtapa6SteaksVendidos();
           alert(`Proteína "${val}" cadastrada com sucesso!`);
         }
       }
@@ -717,6 +1079,7 @@
         localStorage.setItem('pel_cortes', JSON.stringify(cortesList));
         renderCadastrosAdminTab();
         renderFiltrosProteinaEtapa3();
+        renderEtapa6SteaksVendidos();
       }
     }
 
@@ -744,6 +1107,8 @@
       }
     }
 
+    /* --- MODAL DE EDIÇÃO DE PEÇA (ADMIN CONTROLE TOTAL) --- */
+
     function abrirModalEditarPecaAdmin(pecaId) {
       var peca = pecasEstoqueList.find(p => p.id === pecaId);
       if(!peca) return;
@@ -753,6 +1118,7 @@
       document.getElementById('modal-edit-peso').value = peca.peso;
       document.getElementById('modal-edit-localizacao').value = peca.localizacao;
       document.getElementById('modal-edit-status').value = peca.status;
+      document.getElementById('modal-edit-motivo').value = peca.motivoSaida || "";
 
       document.getElementById('modal-editar-peca').classList.remove('hidden');
     }
@@ -771,10 +1137,12 @@
       var novoPeso = parseFloat(document.getElementById('modal-edit-peso').value) || 0;
       var novaLoc = document.getElementById('modal-edit-localizacao').value;
       var novoStatus = document.getElementById('modal-edit-status').value;
+      var motivo = document.getElementById('modal-edit-motivo').value.trim();
 
       peca.peso = novoPeso;
       peca.localizacao = novaLoc;
       peca.status = novoStatus;
+      if(motivo) peca.motivoSaida = motivo;
 
       localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
 
@@ -787,7 +1155,7 @@
       alert(`Peça ${peca.tag} atualizada com sucesso pelo Administrador!`);
     }
 
-    /* --- LÓGICA DA ETAPA 0 (DASHBOARD & RECOMPRA) --- */
+    /* --- RASTREABILIDADE & DASHBOARD --- */
 
     function renderDashboardEtapa0() {
       var pecasCamara = pecasEstoqueList.filter(p => p.localizacao === "Câmara Fria" && p.status === "Em Estoque");
@@ -808,7 +1176,25 @@
         document.getElementById('dash-aproveitamento-medio').innerText = "100.0%";
       }
 
+      verificarInversaoLotesAntigos(pecasCamara);
       renderAlertasRecompra(pecasCamara);
+    }
+
+    function verificarInversaoLotesAntigos(pecasCamara) {
+      var cardAlert = document.getElementById('card-alerta-lote-antigo');
+      var txtAlert = document.getElementById('txt-alerta-lote-antigo');
+
+      if(!cardAlert || !txtAlert) return;
+
+      var peçasAntigas = pecasCamara.filter(p => calcularDiasEstoque(p.dataNF) >= 30);
+
+      if(peçasAntigas.length > 0) {
+        cardAlert.classList.remove('hidden');
+        var resumoAntigas = peçasAntigas.map(p => `<strong>${p.tag}</strong> (${p.corte} - ${calcularDiasEstoque(p.dataNF)} dias)`).join(', ');
+        txtAlert.innerHTML = `Existem <strong>${peçasAntigas.length} peça(s)</strong> do lote anterior na câmara fria que devem ser transferidas para o Eli antes de abrir o lote novo: <br>${resumoAntigas}`;
+      } else {
+        cardAlert.classList.add('hidden');
+      }
     }
 
     function renderAlertasRecompra(pecasCamara) {
@@ -875,7 +1261,7 @@
       var divDetalhes = document.getElementById('rastreio-detalhes');
 
       if(!termo) {
-        alert("Digite um termo para buscar (Ex: Ancho-P5 ou número da NF).");
+        alert("Digite um termo para buscar (Ex: Ancho-P50 ou número da NF).");
         return;
       }
 
@@ -896,6 +1282,7 @@
               <p><strong>Tag:</strong> <span class="text-red-700 font-bold text-sm">${p.tag}</span> | <strong>Corte:</strong> ${p.corte} | <strong>Peso:</strong> ${p.peso.toFixed(3)}kg</p>
               <p class="text-gray-500"><strong>NF Origem:</strong> #${p.nfNumero} (${p.dataNF}) | <strong>Fornecedor:</strong> ${p.fornecedor}</p>
               <p class="text-gray-500"><strong>Localização:</strong> ${p.localizacao} | <strong>Status:</strong> ${p.status} | <strong>Tempo:</strong> ${dias} dias</p>
+              ${p.motivoSaida ? `<p class="text-red-600 font-semibold"><strong>Observação/Avaria:</strong> ${p.motivoSaida}</p>` : ''}
             </div>
             <button onclick="abrirModalEditarPecaAdmin(${p.id})" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow">
               ✏️ Editar Peça (Admin)
@@ -933,7 +1320,7 @@
       }
     }
 
-    /* --- DEMAIS ETAPAS MANTIDAS INTEGRALMENTE --- */
+    /* --- ETAPAS DE OPERAÇÃO 1 A 5 --- */
 
     function renderFornecedoresSelect() {
       var sel = document.getElementById('nf-fornecedor');
@@ -1150,8 +1537,6 @@
         renderDashboardEtapa0();
       }
     }
-
-    /* --- LÓGICA DA ETAPA 2 --- */
 
     function renderCaixasFechadasGrid() {
       var container = document.getElementById('grid-caixas-fechadas');
@@ -1413,8 +1798,6 @@
       }).join('');
     }
 
-    /* --- LÓGICA DA ETAPA 3 --- */
-
     function calcularDiasEstoque(dataNF) {
       if(!dataNF) return 0;
       var dNF = new Date(dataNF);
@@ -1521,47 +1904,6 @@
       }
     }
 
-    function abrirModalSaidaPeca(pecaId) {
-      var peca = pecasEstoqueList.find(p => p.id === pecaId);
-      if(!peca) return;
-
-      pecaEmModalSaidaId = pecaId;
-      document.getElementById('modal-tag-titulo').innerText = `Saída Direta — ${peca.tag} (${peca.corte} - ${peca.peso.toFixed(3)}kg)`;
-      document.getElementById('modal-obs-input').value = "";
-      document.getElementById('modal-saida-peca').classList.remove('hidden');
-    }
-
-    function fecharModalSaida() {
-      pecaEmModalSaidaId = null;
-      document.getElementById('modal-saida-peca').classList.add('hidden');
-    }
-
-    function confirmarSaidaPecaEspecial() {
-      if(!pecaEmModalSaidaId) return;
-
-      var peca = pecasEstoqueList.find(p => p.id === pecaEmModalSaidaId);
-      if(!peca) return;
-
-      var motivo = document.getElementById('modal-motivo-select').value;
-      var obs = document.getElementById('modal-obs-input').value.trim();
-
-      peca.status = "Baixado";
-      peca.motivoSaida = motivo + (obs ? ` (${obs})` : "");
-      peca.dataSaida = new Date().toISOString().split('T')[0];
-
-      localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
-
-      fecharModalSaida();
-      renderFiltrosProteinaEtapa3();
-      renderEstoqueCamaraFria();
-      renderGeladeiraEliEtapa4();
-      renderDashboardEtapa0();
-
-      alert(`Baixa registrada! A peça ${peca.tag} teve sua saída confirmada por: ${motivo}.`);
-    }
-
-    /* --- LÓGICA DA ETAPA 4 --- */
-
     function renderGeladeiraEliEtapa4() {
       var containerSelecao = document.getElementById('container-selecao-baixa-eli');
       var tbodyHistorico = document.getElementById('lista-historico-baixas-eli');
@@ -1647,6 +1989,7 @@
         localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
         renderGeladeiraEliEtapa4();
         renderEtapa5AparasDiario();
+        renderEtapa6SteaksVendidos();
         renderDashboardEtapa0();
         alert(`${checkboxes.length} peça(s) baixada(s) com sucesso para a data ${dataConsumo}! Liberadas para Aparas na Etapa 5.`);
       }
@@ -1661,12 +2004,11 @@
           localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
           renderGeladeiraEliEtapa4();
           renderEtapa5AparasDiario();
+          renderEtapa6SteaksVendidos();
           renderDashboardEtapa0();
         }
       }
     }
-
-    /* --- LÓGICA DA ETAPA 5 --- */
 
     function renderEtapa5AparasDiario() {
       var selectCorte = document.getElementById('apara-diaria-corte');
@@ -1766,6 +2108,7 @@
       document.getElementById('apara-diaria-obs').value = "";
 
       renderTabelaHistoricoAparasDiario();
+      renderEtapa6SteaksVendidos();
       renderDashboardEtapa0();
       alert(`Rendimento acumulado do dia ${dataSel} (${corteSel}) salvo com sucesso!`);
     }
@@ -1800,6 +2143,7 @@
         aparasDiarioHistorico = aparasDiarioHistorico.filter(a => a.id !== id);
         localStorage.setItem('pel_aparas_diario_hist', JSON.stringify(aparasDiarioHistorico));
         renderTabelaHistoricoAparasDiario();
+        renderEtapa6SteaksVendidos();
         renderDashboardEtapa0();
       }
     }
