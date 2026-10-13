@@ -1,114 +1,379 @@
-<!-- CENTRAL MASTER: EXCLUSÕES E RESETS -->
-<div class="bg-white p-6 rounded-lg shadow-md space-y-6">
-  <h2 class="text-xl font-bold text-gray-800 border-b pb-2">Central Master: Gerenciamento e Exclusões</h2>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pellegrino - Controle de Estoque de Carnes</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen pb-12">
 
-  <!-- 1. EXCLUSÃO INDIVIDUAL -->
-  <div class="space-y-4">
-    <h3 class="text-md font-semibold text-gray-700">Ajustes e Exclusões Pontuais</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      
-      <!-- Apagar Caixa -->
-      <div class="p-4 border rounded bg-gray-50 flex flex-col justify-between">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Excluir Caixa / Lote de Teste</label>
-          <input type="text" id="inputExcluirCaixa" placeholder="Digite o ID/Número da caixa" class="w-full p-2 border rounded text-sm mb-2">
+  <!-- CABEÇALHO -->
+  <header class="bg-red-800 text-white p-4 shadow-md flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-bold tracking-wide">PELLEGRINO</h1>
+      <p class="text-xs text-red-200">Gestão e Rastreabilidade de Estoque de Carnes</p>
+    </div>
+    <div id="userInfo" class="text-right text-xs bg-red-900 px-3 py-1.5 rounded">
+      <span>Operador Master</span>
+    </div>
+  </header>
+
+  <!-- NAVEGAÇÃO POR ABAS -->
+  <nav class="bg-white border-b border-gray-200 overflow-x-auto shadow-sm">
+    <div class="flex max-w-7xl mx-auto px-2">
+      <button onclick="switchTab('aba-entradas')" id="btn-aba-entradas" class="tab-btn px-4 py-3 font-medium text-sm border-b-2 border-red-700 text-red-700 whitespace-nowrap">
+        📦 Entradas (NF / Caixas)
+      </button>
+      <button onclick="switchTab('aba-geladeira')" id="btn-aba-geladeira" class="tab-btn px-4 py-3 font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">
+        ❄️ Geladeiras & Walk-in
+      </button>
+      <button onclick="switchTab('aba-pecas')" id="btn-aba-pecas" class="tab-btn px-4 py-3 font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">
+        🥩 Peças (P1, P2...)
+      </button>
+
+      <button onclick="switchTab('aba-master')" id="btn-aba-master" class="tab-btn px-4 py-3 font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap ml-auto bg-gray-50">
+        ⚙️ Central Master
+      </button>
+    </div>
+  </nav>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+
+    <!-- 1. ABA ENTRADAS / RECEBIMENTO -->
+    <section id="aba-entradas" class="tab-content active space-y-6">
+      <div class="bg-white p-6 rounded-lg shadow-sm border">
+        <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Cadastrar Nova Entrada / Caixa</h2>
+        <form id="formEntrada" onsubmit="salvarEntrada(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Corte / Protein</label>
+            <select id="entCorte" class="w-full p-2 border rounded text-sm bg-gray-50" required>
+              <option value="Ancho">Ancho</option>
+              <option value="Chorizo">Chorizo</option>
+              <option value="Picanha">Picanha</option>
+              <option value="Maminha">Maminha</option>
+              <option value="Costela">Costela</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nº do Lote / Caixa</label>
+            <input type="text" id="entLote" placeholder="Ex: CX-101" class="w-full p-2 border rounded text-sm" required>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Peso Total (kg)</label>
+            <input type="number" step="0.01" id="entPeso" placeholder="Ex: 18.50" class="w-full p-2 border rounded text-sm" required>
+          </div>
+          <div class="md:col-span-3 text-right">
+            <button type="submit" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-6 rounded text-sm transition">
+              Registrar Entrada
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow-sm border">
+        <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Caixas no Estoque</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
+              <tr>
+                <th class="p-3">Lote/Caixa</th>
+                <th class="p-3">Corte</th>
+                <th class="p-3">Peso</th>
+                <th class="p-3">Status</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaCaixas" class="divide-y">
+              <!-- Preenchido via JS -->
+            </tbody>
+          </table>
         </div>
-        <button onclick="excluirCaixaIndividual()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded text-sm">
-          Excluir Caixa e Peças
+      </div>
+    </section>
+
+    <!-- 2. ABA GELADEIRAS -->
+    <section id="aba-geladeira" class="tab-content space-y-6">
+      <div class="bg-white p-6 rounded-lg shadow-sm border">
+        <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Distribuição por Câmaras / Geladeiras</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="cardsGeladeiras">
+          <!-- Geladeira Eli, Walk-in, Pass-through, etc -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. ABA PEÇAS (P1, P2...) -->
+    <section id="aba-pecas" class="tab-content space-y-6">
+      <div class="bg-white p-6 rounded-lg shadow-sm border">
+        <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Rastreio de Peças Individuais</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
+              <tr>
+                <th class="p-3">Etiqueta</th>
+                <th class="p-3">Corte</th>
+                <th class="p-3">Caixa Origem</th>
+                <th class="p-3">Peso (kg)</th>
+                <th class="p-3">Local Atual</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaPecas" class="divide-y">
+              <!-- Preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. CENTRAL MASTER (ACESSO POR SENHA OU PAINEL) -->
+    <section id="aba-master" class="tab-content space-y-6">
+      
+      <!-- TELA DE AUTENTICAÇÃO MASTER -->
+      <div id="loginMasterBox" class="bg-white p-8 rounded-lg shadow-md max-w-md mx-auto text-center border">
+        <h2 class="text-xl font-bold text-gray-800 mb-2">Central Master</h2>
+        <p class="text-sm text-gray-500 mb-6">Digite a senha de administrador para liberar o acesso.</p>
+        <input type="password" id="inputSenhaMaster" placeholder="Senha Master" class="w-full p-3 border rounded text-center mb-4 text-lg">
+        <button onclick="autenticarMaster()" class="w-full bg-gray-900 hover:bg-black text-white font-bold py-3 rounded">
+          Entrar na Central
         </button>
       </div>
 
-      <!-- Apagar Peça Específica -->
-      <div class="p-4 border rounded bg-gray-50 flex flex-col justify-between">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Excluir Peça Individual (Etiqueta)</label>
-          <input type="text" id="inputExcluirPeca" placeholder="Ex: Ancho-P1 ou ID da peça" class="w-full p-2 border rounded text-sm mb-2">
+      <!-- PAINEL RESTRITO MASTER (ESCONDIDO POR PADRÃO) -->
+      <div id="conteudoMaster" class="hidden space-y-6">
+        
+        <!-- PAINEL 1: LIMPEZA SELETIVA E EXCLUSÕES -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border space-y-4">
+          <h2 class="text-lg font-bold text-gray-800 border-b pb-2">Exclusões e Ajustes Pontuais</h2>
+          <p class="text-xs text-gray-500">Utilize esta área para remover dados de teste ou cadastros efetuados por engano.</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Apagar Caixa -->
+            <div class="p-4 border rounded bg-gray-50 flex flex-col justify-between">
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Excluir Caixa / Lote de Teste</label>
+                <input type="text" id="inputExcluirCaixa" placeholder="Digite o lote da caixa (Ex: CX-101)" class="w-full p-2 border rounded text-sm mb-2">
+              </div>
+              <button onclick="excluirCaixaIndividual()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded text-sm transition">
+                Excluir Caixa
+              </button>
+            </div>
+
+            <!-- Apagar Peça -->
+            <div class="p-4 border rounded bg-gray-50 flex flex-col justify-between">
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Excluir Peça Individual (Etiqueta)</label>
+                <input type="text" id="inputExcluirPeca" placeholder="Ex: Ancho-P1" class="w-full p-2 border rounded text-sm mb-2">
+              </div>
+              <button onclick="excluirPecaIndividual()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded text-sm transition">
+                Excluir Peça
+              </button>
+            </div>
+          </div>
         </div>
-        <button onclick="excluirPecaIndividual()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded text-sm">
-          Excluir Peça
-        </button>
+
+        <!-- PAINEL 2: AÇÕES GLOBAIS DE SISTEMA -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border space-y-4">
+          <h2 class="text-lg font-bold text-gray-800 border-b pb-2">Ações do Sistema</h2>
+          <div class="flex flex-col sm:flex-row gap-4">
+            
+            <!-- Virada de Mês -->
+            <button onclick="executarViradaDeMes()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded text-sm shadow transition">
+              🔄 Virada de Mês (Reset P1)
+            </button>
+
+            <!-- Reset Geral -->
+            <button onclick="executarResetGeral()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded text-sm shadow transition">
+              ⚠️ Reiniciar Tudo (Reset de Fábrica)
+            </button>
+
+          </div>
+        </div>
+
       </div>
 
-    </div>
-  </div>
+    </section>
 
-  <hr class="my-4">
+  </main>
 
-  <!-- 2. AÇÕES DE SISTEMA -->
-  <div class="space-y-4">
-    <h3 class="text-md font-semibold text-gray-700">Ações Globais do Sistema</h3>
-    <div class="flex flex-col sm:flex-row gap-4">
-      
-      <!-- Virada de Mês -->
-      <button onclick="executarViradaDeMes()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded text-sm shadow">
-        🔄 Executar Virada de Mês (Zerar P1)
-      </button>
+  <script>
+    // ESTADO E PERSISTÊNCIA (LocalStorage)
+    let caixas = JSON.parse(localStorage.getItem('pellegrino_caixas')) || [
+      { id: '1', lote: 'CX-TESTE-1', corte: 'Ancho', peso: 15.20, status: 'Ativa' },
+      { id: '2', lote: 'CX-TESTE-2', corte: 'Picanha', peso: 12.80, status: 'Ativa' }
+    ];
 
-      <!-- Reset Geral -->
-      <button onclick="executarResetGeral()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded text-sm shadow">
-        ⚠️ Reiniciar Tudo (Reset de Fábrica)
-      </button>
+    let pecas = JSON.parse(localStorage.getItem('pellegrino_pecas')) || [
+      { id: '1', etiqueta: 'Ancho-P1', corte: 'Ancho', lote: 'CX-TESTE-1', peso: 2.10, local: 'Geladeira Eli' },
+      { id: '2', etiqueta: 'Ancho-P2', corte: 'Ancho', lote: 'CX-TESTE-1', peso: 2.30, local: 'Geladeira Eli' },
+      { id: '3', etiqueta: 'Picanha-P1', corte: 'Picanha', lote: 'CX-TESTE-2', peso: 1.45, local: 'Walk-in' }
+    ];
 
-    </div>
-  </div>
-</div>
-
-<script>
-// Função para excluir uma caixa inteira e suas peças
-function excluirCaixaIndividual() {
-  const idCaixa = document.getElementById('inputExcluirCaixa').value.trim();
-  if (!idCaixa) return alert('Por favor, informe o código/ID da caixa.');
-
-  if (confirm(`Tem certeza que deseja excluir a caixa ${idCaixa} e todas as suas peças?`)) {
-    let caixas = JSON.parse(localStorage.getItem('caixas')) || [];
-    let pecas = JSON.parse(localStorage.getItem('pecas')) || [];
-
-    // Filtra removendo a caixa e as peças vinculadas a ela
-    caixas = caixas.filter(c => c.id !== idCaixa && c.numero !== idCaixa);
-    pecas = pecas.filter(p => p.idCaixa !== idCaixa && p.caixa !== idCaixa);
-
-    localStorage.setItem('caixas', JSON.stringify(caixas));
-    localStorage.setItem('pecas', JSON.stringify(pecas));
-
-    alert(`Caixa ${idCaixa} excluída com sucesso!`);
-    document.getElementById('inputExcluirCaixa').value = '';
-    location.reload(); // Recarrega para atualizar a tela
-  }
-}
-
-// Função para excluir apenas uma peça
-function excluirPecaIndividual() {
-  const idPeca = document.getElementById('inputExcluirPeca').value.trim();
-  if (!idPeca) return alert('Por favor, informe a etiqueta ou ID da peça.');
-
-  if (confirm(`Tem certeza que deseja excluir a peça ${idPeca}?`)) {
-    let pecas = JSON.parse(localStorage.getItem('pecas')) || [];
-    
-    const pecasIniciais = pecas.length;
-    pecas = pecas.filter(p => p.etiqueta !== idPeca && p.id !== idPeca);
-
-    if (pecas.length === pecasIniciais) {
-      return alert('Peça não encontrada. Verifique a etiqueta informada.');
+    function salvarDados() {
+      localStorage.setItem('pellegrino_caixas', JSON.stringify(caixas));
+      localStorage.setItem('pellegrino_pecas', JSON.stringify(pecas));
+      renderizarTabelas();
     }
 
-    localStorage.setItem('pecas', JSON.stringify(pecas));
+    // CONTROLE DE ABAS
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('border-b-2', 'border-red-700', 'text-red-700');
+        el.classList.add('text-gray-500');
+      });
 
-    alert(`Peça ${idPeca} removida do estoque com sucesso!`);
-    document.getElementById('inputExcluirPeca').value = '';
-    location.reload();
-  }
-}
+      document.getElementById(tabId).classList.add('active');
+      const btnAtivo = document.getElementById(`btn-${tabId}`);
+      if(btnAtivo) {
+        btnAtivo.classList.add('border-b-2', 'border-red-700', 'text-red-700');
+        btnAtivo.classList.remove('text-gray-500');
+      }
+    }
 
-// Reset Geral com confirmação de segurança
-function executarResetGeral() {
-  const confirmacao = prompt('ATENÇÃO: Esta ação apaga TODOS os dados do aplicativo (caixas, peças, estoques e históricos).\n\nDigite "ZERAR" para confirmar:');
-  
-  if (confirmacao === 'ZERAR') {
-    localStorage.clear();
-    alert('O aplicativo foi reiniciado com sucesso! Todos os dados foram limpos.');
-    location.reload();
-  } else if (confirmacao !== null) {
-    alert('Confirmação incorreta. O aplicativo NÃO foi reiniciado.');
-  }
-}
-</script>
+    // AUTENTICAÇÃO SENHA MASTER (990992)
+    function autenticarMaster() {
+      const senhaInput = document.getElementById('inputSenhaMaster').value;
+      if (senhaInput === '990992') {
+        document.getElementById('loginMasterBox').classList.add('hidden');
+        document.getElementById('conteudoMaster').classList.remove('hidden');
+      } else {
+        alert('Senha Master Incorreta!');
+      }
+    }
+
+    // CADASTRO DE ENTRADA
+    function salvarEntrada(e) {
+      e.preventDefault();
+      const corte = document.getElementById('entCorte').value;
+      const lote = document.getElementById('entLote').value.trim();
+      const peso = parseFloat(document.getElementById('entPeso').value);
+
+      const novaCaixa = {
+        id: Date.now().toString(),
+        lote: lote,
+        corte: corte,
+        peso: peso,
+        status: 'Ativa'
+      };
+
+      caixas.push(novaCaixa);
+      
+      // Gera automaticamente a P1 de entrada inicial
+      pecas.push({
+        id: (Date.now() + 1).toString(),
+        etiqueta: `${corte}-P1`,
+        corte: corte,
+        lote: lote,
+        peso: (peso / 6).toFixed(2), // Estimativa de peso por peça
+        local: 'Walk-in'
+      });
+
+      salvarDados();
+      document.getElementById('formEntrada').reset();
+      alert(`Caixa ${lote} e peças cadastradas com sucesso!`);
+    }
+
+    // EXCLUSÃO INDIVIDUAL DE CAIXA
+    function excluirCaixaIndividual() {
+      const loteInput = document.getElementById('inputExcluirCaixa').value.trim();
+      if (!loteInput) return alert('Informe o lote da caixa que deseja excluir.');
+
+      if (confirm(`Tem certeza que deseja excluir a caixa/lote ${loteInput} e suas peças?`)) {
+        const caixasIniciais = caixas.length;
+        caixas = caixas.filter(c => c.lote !== loteInput && c.id !== loteInput);
+        pecas = pecas.filter(p => p.lote !== loteInput);
+
+        if (caixas.length === caixasIniciais) {
+          return alert('Nenhuma caixa encontrada com este lote.');
+        }
+
+        salvarDados();
+        alert(`Caixa ${loteInput} excluída com sucesso!`);
+        document.getElementById('inputExcluirCaixa').value = '';
+      }
+    }
+
+    // EXCLUSÃO INDIVIDUAL DE PEÇA (P1, P2...)
+    function excluirPecaIndividual() {
+      const etiquetaInput = document.getElementById('inputExcluirPeca').value.trim();
+      if (!etiquetaInput) return alert('Informe a etiqueta da peça (Ex: Ancho-P1).');
+
+      if (confirm(`Tem certeza que deseja excluir a peça ${etiquetaInput}?`)) {
+        const pecasIniciais = pecas.length;
+        pecas = pecas.filter(p => p.etiqueta !== etiquetaInput && p.id !== etiquetaInput);
+
+        if (pecas.length === pecasIniciais) {
+          return alert('Peça não encontrada. Verifique a etiqueta.');
+        }
+
+        salvarDados();
+        alert(`Peça ${etiquetaInput} removida do estoque!`);
+        document.getElementById('inputExcluirPeca').value = '';
+      }
+    }
+
+    // VIRADA DE MÊS (RESET P1)
+    function executarViradaDeMes() {
+      if (confirm('Deseja executar a Virada de Mês? A numeração sequencial das peças voltará para P1.')) {
+        pecas = pecas.map(p => {
+          return { ...p, etiqueta: `${p.corte}-P1` };
+        });
+        salvarDados();
+        alert('Virada de Mês executada com sucesso! Peças reiniciadas em P1.');
+      }
+    }
+
+    // RESET GERAL (COMPLETO)
+    function executarResetGeral() {
+      const confirmacao = prompt('ATENÇÃO: Esta ação apaga TODOS os dados do aplicativo!\n\nDigite "ZERAR" para confirmar:');
+      if (confirmacao === 'ZERAR') {
+        localStorage.clear();
+        caixas = [];
+        pecas = [];
+        salvarDados();
+        alert('O aplicativo foi resetado com sucesso!');
+        location.reload();
+      } else if (confirmacao !== null) {
+        alert('Confirmação incorreta. Nada foi alterado.');
+      }
+    }
+
+    // RENDERIZAR TABELAS E TELAS
+    function renderizarTabelas() {
+      // Tabela Caixas
+      const tbodyCaixas = document.getElementById('tabelaCaixas');
+      tbodyCaixas.innerHTML = caixas.length === 0 
+        ? `<tr><td colspan="4" class="p-4 text-center text-gray-400">Nenhuma caixa cadastrada.</td></tr>`
+        : caixas.map(c => `
+          <tr class="hover:bg-gray-50">
+            <td class="p-3 font-semibold">${c.lote}</td>
+            <td class="p-3">${c.corte}</td>
+            <td class="p-3">${parseFloat(c.peso).toFixed(2)} kg</td>
+            <td class="p-3"><span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded">${c.status}</span></td>
+          </tr>
+        `).join('');
+
+      // Tabela Peças
+      const tbodyPecas = document.getElementById('tabelaPecas');
+      tbodyPecas.innerHTML = pecas.length === 0
+        ? `<tr><td colspan="5" class="p-4 text-center text-gray-400">Nenhuma peça no estoque.</td></tr>`
+        : pecas.map(p => `
+          <tr class="hover:bg-gray-50">
+            <td class="p-3 font-bold text-red-700">${p.etiqueta}</td>
+            <td class="p-3">${p.corte}</td>
+            <td class="p-3 text-gray-500">${p.lote}</td>
+            <td class="p-3">${parseFloat(p.peso).toFixed(2)} kg</td>
+            <td class="p-3"><span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded">${p.local}</span></td>
+          </tr>
+        `).join('');
+    }
+
+    // INICIALIZAÇÃO
+    renderizarTabelas();
+  </script>
+</body>
+</html>
