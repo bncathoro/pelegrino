@@ -3,377 +3,2150 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pellegrino - Controle de Estoque de Carnes</title>
+  <title>Controle de Estoque de Carnes - Pellegrino</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
+    .tab-active { border-bottom: 3px solid #dc2626; color: #dc2626; font-weight: bold; }
   </style>
 </head>
-<body class="bg-gray-100 text-gray-800 min-h-screen pb-12">
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
 
-  <!-- CABEÇALHO -->
-  <header class="bg-red-800 text-white p-4 shadow-md flex justify-between items-center">
+  <!-- Header -->
+  <header class="bg-slate-900 text-white p-4 shadow-md flex justify-between items-center">
     <div>
-      <h1 class="text-2xl font-bold tracking-wide">PELLEGRINO</h1>
-      <p class="text-xs text-red-200">Gestão e Rastreabilidade de Estoque de Carnes</p>
+      <h1 class="text-xl font-bold tracking-wide text-red-500">Pellegrino</h1>
+      <p class="text-xs text-gray-400">Controle de Estoque de Carnes & Rastreabilidade</p>
     </div>
-    <div id="userInfo" class="text-right text-xs bg-red-900 px-3 py-1.5 rounded">
-      <span>Operador Master</span>
+    <div class="flex items-center gap-3">
+      <span id="badge-adm-status" class="text-xs bg-slate-800 border border-slate-700 px-3 py-1 rounded-full text-gray-400">🔒 ADM Bloqueado</span>
     </div>
   </header>
 
-  <!-- NAVEGAÇÃO POR ABAS -->
-  <nav class="bg-white border-b border-gray-200 overflow-x-auto shadow-sm">
-    <div class="flex max-w-7xl mx-auto px-2">
-      <button onclick="switchTab('aba-entradas')" id="btn-aba-entradas" class="tab-btn px-4 py-3 font-medium text-sm border-b-2 border-red-700 text-red-700 whitespace-nowrap">
-        📦 Entradas (NF / Caixas)
-      </button>
-      <button onclick="switchTab('aba-geladeira')" id="btn-aba-geladeira" class="tab-btn px-4 py-3 font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">
-        ❄️ Geladeiras & Walk-in
-      </button>
-      <button onclick="switchTab('aba-pecas')" id="btn-aba-pecas" class="tab-btn px-4 py-3 font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">
-        🥩 Peças (P1, P2...)
-      </button>
-
-      <button onclick="switchTab('aba-master')" id="btn-aba-master" class="tab-btn px-4 py-3 font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap ml-auto bg-gray-50">
-        ⚙️ Central Master
-      </button>
-    </div>
+  <!-- Navegação de Abas -->
+  <nav class="bg-white border-b border-gray-200 px-4 flex space-x-4 text-sm overflow-x-auto">
+    <button onclick="switchTab('tab-dash')" id="btn-tab-dash" class="py-3 px-2 tab-active transition-all">0. Visão Geral (Dashboard)</button>
+    <button onclick="switchTab('tab-nf')" id="btn-tab-nf" class="py-3 px-2 text-gray-600 transition-all font-semibold">1. Entrada NF</button>
+    <button onclick="switchTab('tab-caixas')" id="btn-tab-caixas" class="py-3 px-2 text-gray-600 transition-all font-semibold">2. Caixas & Pesagem</button>
+    <button onclick="switchTab('tab-estoque')" id="btn-tab-estoque" class="py-3 px-2 text-gray-600 transition-all font-semibold">3. Câmara Fria</button>
+    <button onclick="switchTab('tab-eli')" id="btn-tab-eli" class="py-3 px-2 text-gray-600 transition-all font-semibold">4. Geladeira do Eli</button>
+    <button onclick="switchTab('tab-aparas')" id="btn-tab-aparas" class="py-3 px-2 text-gray-600 transition-all font-semibold">5. Aparas & Rendimento</button>
+    <button onclick="switchTab('tab-steaks')" id="btn-tab-steaks" class="py-3 px-2 text-gray-600 transition-all font-semibold">6. Steaks Vendidos (Patrão)</button>
+    <button onclick="switchTab('tab-cadastros')" id="btn-tab-cadastros" class="py-3 px-2 text-gray-600 transition-all font-semibold">⚙️ Central de Cadastros & Ajustes</button>
   </nav>
 
-  <!-- CONTEÚDO PRINCIPAL -->
-  <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+  <!-- Conteúdo Principal -->
+  <main class="flex-1 p-4 max-w-5xl mx-auto w-full space-y-6">
 
-    <!-- 1. ABA ENTRADAS / RECEBIMENTO -->
-    <section id="aba-entradas" class="tab-content active space-y-6">
-      <div class="bg-white p-6 rounded-lg shadow-sm border">
-        <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Cadastrar Nova Entrada / Caixa</h2>
-        <form id="formEntrada" onsubmit="salvarEntrada(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- ETAPA 0: VISÃO GERAL / DASHBOARD -->
+    <section id="tab-dash" class="tab-content space-y-6">
+      <div class="border-b pb-3 flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800">📊 Painel de Controle & Visão Geral</h2>
+          <p class="text-xs text-gray-500">Resumo consolidado do estoque, alertas de giro de lote e recompra.</p>
+        </div>
+        <span class="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-lg font-semibold">Visão Geral</span>
+      </div>
+
+      <!-- Cards de Indicadores Globais -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <span class="text-gray-500 block mb-1">Total em Estoque (kg)</span>
+          <span id="dash-total-peso" class="text-lg font-bold text-slate-900">0.000 kg</span>
+          <span class="text-[10px] text-gray-400 block mt-0.5">Câmara + Geladeira Eli</span>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <span class="text-gray-500 block mb-1">Peças na Câmara Fria</span>
+          <span id="dash-total-pecas" class="text-lg font-bold text-red-600">0 peças</span>
+          <span class="text-[10px] text-gray-400 block mt-0.5">Com tag ativa</span>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <span class="text-gray-500 block mb-1">Alerta Maturação (60+ dias)</span>
+          <span id="dash-total-criticas" class="text-lg font-bold text-amber-600">0 peças</span>
+          <span class="text-[10px] text-gray-400 block mt-0.5">Priorizar uso</span>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <span class="text-gray-500 block mb-1">Aproveitamento Médio</span>
+          <span id="dash-aproveitamento-medio" class="text-lg font-bold text-emerald-600">100.0%</span>
+          <span class="text-[10px] text-gray-400 block mt-0.5">Bife limpo vs. Aparas</span>
+        </div>
+      </div>
+
+      <!-- CARD DE ALERTA DE GIRO DE LOTE -->
+      <div id="card-alerta-lote-antigo" class="hidden bg-amber-50 border-2 border-amber-500 p-4 rounded-xl shadow-sm space-y-2">
+        <div class="flex items-center justify-between">
+          <h3 class="font-bold text-amber-900 text-sm flex items-center gap-2">
+            <span>⚠️ Alerta de Prioridade de Uso (Giro de Lotes)</span>
+          </h3>
+          <span class="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-bold">Lote Antigo Fica Atrás</span>
+        </div>
+        <p id="txt-alerta-lote-antigo" class="text-xs text-amber-800 leading-relaxed"></p>
+      </div>
+
+      <!-- CARD DE ALERTA DE RECOMPRA -->
+      <div class="bg-white p-6 rounded-xl border-2 border-amber-400 shadow-sm space-y-4">
+        <div class="flex justify-between items-center border-b pb-2">
           <div>
-            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Corte / Protein</label>
-            <select id="entCorte" class="w-full p-2 border rounded text-sm bg-gray-50" required>
-              <option value="Ancho">Ancho</option>
-              <option value="Chorizo">Chorizo</option>
-              <option value="Picanha">Picanha</option>
-              <option value="Maminha">Maminha</option>
-              <option value="Costela">Costela</option>
-            </select>
+            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+              <span>🚚 Alerta de Recompra (Ponto de Pedido)</span>
+            </h3>
+            <p class="text-[11px] text-gray-500">Regra: 🟡 7 a 5 peças (Atenção) | 🔴 4 peças ou menos (Fazer Pedido Urgente)</p>
           </div>
+          <span class="text-[11px] bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full font-bold">Base: Câmara Fria</span>
+        </div>
+
+        <div id="container-alertas-recompra" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          <p class="text-xs text-gray-400 col-span-full">Verificando níveis de estoque da câmara fria...</p>
+        </div>
+      </div>
+
+      <!-- Rastreabilidade de Peça -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+        <h3 class="font-bold text-slate-800 text-sm">🔍 Rastreabilidade & Busca de Peça</h3>
+        <div class="flex gap-2">
+          <input type="text" id="input-busca-rastreio" placeholder="Digite a Tag (Ex: Ancho-P50) ou Nº da NF" class="w-full border rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-red-500">
+          <button onclick="buscarRastreioPeca()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-lg transition-all">Buscar</button>
+        </div>
+
+        <div id="resultado-busca-container" class="hidden bg-slate-50 p-4 rounded-lg border border-slate-200 text-xs space-y-2">
+          <h4 class="font-bold text-red-700 text-sm" id="rastreio-titulo">Resultado da Busca</h4>
+          <div id="rastreio-detalhes" class="space-y-2 text-slate-700"></div>
+        </div>
+      </div>
+
+      <!-- Exportação e Reset -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-wrap justify-between items-center gap-4 text-xs">
+        <div>
+          <h3 class="font-bold text-slate-800">Exportação & Backup de Dados</h3>
+          <p class="text-gray-500">Baixe um relatório em formato CSV (abrival em Excel) para guardar seu histórico.</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="exportarDadosCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-lg shadow transition-all">
+            📥 Baixar Relatório (Excel/CSV)
+          </button>
+          <button onclick="resetarDadosSistema()" class="bg-slate-200 hover:bg-red-100 hover:text-red-700 text-slate-700 font-bold px-4 py-2 rounded-lg transition-all">
+            ⚙️ Resetar Dados de Teste
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ETAPA 1: ENTRADA DE NOTA FISCAL -->
+    <section id="tab-nf" class="tab-content space-y-6 hidden">
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
+        <div class="border-b pb-3 flex justify-between items-center">
           <div>
-            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nº do Lote / Caixa</label>
-            <input type="text" id="entLote" placeholder="Ex: CX-101" class="w-full p-2 border rounded text-sm" required>
+            <h2 class="text-lg font-bold text-slate-800">Registrar Entrada de Nota Fiscal</h2>
+            <p class="text-xs text-gray-500">Cadastre a nota e adicione individualmente cada caixa recebida.</p>
           </div>
+          <span class="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-semibold">Etapa 1 de 5</span>
+        </div>
+
+        <form id="form-nf" onsubmit="handleNFSubmit(event)" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Número da NF *</label>
+              <input type="text" id="nf-numero" required class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Ex: 0001">
+            </div>
+
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="block text-xs font-semibold text-gray-700">Fornecedor *</label>
+                <button type="button" onclick="novoFornecedorPrompt()" class="text-[10px] text-red-600 font-bold hover:underline">+ Cadastrar</button>
+              </div>
+              <select id="nf-fornecedor" required class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none">
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Data de Recebimento *</label>
+              <input type="date" id="nf-data" required class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Peso Total da NF (kg) *</label>
+              <input type="number" step="0.001" id="nf-peso-total" required oninput="calcularTotalNF()" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-red-500 outline-none font-bold text-slate-800" placeholder="Ex: 10.000">
+            </div>
+          </div>
+
           <div>
-            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Peso Total (kg)</label>
-            <input type="number" step="0.01" id="entPeso" placeholder="Ex: 18.50" class="w-full p-2 border rounded text-sm" required>
+            <div class="flex justify-between items-center mb-3">
+              <div>
+                <h3 class="text-sm font-bold text-slate-800">Detalhamento de Caixas (1 caixa por linha)</h3>
+                <p class="text-[11px] text-gray-500">Cada caixa lançada ficará disponível para abertura na Etapa 2.</p>
+              </div>
+              <button type="button" onclick="addNFCorteRow()" class="text-xs bg-slate-800 hover:bg-slate-900 text-white font-medium px-3 py-2 rounded-lg shadow-sm transition-all">
+                + Adicionar Caixa / Corte
+              </button>
+            </div>
+
+            <div id="nf-cortes-container" class="space-y-3"></div>
           </div>
-          <div class="md:col-span-3 text-right">
-            <button type="submit" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-6 rounded text-sm transition">
-              Registrar Entrada
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-gray-50 p-4 rounded-lg border text-xs">
+            <div>
+              <span class="text-gray-500 block">Total de Caixas:</span>
+              <span id="resumo-total-caixas" class="text-sm font-bold text-slate-800">0 caixas</span>
+            </div>
+            <div>
+              <span class="text-gray-500 block">Total de Peças:</span>
+              <span id="resumo-total-pecas" class="text-sm font-bold text-slate-800">0 peças</span>
+            </div>
+            <div>
+              <span class="text-gray-500 block">Soma dos Pesos:</span>
+              <span id="resumo-soma-peso" class="text-sm font-bold text-slate-800">0.000 kg</span>
+            </div>
+            <div>
+              <span class="text-gray-500 block">Balanço com a NF:</span>
+              <span id="resumo-status-balanco" class="text-xs font-bold px-2 py-1 rounded bg-gray-200 text-gray-700 inline-block mt-0.5">Aguardando dados</span>
+            </div>
+          </div>
+
+          <div class="flex justify-end border-t pt-4">
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-lg shadow transition-all text-sm w-full md:w-auto">
+              Registrar Entrada de Nota Fiscal
             </button>
           </div>
         </form>
       </div>
 
-      <div class="bg-white p-6 rounded-lg shadow-sm border">
-        <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Caixas no Estoque</h2>
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <h3 class="text-md font-bold text-slate-800 mb-4">Notas Fiscais Registradas</h3>
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
+          <table class="w-full text-left text-xs text-gray-600">
+            <thead class="bg-slate-100 text-slate-700 uppercase border-b">
               <tr>
-                <th class="p-3">Lote/Caixa</th>
-                <th class="p-3">Corte</th>
-                <th class="p-3">Peso</th>
+                <th class="p-3">NF</th>
+                <th class="p-3">Data Rec.</th>
+                <th class="p-3">Fornecedor</th>
+                <th class="p-3">Peso NF</th>
+                <th class="p-3">Caixas Registradas</th>
+                <th class="p-3">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="lista-nfs"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ETAPA 2: CAIXAS & PESAGEM DE PEÇAS -->
+    <section id="tab-caixas" class="tab-content space-y-6 hidden">
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
+        <div class="border-b pb-3 flex justify-between items-center">
+          <div>
+            <h2 class="text-lg font-bold text-slate-800">Caixas Fechadas na Câmara Fria</h2>
+            <p class="text-xs text-gray-500">Selecione uma caixa para abrir e realizar a conferência individual.</p>
+          </div>
+          <span class="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-semibold">Etapa 2 de 5</span>
+        </div>
+
+        <div id="grid-caixas-fechadas" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <p class="text-xs text-gray-400 col-span-full p-2">Nenhuma caixa fechada pendente no momento na câmara fria.</p>
+        </div>
+      </div>
+
+      <div id="painel-pesagem" class="bg-white p-6 rounded-xl shadow-md border-2 border-red-500 space-y-6 hidden">
+        <div class="flex justify-between items-center border-b pb-3">
+          <div>
+            <h3 id="pesagem-titulo-caixa" class="text-md font-bold text-red-700">Abrindo Caixa...</h3>
+            <p id="pesagem-subtitulo-caixa" class="text-xs text-gray-500">Confira a quantidade de peças e a qualidade individual de cada item.</p>
+          </div>
+          <button onclick="fecharPainelPesagem()" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-3 py-1.5 rounded-lg">Cancelar</button>
+        </div>
+
+        <form id="form-pesagem-pecas" onsubmit="handleSalvarPesagemCaixa(event)" class="space-y-6">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-lg border text-xs">
+            <div>
+              <span class="text-gray-500 block">Peso Declarado da Caixa (NF):</span>
+              <span id="pesagem-peso-declarado" class="text-sm font-bold text-slate-800">0.000 kg</span>
+            </div>
+            <div>
+              <span class="text-gray-500 block">Soma Aferida na Bancada:</span>
+              <span id="pesagem-peso-aferido" class="text-sm font-bold text-red-600">0.000 kg</span>
+            </div>
+            <div>
+              <span class="text-gray-500 block">Status de Tolerância (±500g):</span>
+              <span id="pesagem-status-tolerancia" class="text-xs font-bold px-2 py-0.5 rounded bg-gray-200 text-gray-700 inline-block mt-0.5">Aguardando pesagem</span>
+            </div>
+          </div>
+
+          <div class="bg-amber-50 border border-amber-200 p-4 rounded-lg space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-800">Qtd. de Peças Reais na Bancada *</label>
+                <p class="text-[11px] text-gray-500">Previsto na NF: <strong id="pesagem-qtd-prevista-display">0</strong> peças</p>
+              </div>
+              <input type="number" min="1" id="input-qtd-real-pecas" onchange="regerarFieldsPecasReal()" class="w-24 border rounded-lg p-2 text-sm font-bold text-center bg-white focus:ring-2 focus:ring-amber-500 outline-none">
+            </div>
+
+            <div id="box-justificativa-qtd" class="hidden border-t border-amber-200 pt-3">
+              <label class="block text-xs font-bold text-amber-900 mb-1">Motivo da Divergência na Contagem *</label>
+              <select id="select-justificativa-qtd" class="w-full border rounded-lg p-2 text-xs bg-white text-slate-800 font-semibold outline-none">
+                <option value="Divergência de etiqueta/embalagem (Peso bateu)">Divergência de etiqueta do frigorífico (Peso da caixa OK)</option>
+                <option value="Falta real de peça / Prejuízo de envio">Falta real de peça no envio (Para cobrança do fornecedor)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="text-xs font-bold text-slate-800 mb-3">Pesagem & Inspeção de Qualidade por Peça</h4>
+            <div id="container-inputs-pecas" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+          </div>
+
+          <div class="flex justify-end border-t pt-4">
+            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2.5 rounded-lg shadow transition-all text-sm w-full md:w-auto">
+              Confirmar Abertura & Registrar Peças no Estoque
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <h3 class="text-md font-bold text-slate-800 mb-4">Histórico de Caixas Abertas e Ocorrências</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600">
+            <thead class="bg-slate-100 text-slate-700 uppercase border-b">
+              <tr>
+                <th class="p-3">NF Origem</th>
+                <th class="p-3">Data NF</th>
+                <th class="p-3">Proteína</th>
+                <th class="p-3">Peso NF vs Aferido</th>
+                <th class="p-3">Ocorrências / Observações</th>
                 <th class="p-3">Status</th>
               </tr>
             </thead>
-            <tbody id="tabelaCaixas" class="divide-y">
-              <!-- Preenchido via JS -->
-            </tbody>
+            <tbody id="lista-caixas-abertas"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- 2. ABA GELADEIRAS -->
-    <section id="aba-geladeira" class="tab-content space-y-6">
-      <div class="bg-white p-6 rounded-lg shadow-sm border">
-        <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Distribuição por Câmaras / Geladeiras</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="cardsGeladeiras">
-          <!-- Geladeira Eli, Walk-in, Pass-through, etc -->
+    <!-- ETAPA 3: CÂMARA FRIA -->
+    <section id="tab-estoque" class="tab-content space-y-6 hidden">
+      <div class="border-b pb-3 flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800">❄️ Câmara Fria — Estoque de Peças Inteiras</h2>
+          <p class="text-xs text-gray-500">Filtre por proteína para visualizar os pesos, as tags e direcionar para a Geladeira do Eli.</p>
+        </div>
+        <span class="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-semibold">Etapa 3 de 5</span>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <label class="block text-xs font-bold text-slate-700">Filtrar Visão da Câmara Fria:</label>
+        <div id="filtro-proteinas-buttons" class="flex flex-wrap gap-2"></div>
+      </div>
+
+      <div class="bg-slate-900 text-white p-5 rounded-xl shadow-md grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+        <div>
+          <span class="text-gray-400 block mb-1">Proteína Selecionada:</span>
+          <span id="resumo-corte-nome" class="text-base font-bold text-red-400">Todas as Proteínas</span>
+        </div>
+        <div>
+          <span class="text-gray-400 block mb-1">Saldo Total na Câmara:</span>
+          <span id="resumo-corte-peso" class="text-base font-bold text-white">0.000 kg</span>
+          <span id="resumo-corte-pecas" class="text-gray-400 text-[11px] block">(0 peças)</span>
+        </div>
+        <div>
+          <span class="text-gray-400 block mb-1">Intervalo de Tags Disponíveis:</span>
+          <span id="resumo-corte-tags" class="text-xs font-mono text-emerald-400 block mt-1">Nenhuma peça</span>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+        <h3 class="font-bold text-slate-800 text-sm">Peças Estocadas na Câmara Fria</h3>
+        <div id="grid-pecas-camara" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <p class="text-xs text-gray-400 col-span-full">Nenhuma peça encontrada no filtro selecionado.</p>
         </div>
       </div>
     </section>
 
-    <!-- 3. ABA PEÇAS (P1, P2...) -->
-    <section id="aba-pecas" class="tab-content space-y-6">
-      <div class="bg-white p-6 rounded-lg shadow-sm border">
-        <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Rastreio de Peças Individuais</h2>
+    <!-- ETAPA 4: GELADEIRA DO ELI -->
+    <section id="tab-eli" class="tab-content space-y-6 hidden">
+      <div class="border-b pb-3 flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800">🧊 Geladeira do Eli — Produção & Baixa do Caderninho</h2>
+          <p class="text-xs text-gray-500">Selecione as peças do caderno do Eli e a data real em que foram consumidas.</p>
+        </div>
+        <span class="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-semibold">Etapa 4 de 5</span>
+      </div>
+
+      <div class="bg-slate-800 text-white p-5 rounded-xl shadow-md grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+        <div>
+          <span class="text-gray-400 block mb-1">Saldo Atual na Geladeira do Eli:</span>
+          <span id="eli-saldo-peso" class="text-xl font-bold text-emerald-400">0.000 kg</span>
+        </div>
+        <div>
+          <span class="text-gray-400 block mb-1">Quantidade de Peças Inteiras no Saldo:</span>
+          <span id="eli-saldo-pecas" class="text-xl font-bold text-white">0 peças</span>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-xl border-2 border-slate-800 shadow-sm space-y-4">
+        <div class="flex flex-wrap justify-between items-center gap-3 border-b pb-3">
+          <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+            <span>📝 Registrar Uso (Caderninho do Eli)</span>
+          </h3>
+
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-slate-700">Data do Consumo *</label>
+            <input type="date" id="input-data-baixa-eli" class="border rounded-lg p-1.5 text-xs font-bold text-red-700 bg-slate-50 outline-none focus:ring-2 focus:ring-red-500">
+          </div>
+        </div>
+
+        <p class="text-xs text-gray-500">Marque abaixo as peças que constam no caderno para a data selecionada acima:</p>
+
+        <div id="container-selecao-baixa-eli" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[300px] overflow-y-auto p-1 border rounded-lg bg-slate-50">
+          <p class="text-xs text-gray-400 col-span-full p-3 text-center">Nenhuma peça disponível na Geladeira do Eli no momento.</p>
+        </div>
+
+        <div class="flex justify-between items-center border-t pt-4">
+          <span id="resumo-baixa-selecionados" class="text-xs font-bold text-slate-700">0 peça(s) selecionada(s)</span>
+          <button onclick="confirmarBaixaLoteEli()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-5 py-2.5 rounded-lg shadow transition-all">
+            Dar Baixa nas Peças Selecionadas
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <h3 class="text-md font-bold text-slate-800 mb-4">Histórico de Peças Baixadas (Com Data do Uso)</h3>
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
+          <table class="w-full text-left text-xs text-gray-600">
+            <thead class="bg-slate-100 text-slate-700 uppercase border-b">
               <tr>
-                <th class="p-3">Etiqueta</th>
-                <th class="p-3">Corte</th>
-                <th class="p-3">Caixa Origem</th>
-                <th class="p-3">Peso (kg)</th>
-                <th class="p-3">Local Atual</th>
+                <th class="p-3">Data do Uso</th>
+                <th class="p-3">Tag Peça</th>
+                <th class="p-3">Proteína</th>
+                <th class="p-3">Peso Bruto</th>
+                <th class="p-3">NF Origem</th>
+                <th class="p-3">Ação</th>
               </tr>
             </thead>
-            <tbody id="tabelaPecas" class="divide-y">
-              <!-- Preenchido via JS -->
-            </tbody>
+            <tbody id="lista-historico-baixas-eli"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- 4. CENTRAL MASTER (ACESSO POR SENHA OU PAINEL) -->
-    <section id="aba-master" class="tab-content space-y-6">
-      
-      <!-- TELA DE AUTENTICAÇÃO MASTER -->
-      <div id="loginMasterBox" class="bg-white p-8 rounded-lg shadow-md max-w-md mx-auto text-center border">
-        <h2 class="text-xl font-bold text-gray-800 mb-2">Central Master</h2>
-        <p class="text-sm text-gray-500 mb-6">Digite a senha de administrador para liberar o acesso.</p>
-        <input type="password" id="inputSenhaMaster" placeholder="Senha Master" class="w-full p-3 border rounded text-center mb-4 text-lg">
-        <button onclick="autenticarMaster()" class="w-full bg-gray-900 hover:bg-black text-white font-bold py-3 rounded">
-          Entrar na Central
-        </button>
+    <!-- ETAPA 5: APARAS & RENDIMENTO -->
+    <section id="tab-aparas" class="tab-content space-y-6 hidden">
+      <div class="border-b pb-3 flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800">🥩 Aparas, Perdas & Rendimento Diário</h2>
+          <p class="text-xs text-gray-500">Registre o acumulado total de aparas e perdas pesadas no fim do dia por proteína.</p>
+        </div>
+        <span class="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-semibold">Etapa 5 de 5</span>
       </div>
 
-      <!-- PAINEL RESTRITO MASTER (ESCONDIDO POR PADRÃO) -->
-      <div id="conteudoMaster" class="hidden space-y-6">
-        
-        <!-- PAINEL 1: LIMPEZA SELETIVA E EXCLUSÕES -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border space-y-4">
-          <h2 class="text-lg font-bold text-gray-800 border-b pb-2">Exclusões e Ajustes Pontuais</h2>
-          <p class="text-xs text-gray-500">Utilize esta área para remover dados de teste ou cadastros efetuados por engano.</p>
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
+        <h3 class="text-sm font-bold text-slate-800 border-b pb-2">Lançamento Consolidado do Dia</h3>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Apagar Caixa -->
-            <div class="p-4 border rounded bg-gray-50 flex flex-col justify-between">
-              <div>
-                <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Excluir Caixa / Lote de Teste</label>
-                <input type="text" id="inputExcluirCaixa" placeholder="Digite o lote da caixa (Ex: CX-101)" class="w-full p-2 border rounded text-sm mb-2">
-              </div>
-              <button onclick="excluirCaixaIndividual()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded text-sm transition">
-                Excluir Caixa
-              </button>
+        <form id="form-aparas-diario" onsubmit="handleSalvarAparasDiario(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-lg border text-xs">
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Data do Porcionamento/Serviço *</label>
+              <input type="date" id="apara-diaria-data" onchange="atualizarResumoBaixasDia()" required class="w-full border rounded-lg p-2 font-bold text-red-700 bg-white outline-none">
             </div>
 
-            <!-- Apagar Peça -->
-            <div class="p-4 border rounded bg-gray-50 flex flex-col justify-between">
-              <div>
-                <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Excluir Peça Individual (Etiqueta)</label>
-                <input type="text" id="inputExcluirPeca" placeholder="Ex: Ancho-P1" class="w-full p-2 border rounded text-sm mb-2">
-              </div>
-              <button onclick="excluirPecaIndividual()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded text-sm transition">
-                Excluir Peça
-              </button>
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Proteína / Corte *</label>
+              <select id="apara-diaria-corte" onchange="atualizarResumoBaixasDia()" required class="w-full border rounded-lg p-2 font-bold text-slate-800 bg-white outline-none">
+                <option value="TODAS">-- Todas as Proteínas (Geral do Dia) --</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Total Bruto Baixado no Caderno (kg)</label>
+              <input type="text" id="apara-diaria-bruto-display" readonly class="w-full border rounded-lg p-2 font-bold text-slate-800 bg-gray-100 outline-none" value="0.000 kg">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div>
+              <label class="block font-bold text-slate-800 mb-1">Aparas Acumuladas no Dia (kg)</label>
+              <p class="text-[10px] text-gray-500 mb-1">Gordura boa, retalhos p/ moída ou hambúrguer.</p>
+              <input type="number" step="0.001" id="apara-diaria-peso-apara" oninput="calcularRendimentoDiarioVisual()" placeholder="Ex: 1.500" class="w-full border rounded-lg p-2 font-bold text-slate-800 outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-800 mb-1">Perdas / Descarte no Dia (kg)</label>
+              <p class="text-[10px] text-gray-500 mb-1">Sebo impróprio, nervos, membranas descartadas.</p>
+              <input type="number" step="0.001" id="apara-diaria-peso-perda" oninput="calcularRendimentoDiarioVisual()" placeholder="Ex: 0.800" class="w-full border rounded-lg p-2 font-bold text-red-600 outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+
+            <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-200">
+              <span class="block text-[11px] font-bold text-emerald-800 mb-0.5">Bife Limpo Útil Produção (kg):</span>
+              <span id="apara-diaria-util-display" class="text-lg font-bold text-emerald-700 block">0.000 kg</span>
+              <span id="apara-diaria-porc-display" class="text-[11px] text-emerald-800 font-semibold block">(100.0% aproveitamento)</span>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Observação do Dia (Opcional)</label>
+            <input type="text" id="apara-diaria-obs" placeholder="Ex: Lote do Minerva veio com capa de gordura mais alta que o normal" class="w-full border rounded-lg p-2 text-xs outline-none">
+          </div>
+
+          <div class="flex justify-end pt-2">
+            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-6 py-2.5 rounded-lg shadow transition-all">
+              Salvar Rendimento Diário
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <h3 class="text-md font-bold text-slate-800 mb-4">Histórico de Rendimento Diário de Produção</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600">
+            <thead class="bg-slate-100 text-slate-700 uppercase border-b">
+              <tr>
+                <th class="p-3">Data</th>
+                <th class="p-3">Proteína</th>
+                <th class="p-3">Bruto Usado (Caderno)</th>
+                <th class="p-3">Aparas (kg)</th>
+                <th class="p-3">Perdas (kg)</th>
+                <th class="p-3">Bife Limpo (kg) / %</th>
+                <th class="p-3">Observações</th>
+                <th class="p-3">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="lista-historico-aparas-diario"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ETAPA 6: STEAKS VENDIDOS & MÉDIA REAL DO DIA (PATRÃO) -->
+    <section id="tab-steaks" class="tab-content space-y-6 hidden">
+      <div class="border-b pb-3 flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800">🍽️ Steaks Vendidos no Salão & Peso Médio Real</h2>
+          <p class="text-xs text-gray-500">Informe a quantidade de steaks vendidos passados pelo patrão para calcular o peso médio real do dia.</p>
+        </div>
+        <span class="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-semibold">Etapa 6</span>
+      </div>
+
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
+        <div class="flex flex-wrap justify-between items-center gap-3 border-b pb-3">
+          <h3 class="text-sm font-bold text-slate-800">Lançamento de Vendas do Dia (Média Real por Steak)</h3>
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-slate-700">Data do Serviço *</label>
+            <input type="date" id="steaks-data" onchange="calcularMediaRealSteaksDia()" class="border rounded-lg p-1.5 text-xs font-bold text-red-700 bg-slate-50 outline-none">
+          </div>
+        </div>
+
+        <form id="form-steaks-diario" onsubmit="handleSalvarSteaksVendidos(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-lg border text-xs">
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Proteína / Corte *</label>
+              <select id="steaks-corte" onchange="calcularMediaRealSteaksDia()" required class="w-full border rounded-lg p-2 font-bold text-slate-800 bg-white outline-none">
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Quantidade de Steaks Vendidos *</label>
+              <input type="number" min="1" id="steaks-qtd-vendida" oninput="calcularMediaRealSteaksDia()" placeholder="Ex: 120" required class="w-full border rounded-lg p-2 font-bold text-slate-800 bg-white outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Carne Limpa Disponível no Dia (kg)</label>
+              <input type="text" id="steaks-carne-limpa-display" readonly class="w-full border rounded-lg p-2 font-bold text-emerald-700 bg-gray-100 outline-none" value="0.000 kg">
+            </div>
+          </div>
+
+          <!-- RESULTADO DA MÉDIA REAL DO DIA -->
+          <div class="bg-slate-900 text-white p-5 rounded-xl shadow-md grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div>
+              <span class="text-gray-400 block mb-1">Peso Médio Real Calculado por Steak:</span>
+              <span id="steaks-media-gramas-display" class="text-2xl font-bold text-emerald-400">0.0 g / steak</span>
+              <span class="text-[10px] text-gray-400 block mt-0.5">Matemática pura: (Carne Limpa ÷ Qtd Steaks)</span>
+            </div>
+
+            <div>
+              <span class="text-gray-400 block mb-1">Diagnóstico Diário de Porcionamento:</span>
+              <span id="steaks-diagnostico-display" class="text-xs font-semibold block mt-1 text-gray-300">Aguardando preenchimento dos dados do dia...</span>
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-2">
+            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-6 py-2.5 rounded-lg shadow transition-all">
+              Salvar Fechamento de Média do Dia
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <h3 class="text-md font-bold text-slate-800 mb-4">Histórico Comparativo de Média Real por Steak</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600">
+            <thead class="bg-slate-100 text-slate-700 uppercase border-b">
+              <tr>
+                <th class="p-3">Data</th>
+                <th class="p-3">Proteína</th>
+                <th class="p-3">Carne Limpa Usada</th>
+                <th class="p-3">Steaks Vendidos</th>
+                <th class="p-3">Média Real (g/steak)</th>
+                <th class="p-3">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="lista-historico-steaks-diario"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ETAPA 7: CENTRAL DE CADASTROS & AJUSTES (PROTEGIDA) -->
+    <section id="tab-cadastros" class="tab-content space-y-6 hidden">
+      <div class="border-b pb-3 flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800">⚙️ Central de Cadastros & Ajustes Administrador</h2>
+          <p class="text-xs text-gray-500">Gerencie contadores sequenciais (P1), proteínas, fornecedores e usuários do sistema.</p>
+        </div>
+        <span class="text-xs bg-red-100 text-red-800 border border-red-300 px-2.5 py-1 rounded-lg font-bold">Acesso Restrito</span>
+      </div>
+
+      <!-- PAINEL DE BLOQUEIO POR SENHA ADM -->
+      <div id="box-login-adm" class="bg-slate-900 text-white p-6 rounded-xl shadow-md space-y-4 max-w-md mx-auto">
+        <div class="text-center">
+          <span class="text-2xl block mb-1">🔐</span>
+          <h3 class="font-bold text-base text-red-500">Painel do Administrador Protegido</h3>
+          <p class="text-xs text-gray-400">Digite a senha master para liberar os cadastros e edições.</p>
+        </div>
+
+        <div class="space-y-3">
+          <input type="password" id="input-senha-adm" placeholder="Digite a Senha do ADM" class="w-full border rounded-lg p-2.5 text-slate-900 text-center font-bold text-sm outline-none">
+          <button onclick="validarSenhaADM()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2.5 rounded-lg shadow">
+            Desbloquear Painel ADM
+          </button>
+        </div>
+      </div>
+
+      <!-- CONTEÚDO LIBERADO APÓS SENHA -->
+      <div id="conteudo-adm-liberado" class="hidden space-y-6">
+
+        <!-- VIRADA DE MÊS: RESET DE SEQUENCIAL (P1) -->
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex justify-between items-center border-b pb-3">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm">🗓️ Virada de Mês — Zerar Sequencial de Peças (P1)</h3>
+              <p class="text-[11px] text-gray-500">Ao clicar, a próxima caixa aberta da proteína selecionada voltará a contar a partir de <strong>P1</strong> para o novo mês.</p>
+            </div>
+            <button onclick="resetarTodosSequenciaisViradaMes()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-3.5 py-2 rounded-lg shadow">
+              🔄 Virada de Mês (Zerar TODAS para P1)
+            </button>
+          </div>
+
+          <div id="grid-reset-sequenciais" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs"></div>
+        </div>
+
+        <!-- PAINEL DE GESTÃO DE USUÁRIOS E SENHAS -->
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+          <h3 class="font-bold text-slate-800 text-sm border-b pb-2">👥 Cadastro de Usuários & Senhas</h3>
+          <form id="form-novo-usuario" onsubmit="handleCadastrarUsuario(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Nome do Funcionário *</label>
+              <input type="text" id="usr-nome" required placeholder="Ex: Eli (Açougue)" class="w-full border rounded-lg p-2 outline-none">
+            </div>
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Senha de Acesso *</label>
+              <input type="password" id="usr-senha" required placeholder="Ex: 1234" class="w-full border rounded-lg p-2 outline-none">
+            </div>
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Perfil de Acesso *</label>
+              <select id="usr-perfil" class="w-full border rounded-lg p-2 outline-none bg-slate-50 font-bold text-slate-800">
+                <option value="Administrador">👑 Administrador (Acesso Total)</option>
+                <option value="Producao">🥩 Produção / Açougue (Câmara & Eli)</option>
+                <option value="Consulta">👁️ Somente Consulta (Leitura)</option>
+              </select>
+            </div>
+            <div class="sm:col-span-3 flex justify-end pt-2">
+              <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-lg shadow">Cadastrar Usuário</button>
+            </div>
+          </form>
+
+          <div class="border-t pt-3">
+            <span class="text-xs font-bold text-gray-700 block mb-2">Usuários Cadastrados no Sistema:</span>
+            <div id="lista-usuarios-cadastrados" class="space-y-2 text-xs"></div>
+          </div>
+        </div>
+
+        <!-- CENTRAL DE CADASTROS DE PROTEÍNAS E FORNECEDORES -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <h3 class="font-bold text-slate-800 text-sm border-b pb-2">🥩 Cadastrar Nova Proteína / Corte</h3>
+            <div class="flex gap-2">
+              <input type="text" id="input-nova-proteina" placeholder="Ex: Denver Cut, Prime Rib..." class="w-full border rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-red-500">
+              <button onclick="cadastrarNovaProteina()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow">Cadastrar</button>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-gray-500 block mb-2">Proteínas Ativas:</span>
+              <div id="lista-proteinas-tags" class="flex flex-wrap gap-1.5"></div>
+            </div>
+          </div>
+
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <h3 class="font-bold text-slate-800 text-sm border-b pb-2">🏭 Cadastrar Novo Fornecedor</h3>
+            <div class="flex gap-2">
+              <input type="text" id="input-novo-fornecedor-admin" placeholder="Ex: Frigorífico Swift..." class="w-full border rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-red-500">
+              <button onclick="cadastrarNovoFornecedorAdmin()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-lg shadow">Cadastrar</button>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-gray-500 block mb-2">Fornecedores Ativos:</span>
+              <div id="lista-fornecedores-tags" class="flex flex-wrap gap-1.5"></div>
             </div>
           </div>
         </div>
 
-        <!-- PAINEL 2: AÇÕES GLOBAIS DE SISTEMA -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border space-y-4">
-          <h2 class="text-lg font-bold text-gray-800 border-b pb-2">Ações do Sistema</h2>
-          <div class="flex flex-col sm:flex-row gap-4">
-            
-            <!-- Virada de Mês -->
-            <button onclick="executarViradaDeMes()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded text-sm shadow transition">
-              🔄 Virada de Mês (Reset P1)
-            </button>
-
-            <!-- Reset Geral -->
-            <button onclick="executarResetGeral()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded text-sm shadow transition">
-              ⚠️ Reiniciar Tudo (Reset de Fábrica)
-            </button>
-
-          </div>
-        </div>
-
       </div>
-
     </section>
 
   </main>
 
+  <!-- MODAL DE EDIÇÃO DE PEÇA (ADMIN) -->
+  <div id="modal-editar-peca" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 id="modal-edit-tag-titulo" class="font-bold text-slate-800 text-sm">✏️ Editar Ficha da Peça (ADM)</h3>
+        <button onclick="fecharModalEditarPeca()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Peso da Peça (kg) *</label>
+          <input type="number" step="0.001" id="modal-edit-peso" class="w-full border rounded-lg p-2 font-bold text-red-700 outline-none">
+        </div>
+
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Localização Atual *</label>
+          <select id="modal-edit-localizacao" class="w-full border rounded-lg p-2 font-semibold text-slate-800 outline-none bg-slate-50">
+            <option value="Câmara Fria">❄️ Câmara Fria</option>
+            <option value="Geladeira do Eli">🧊 Geladeira do Eli</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Status no Sistema *</label>
+          <select id="modal-edit-status" class="w-full border rounded-lg p-2 font-semibold text-slate-800 outline-none bg-slate-50">
+            <option value="Em Estoque">🟢 Em Estoque (Ativa)</option>
+            <option value="Enviada p/ Aparas">🟡 Enviada p/ Aparas (Baixada no Eli)</option>
+            <option value="Descarte / Estrago">🗑️ Descarte por Estrago / Avaria</option>
+            <option value="Baixado">🔴 Baixada / Venda Direta</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Motivo do Descarte / Alteração (Se aplicável)</label>
+          <input type="text" id="modal-edit-motivo" placeholder="Ex: Perda de vácuo / Queda de energia" class="w-full border rounded-lg p-2 outline-none">
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 border-t pt-4 text-xs">
+        <button onclick="fecharModalEditarPeca()" class="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-lg">Cancelar</button>
+        <button onclick="salvarEdicaoPecaAdmin()" class="px-4 py-2 bg-emerald-600 text-white font-bold rounded-lg shadow hover:bg-emerald-700">Salvar Alterações</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // ESTADO E PERSISTÊNCIA (LocalStorage)
-    let caixas = JSON.parse(localStorage.getItem('pellegrino_caixas')) || [
-      { id: '1', lote: 'CX-TESTE-1', corte: 'Ancho', peso: 15.20, status: 'Ativa' },
-      { id: '2', lote: 'CX-TESTE-2', corte: 'Picanha', peso: 12.80, status: 'Ativa' }
+    const SENHA_ADM_MASTER = "990992";
+    let admAutenticado = false;
+
+    let fornecedores = JSON.parse(localStorage.getItem('pel_fornecedores')) || ["A3 Mercado", "Frigorífico Minerva", "JBS / Friboi", "Marfrig"];
+    let cortesList = JSON.parse(localStorage.getItem('pel_cortes')) || ["Ancho", "Chorizo", "Picanha", "Tomahawk", "Fraldinha"];
+    let nfsList = JSON.parse(localStorage.getItem('pel_nfs')) || [];
+    let caixasPendentesList = JSON.parse(localStorage.getItem('pel_caixas_pendentes')) || [];
+    let caixasAbertasList = JSON.parse(localStorage.getItem('pel_caixas_abertas')) || [];
+    let pecasEstoqueList = JSON.parse(localStorage.getItem('pel_pecas_estoque')) || [];
+    let aparasDiarioHistorico = JSON.parse(localStorage.getItem('pel_aparas_diario_hist')) || [];
+    let steaksVendidosHistorico = JSON.parse(localStorage.getItem('pel_steaks_vendidos_hist')) || [];
+    let sequencialCortes = JSON.parse(localStorage.getItem('pel_seq_cortes')) || {};
+    let usuariosList = JSON.parse(localStorage.getItem('pel_usuarios')) || [
+      { id: 1, nome: "Fábio (Master)", perfil: "Administrador", senha: "admin" },
+      { id: 2, nome: "Eli (Cozinha)", perfil: "Producao", senha: "123" }
     ];
 
-    let pecas = JSON.parse(localStorage.getItem('pellegrino_pecas')) || [
-      { id: '1', etiqueta: 'Ancho-P1', corte: 'Ancho', lote: 'CX-TESTE-1', peso: 2.10, local: 'Geladeira Eli' },
-      { id: '2', etiqueta: 'Ancho-P2', corte: 'Ancho', lote: 'CX-TESTE-1', peso: 2.30, local: 'Geladeira Eli' },
-      { id: '3', etiqueta: 'Picanha-P1', corte: 'Picanha', lote: 'CX-TESTE-2', peso: 1.45, local: 'Walk-in' }
-    ];
+    let caixaEmPesagemAtual = null;
+    let pecaEmEdicaoAdminId = null;
+    let filtroProteinaAtual = "TODAS";
 
-    function salvarDados() {
-      localStorage.setItem('pellegrino_caixas', JSON.stringify(caixas));
-      localStorage.setItem('pellegrino_pecas', JSON.stringify(pecas));
-      renderizarTabelas();
+    window.onload = function() {
+      var hojeStr = new Date().toISOString().split('T')[0];
+      document.getElementById('nf-data').value = hojeStr;
+      document.getElementById('input-data-baixa-eli').value = hojeStr;
+      document.getElementById('apara-diaria-data').value = hojeStr;
+      document.getElementById('steaks-data').value = hojeStr;
+
+      renderFornecedoresSelect();
+      addNFCorteRow();
+      renderNFList();
+      renderCaixasFechadasGrid();
+      renderCaixasAbertasTable();
+      renderFiltrosProteinaEtapa3();
+      renderEstoqueCamaraFria();
+      renderGeladeiraEliEtapa4();
+      renderEtapa5AparasDiario();
+      renderEtapa6SteaksVendidos();
+      renderDashboardEtapa0();
+    };
+
+    function validarSenhaADM() {
+      var senhaInp = document.getElementById('input-senha-adm').value.trim();
+      if(senhaInp === SENHA_ADM_MASTER) {
+        admAutenticado = true;
+        document.getElementById('box-login-adm').classList.add('hidden');
+        document.getElementById('conteudo-adm-liberado').classList.remove('hidden');
+        document.getElementById('badge-adm-status').className = "text-xs bg-emerald-900 border border-emerald-700 px-3 py-1 rounded-full text-emerald-300 font-bold";
+        document.getElementById('badge-adm-status').innerText = "🔓 ADM Desbloqueado";
+        renderCadastrosAdminTab();
+      } else {
+        alert("Senha incorreta! Digite a senha master do Administrador.");
+      }
     }
 
-    // CONTROLE DE ABAS
     function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(el => {
-        el.classList.remove('border-b-2', 'border-red-700', 'text-red-700');
-        el.classList.add('text-gray-500');
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('nav button').forEach(el => {
+        el.classList.remove('tab-active');
+        el.classList.add('text-gray-600');
       });
 
-      document.getElementById(tabId).classList.add('active');
-      const btnAtivo = document.getElementById(`btn-${tabId}`);
-      if(btnAtivo) {
-        btnAtivo.classList.add('border-b-2', 'border-red-700', 'text-red-700');
-        btnAtivo.classList.remove('text-gray-500');
+      var target = document.getElementById(tabId);
+      if(target) target.classList.remove('hidden');
+
+      var activeBtn = document.getElementById('btn-' + tabId);
+      if(activeBtn) {
+        activeBtn.classList.add('tab-active');
+        activeBtn.classList.remove('text-gray-600');
       }
+
+      if(tabId === 'tab-dash') { renderDashboardEtapa0(); }
+      if(tabId === 'tab-caixas') { renderCaixasFechadasGrid(); renderCaixasAbertasTable(); }
+      if(tabId === 'tab-estoque') { renderFiltrosProteinaEtapa3(); renderEstoqueCamaraFria(); }
+      if(tabId === 'tab-eli') { renderGeladeiraEliEtapa4(); }
+      if(tabId === 'tab-aparas') { renderEtapa5AparasDiario(); }
+      if(tabId === 'tab-steaks') { renderEtapa6SteaksVendidos(); }
+      if(tabId === 'tab-cadastros' && admAutenticado) { renderCadastrosAdminTab(); }
     }
 
-    // AUTENTICAÇÃO SENHA MASTER (990992)
-    function autenticarMaster() {
-      const senhaInput = document.getElementById('inputSenhaMaster').value;
-      if (senhaInput === '990992') {
-        document.getElementById('loginMasterBox').classList.add('hidden');
-        document.getElementById('conteudoMaster').classList.remove('hidden');
+    /* --- ETAPA 6: STEAKS VENDIDOS & MÉDIA REAL DO DIA (PATRÃO) --- */
+
+    function renderEtapa6SteaksVendidos() {
+      var selCorte = document.getElementById('steaks-corte');
+      if(!selCorte) return;
+
+      selCorte.innerHTML = cortesList.map(c => `<option value="${c}">${c}</option>`).join('');
+      calcularMediaRealSteaksDia();
+      renderTabelaHistoricoSteaksVendidos();
+    }
+
+    function calcularMediaRealSteaksDia() {
+      var dataSel = document.getElementById('steaks-data').value;
+      var corteSel = document.getElementById('steaks-corte').value;
+      var qtdVendida = parseInt(document.getElementById('steaks-qtd-vendida').value) || 0;
+
+      var regApara = aparasDiarioHistorico.find(a => a.data === dataSel && (a.corte === corteSel || a.corte === "TODAS"));
+      var pesoCarneLimpa = 0;
+
+      if(regApara) {
+        pesoCarneLimpa = regApara.pesoUtil;
       } else {
-        alert('Senha Master Incorreta!');
+        var pecasDoDia = pecasEstoqueList.filter(p => p.dataBaixaEli === dataSel && p.corte === corteSel);
+        pesoCarneLimpa = pecasDoDia.reduce((acc, p) => acc + p.peso, 0);
+      }
+
+      document.getElementById('steaks-carne-limpa-display').value = pesoCarneLimpa.toFixed(3) + " kg";
+
+      var displayMedia = document.getElementById('steaks-media-gramas-display');
+      var displayDiag = document.getElementById('steaks-diagnostico-display');
+
+      if(pesoCarneLimpa === 0 || qtdVendida === 0) {
+        displayMedia.innerText = "0.0 g / steak";
+        displayDiag.innerText = "Informe a quantidade de steaks e certifique-se de que houve baixa na Geladeira do Eli para esta data.";
+        return;
+      }
+
+      var mediaGramas = (pesoCarneLimpa * 1000) / qtdVendida;
+      displayMedia.innerText = mediaGramas.toFixed(1) + " g / steak";
+
+      var histCorte = steaksVendidosHistorico.filter(h => h.corte === corteSel);
+      if(histCorte.length > 0) {
+        var mediaAnterior = histCorte[0].mediaGramas;
+        var diff = mediaGramas - mediaAnterior;
+
+        if(Math.abs(diff) <= 15) {
+          displayDiag.className = "text-xs font-bold block mt-1 text-emerald-400";
+          displayDiag.innerText = `🟢 Média estável em relação ao último lançamento (${mediaAnterior.toFixed(1)}g/steak).`;
+        } else if(diff > 15) {
+          displayDiag.className = "text-xs font-bold block mt-1 text-amber-400";
+          displayDiag.innerText = `🟠 Média +${diff.toFixed(1)}g mais pesada por steak que a última do ${corteSel}. Peças maiores ou corte mais espesso.`;
+        } else {
+          displayDiag.className = "text-xs font-bold block mt-1 text-sky-400";
+          displayDiag.innerText = `🔵 Média ${Math.abs(diff).toFixed(1)}g mais leve por steak que a última do ${corteSel}.`;
+        }
+      } else {
+        displayDiag.className = "text-xs font-semibold block mt-1 text-emerald-400";
+        displayDiag.innerText = `🟢 Primeiro lançamento de média para o ${corteSel} registrado!`;
       }
     }
 
-    // CADASTRO DE ENTRADA
-    function salvarEntrada(e) {
+    function handleSalvarSteaksVendidos(e) {
       e.preventDefault();
-      const corte = document.getElementById('entCorte').value;
-      const lote = document.getElementById('entLote').value.trim();
-      const peso = parseFloat(document.getElementById('entPeso').value);
+      var dataSel = document.getElementById('steaks-data').value;
+      var corteSel = document.getElementById('steaks-corte').value;
+      var qtdVendida = parseInt(document.getElementById('steaks-qtd-vendida').value) || 0;
 
-      const novaCaixa = {
-        id: Date.now().toString(),
-        lote: lote,
-        corte: corte,
-        peso: peso,
-        status: 'Ativa'
+      var regApara = aparasDiarioHistorico.find(a => a.data === dataSel && (a.corte === corteSel || a.corte === "TODAS"));
+      var pesoCarneLimpa = regApara ? regApara.pesoUtil : 0;
+
+      if(pesoCarneLimpa === 0) {
+        var pecasDoDia = pecasEstoqueList.filter(p => p.dataBaixaEli === dataSel && p.corte === corteSel);
+        pesoCarneLimpa = pecasDoDia.reduce((acc, p) => acc + p.peso, 0);
+      }
+
+      if(pesoCarneLimpa === 0) {
+        alert("Atenção: Não há registros de baixa no Eli ou Aparas para este corte nesta data.");
+        return;
+      }
+
+      var mediaGramas = (pesoCarneLimpa * 1000) / qtdVendida;
+
+      var novoReg = {
+        id: Date.now(),
+        data: dataSel,
+        corte: corteSel,
+        carneLimpaKg: pesoCarneLimpa,
+        qtdVendida: qtdVendida,
+        mediaGramas: mediaGramas
       };
 
-      caixas.push(novaCaixa);
-      
-      // Gera automaticamente a P1 de entrada inicial
-      pecas.push({
-        id: (Date.now() + 1).toString(),
-        etiqueta: `${corte}-P1`,
-        corte: corte,
-        lote: lote,
-        peso: (peso / 6).toFixed(2), // Estimativa de peso por peça
-        local: 'Walk-in'
+      steaksVendidosHistorico.unshift(novoReg);
+      localStorage.setItem('pel_steaks_vendidos_hist', JSON.stringify(steaksVendidosHistorico));
+
+      document.getElementById('steaks-qtd-vendida').value = "";
+      renderTabelaHistoricoSteaksVendidos();
+      alert(`Média de ${mediaGramas.toFixed(1)}g por steak de ${corteSel} salva com sucesso!`);
+    }
+
+    function renderTabelaHistoricoSteaksVendidos() {
+      var tbody = document.getElementById('lista-historico-steaks-diario');
+      if(!tbody) return;
+
+      if(steaksVendidosHistorico.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-gray-400">Nenhum lançamento de steaks efetuado até o momento.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = steaksVendidosHistorico.map(h => `
+        <tr class="border-b hover:bg-slate-50">
+          <td class="p-3 font-bold text-slate-800">${h.data}</td>
+          <td class="p-3 font-semibold text-slate-800">${h.corte}</td>
+          <td class="p-3 font-bold text-emerald-700">${h.carneLimpaKg.toFixed(3)} kg</td>
+          <td class="p-3 font-bold text-slate-900">${h.qtdVendida} steaks</td>
+          <td class="p-3 font-bold text-red-700 text-sm">${h.mediaGramas.toFixed(1)} g / steak</td>
+          <td class="p-3">
+            <button onclick="excluirSteakHistorico(${h.id})" class="text-red-600 hover:underline font-bold">Excluir</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function excluirSteakHistorico(id) {
+      if(confirm("Deseja excluir este registro do histórico de steaks?")) {
+        steaksVendidosHistorico = steaksVendidosHistorico.filter(h => h.id !== id);
+        localStorage.setItem('pel_steaks_vendidos_hist', JSON.stringify(steaksVendidosHistorico));
+        renderTabelaHistoricoSteaksVendidos();
+      }
+    }
+
+    /* --- CADASTROS ADM & USUÁRIOS --- */
+
+    function renderCadastrosAdminTab() {
+      var containerProt = document.getElementById('lista-proteinas-tags');
+      var containerForn = document.getElementById('lista-fornecedores-tags');
+      var containerResets = document.getElementById('grid-reset-sequenciais');
+      var containerUsrs = document.getElementById('lista-usuarios-cadastrados');
+
+      if(containerProt) {
+        containerProt.innerHTML = cortesList.map(c => `
+          <span class="bg-slate-100 text-slate-800 text-xs px-2.5 py-1 rounded-full font-bold border flex items-center gap-1">
+            ${c} <button onclick="removerProteinaAdmin('${c}')" class="text-red-500 hover:text-red-700 ml-1">✕</button>
+          </span>
+        `).join('');
+      }
+
+      if(containerForn) {
+        containerForn.innerHTML = fornecedores.map(f => `
+          <span class="bg-slate-100 text-slate-800 text-xs px-2.5 py-1 rounded-full font-bold border flex items-center gap-1">
+            ${f} <button onclick="removerFornecedorAdmin('${f}')" class="text-red-500 hover:text-red-700 ml-1">✕</button>
+          </span>
+        `).join('');
+      }
+
+      if(containerResets) {
+        containerResets.innerHTML = cortesList.map(c => {
+          var seqAtual = sequencialCortes[c] || 0;
+          return `
+            <div class="bg-slate-50 border border-slate-200 p-3 rounded-lg flex justify-between items-center">
+              <div>
+                <span class="font-bold text-slate-800 block">${c}</span>
+                <span class="text-[10px] text-gray-500">Última tag gerada: P${seqAtual}</span>
+              </div>
+              <button onclick="resetarSequencialProteina('${c}')" class="bg-amber-100 text-amber-900 hover:bg-amber-200 font-bold px-2.5 py-1 rounded text-[11px]">
+                Zerar p/ P1
+              </button>
+            </div>
+          `;
+        }).join('');
+      }
+
+      if(containerUsrs) {
+        containerUsrs.innerHTML = usuariosList.map(u => `
+          <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-lg flex justify-between items-center">
+            <div>
+              <span class="font-bold text-slate-800 block">${u.nome}</span>
+              <span class="text-[10px] text-gray-500">Perfil: ${u.perfil}</span>
+            </div>
+            <button onclick="removerUsuarioAdmin(${u.id})" class="text-red-600 font-bold hover:underline">Excluir</button>
+          </div>
+        `).join('');
+      }
+    }
+
+    function resetarSequencialProteina(corte) {
+      if(confirm(`Confirmar virada de mês para ${corte}? As próximas caixas abertas começarão no P1.`)) {
+        sequencialCortes[corte] = 0;
+        localStorage.setItem('pel_seq_cortes', JSON.stringify(sequencialCortes));
+        renderCadastrosAdminTab();
+        alert(`Virada de mês ativada para ${corte}! Próxima peça será P1.`);
+      }
+    }
+
+    function resetarTodosSequenciaisViradaMes() {
+      if(confirm("⚠️ ATENÇÃO: Confirmar Virada de Mês para TODAS as proteínas? Todas as próximas caixas começarão pelo P1.")) {
+        cortesList.forEach(c => sequencialCortes[c] = 0);
+        localStorage.setItem('pel_seq_cortes', JSON.stringify(sequencialCortes));
+        renderCadastrosAdminTab();
+        alert("Virada de Mês Geral concluída! Todos os contadores zeraram para P1.");
+      }
+    }
+
+    function handleCadastrarUsuario(e) {
+      e.preventDefault();
+      var nome = document.getElementById('usr-nome').value.trim();
+      var senha = document.getElementById('usr-senha').value.trim();
+      var perfil = document.getElementById('usr-perfil').value;
+
+      if(nome && senha) {
+        var newUsr = { id: Date.now(), nome: nome, senha: senha, perfil: perfil };
+        usuariosList.push(newUsr);
+        localStorage.setItem('pel_usuarios', JSON.stringify(usuariosList));
+        document.getElementById('form-novo-usuario').reset();
+        renderCadastrosAdminTab();
+        alert(`Usuário ${nome} cadastrado!`);
+      }
+    }
+
+    function removerUsuarioAdmin(id) {
+      if(confirm("Remover este usuário do sistema?")) {
+        usuariosList = usuariosList.filter(u => u.id !== id);
+        localStorage.setItem('pel_usuarios', JSON.stringify(usuariosList));
+        renderCadastrosAdminTab();
+      }
+    }
+
+    function cadastrarNovaProteina() {
+      var inp = document.getElementById('input-nova-proteina');
+      var val = inp.value.trim();
+      if(val) {
+        if(!cortesList.includes(val)) {
+          cortesList.push(val);
+          localStorage.setItem('pel_cortes', JSON.stringify(cortesList));
+          inp.value = "";
+          renderCadastrosAdminTab();
+          renderFiltrosProteinaEtapa3();
+          renderEtapa6SteaksVendidos();
+          alert(`Proteína "${val}" cadastrada com sucesso!`);
+        }
+      }
+    }
+
+    function removerProteinaAdmin(corte) {
+      if(confirm(`Deseja remover a proteína ${corte} das opções?`)) {
+        cortesList = cortesList.filter(c => c !== corte);
+        localStorage.setItem('pel_cortes', JSON.stringify(cortesList));
+        renderCadastrosAdminTab();
+        renderFiltrosProteinaEtapa3();
+        renderEtapa6SteaksVendidos();
+      }
+    }
+
+    function cadastrarNovoFornecedorAdmin() {
+      var inp = document.getElementById('input-novo-fornecedor-admin');
+      var val = inp.value.trim();
+      if(val) {
+        if(!fornecedores.includes(val)) {
+          fornecedores.push(val);
+          localStorage.setItem('pel_fornecedores', JSON.stringify(fornecedores));
+          inp.value = "";
+          renderCadastrosAdminTab();
+          renderFornecedoresSelect();
+          alert(`Fornecedor "${val}" cadastrado!`);
+        }
+      }
+    }
+
+    function removerFornecedorAdmin(f) {
+      if(confirm(`Deseja remover o fornecedor ${f}?`)) {
+        fornecedores = fornecedores.filter(item => item !== f);
+        localStorage.setItem('pel_fornecedores', JSON.stringify(fornecedores));
+        renderCadastrosAdminTab();
+        renderFornecedoresSelect();
+      }
+    }
+
+    /* --- MODAL DE EDIÇÃO DE PEÇA (ADMIN CONTROLE TOTAL) --- */
+
+    function abrirModalEditarPecaAdmin(pecaId) {
+      var peca = pecasEstoqueList.find(p => p.id === pecaId);
+      if(!peca) return;
+
+      pecaEmEdicaoAdminId = pecaId;
+      document.getElementById('modal-edit-tag-titulo').innerText = `✏️ Editar — ${peca.tag} (${peca.corte})`;
+      document.getElementById('modal-edit-peso').value = peca.peso;
+      document.getElementById('modal-edit-localizacao').value = peca.localizacao;
+      document.getElementById('modal-edit-status').value = peca.status;
+      document.getElementById('modal-edit-motivo').value = peca.motivoSaida || "";
+
+      document.getElementById('modal-editar-peca').classList.remove('hidden');
+    }
+
+    function fecharModalEditarPeca() {
+      pecaEmEdicaoAdminId = null;
+      document.getElementById('modal-editar-peca').classList.add('hidden');
+    }
+
+    function salvarEdicaoPecaAdmin() {
+      if(!pecaEmEdicaoAdminId) return;
+
+      var peca = pecasEstoqueList.find(p => p.id === pecaEmEdicaoAdminId);
+      if(!peca) return;
+
+      var novoPeso = parseFloat(document.getElementById('modal-edit-peso').value) || 0;
+      var novaLoc = document.getElementById('modal-edit-localizacao').value;
+      var novoStatus = document.getElementById('modal-edit-status').value;
+      var motivo = document.getElementById('modal-edit-motivo').value.trim();
+
+      peca.peso = novoPeso;
+      peca.localizacao = novaLoc;
+      peca.status = novoStatus;
+      if(motivo) peca.motivoSaida = motivo;
+
+      localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
+
+      fecharModalEditarPeca();
+      renderDashboardEtapa0();
+      renderEstoqueCamaraFria();
+      renderGeladeiraEliEtapa4();
+      buscarRastreioPeca();
+
+      alert(`Peça ${peca.tag} atualizada com sucesso pelo Administrador!`);
+    }
+
+    /* --- RASTREABILIDADE & DASHBOARD --- */
+
+    function renderDashboardEtapa0() {
+      var pecasCamara = pecasEstoqueList.filter(p => p.localizacao === "Câmara Fria" && p.status === "Em Estoque");
+      var pecasGeral = pecasEstoqueList.filter(p => p.status === "Em Estoque");
+      var pesoTotal = pecasGeral.reduce((acc, p) => acc + p.peso, 0);
+
+      document.getElementById('dash-total-peso').innerText = pesoTotal.toFixed(3) + " kg";
+      document.getElementById('dash-total-pecas').innerText = pecasCamara.length + " peças";
+
+      var peçasCriticas = pecasGeral.filter(p => calcularDiasEstoque(p.dataNF) >= 60).length;
+      document.getElementById('dash-total-criticas').innerText = peçasCriticas + " peças";
+
+      if(aparasDiarioHistorico.length > 0) {
+        var somaPorc = aparasDiarioHistorico.reduce((acc, h) => acc + h.porcUtil, 0);
+        var media = somaPorc / aparasDiarioHistorico.length;
+        document.getElementById('dash-aproveitamento-medio').innerText = media.toFixed(1) + "%";
+      } else {
+        document.getElementById('dash-aproveitamento-medio').innerText = "100.0%";
+      }
+
+      verificarInversaoLotesAntigos(pecasCamara);
+      renderAlertasRecompra(pecasCamara);
+    }
+
+    function verificarInversaoLotesAntigos(pecasCamara) {
+      var cardAlert = document.getElementById('card-alerta-lote-antigo');
+      var txtAlert = document.getElementById('txt-alerta-lote-antigo');
+
+      if(!cardAlert || !txtAlert) return;
+
+      var peçasAntigas = pecasCamara.filter(p => calcularDiasEstoque(p.dataNF) >= 30);
+
+      if(peçasAntigas.length > 0) {
+        cardAlert.classList.remove('hidden');
+        var resumoAntigas = peçasAntigas.map(p => `<strong>${p.tag}</strong> (${p.corte} - ${calcularDiasEstoque(p.dataNF)} dias)`).join(', ');
+        txtAlert.innerHTML = `Existem <strong>${peçasAntigas.length} peça(s)</strong> do lote anterior na câmara fria que devem ser transferidas para o Eli antes de abrir o lote novo: <br>${resumoAntigas}`;
+      } else {
+        cardAlert.classList.add('hidden');
+      }
+    }
+
+    function renderAlertasRecompra(pecasCamara) {
+      var container = document.getElementById('container-alertas-recompra');
+      if(!container) return;
+
+      var contagemPorCorte = {};
+      cortesList.forEach(c => contagemPorCorte[c] = 0);
+
+      pecasCamara.forEach(p => {
+        if(contagemPorCorte[p.corte] !== undefined) {
+          contagemPorCorte[p.corte]++;
+        } else {
+          contagemPorCorte[p.corte] = 1;
+        }
       });
 
-      salvarDados();
-      document.getElementById('formEntrada').reset();
-      alert(`Caixa ${lote} e peças cadastradas com sucesso!`);
-    }
+      var htmlAlertas = [];
 
-    // EXCLUSÃO INDIVIDUAL DE CAIXA
-    function excluirCaixaIndividual() {
-      const loteInput = document.getElementById('inputExcluirCaixa').value.trim();
-      if (!loteInput) return alert('Informe o lote da caixa que deseja excluir.');
+      for(var corte in contagemPorCorte) {
+        var qtd = contagemPorCorte[corte];
 
-      if (confirm(`Tem certeza que deseja excluir a caixa/lote ${loteInput} e suas peças?`)) {
-        const caixasIniciais = caixas.length;
-        caixas = caixas.filter(c => c.lote !== loteInput && c.id !== loteInput);
-        pecas = pecas.filter(p => p.lote !== loteInput);
-
-        if (caixas.length === caixasIniciais) {
-          return alert('Nenhuma caixa encontrada com este lote.');
+        if(qtd <= 4) {
+          htmlAlertas.push(`
+            <div class="bg-red-50 border-2 border-red-500 p-3 rounded-lg flex justify-between items-center text-xs shadow-sm">
+              <div>
+                <span class="font-bold text-red-900 block text-sm">${corte}</span>
+                <span class="text-red-700 font-semibold block mt-0.5">🚨 FAZER PEDIDO URGENTE</span>
+                <span class="text-[10px] text-red-600 block">Prazo fornecedor: 1 a 2 dias</span>
+              </div>
+              <span class="text-lg font-bold text-red-700 bg-red-100 px-3 py-1 rounded-full">${qtd} pçs</span>
+            </div>
+          `);
+        } else if(qtd <= 7) {
+          htmlAlertas.push(`
+            <div class="bg-amber-50 border-2 border-amber-400 p-3 rounded-lg flex justify-between items-center text-xs shadow-sm">
+              <div>
+                <span class="font-bold text-amber-900 block text-sm">${corte}</span>
+                <span class="text-amber-800 font-semibold block mt-0.5">⚠️ Estoque Baixando</span>
+                <span class="text-[10px] text-amber-700 block">Atenção ao giro</span>
+              </div>
+              <span class="text-lg font-bold text-amber-800 bg-amber-100 px-3 py-1 rounded-full">${qtd} pçs</span>
+            </div>
+          `);
+        } else {
+          htmlAlertas.push(`
+            <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-lg flex justify-between items-center text-xs">
+              <div>
+                <span class="font-bold text-slate-800 block">${corte}</span>
+                <span class="text-emerald-700 font-semibold block text-[11px]">🟢 Estoque Conforme</span>
+              </div>
+              <span class="text-sm font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full">${qtd} pçs</span>
+            </div>
+          `);
         }
-
-        salvarDados();
-        alert(`Caixa ${loteInput} excluída com sucesso!`);
-        document.getElementById('inputExcluirCaixa').value = '';
       }
+
+      container.innerHTML = htmlAlertas.join('');
     }
 
-    // EXCLUSÃO INDIVIDUAL DE PEÇA (P1, P2...)
-    function excluirPecaIndividual() {
-      const etiquetaInput = document.getElementById('inputExcluirPeca').value.trim();
-      if (!etiquetaInput) return alert('Informe a etiqueta da peça (Ex: Ancho-P1).');
+    function buscarRastreioPeca() {
+      var termo = document.getElementById('input-busca-rastreio').value.trim().toLowerCase();
+      var containerRes = document.getElementById('resultado-busca-container');
+      var divDetalhes = document.getElementById('rastreio-detalhes');
 
-      if (confirm(`Tem certeza que deseja excluir a peça ${etiquetaInput}?`)) {
-        const pecasIniciais = pecas.length;
-        pecas = pecas.filter(p => p.etiqueta !== etiquetaInput && p.id !== etiquetaInput);
-
-        if (pecas.length === pecasIniciais) {
-          return alert('Peça não encontrada. Verifique a etiqueta.');
-        }
-
-        salvarDados();
-        alert(`Peça ${etiquetaInput} removida do estoque!`);
-        document.getElementById('inputExcluirPeca').value = '';
+      if(!termo) {
+        alert("Digite um termo para buscar (Ex: Ancho-P50 ou número da NF).");
+        return;
       }
+
+      var pecasEncontradas = pecasEstoqueList.filter(p => p.tag.toLowerCase().includes(termo) || p.nfNumero.toLowerCase().includes(termo));
+
+      containerRes.classList.remove('hidden');
+
+      if(pecasEncontradas.length === 0) {
+        divDetalhes.innerHTML = `<p class="text-red-600 font-bold">Nenhum registro localizado para "${termo}".</p>`;
+        return;
+      }
+
+      divDetalhes.innerHTML = pecasEncontradas.map(p => {
+        var dias = calcularDiasEstoque(p.dataNF);
+        return `
+          <div class="bg-white p-3 rounded-lg border border-slate-200 flex flex-wrap justify-between items-center gap-2">
+            <div>
+              <p><strong>Tag:</strong> <span class="text-red-700 font-bold text-sm">${p.tag}</span> | <strong>Corte:</strong> ${p.corte} | <strong>Peso:</strong> ${p.peso.toFixed(3)}kg</p>
+              <p class="text-gray-500"><strong>NF Origem:</strong> #${p.nfNumero} (${p.dataNF}) | <strong>Fornecedor:</strong> ${p.fornecedor}</p>
+              <p class="text-gray-500"><strong>Localização:</strong> ${p.localizacao} | <strong>Status:</strong> ${p.status} | <strong>Tempo:</strong> ${dias} dias</p>
+              ${p.motivoSaida ? `<p class="text-red-600 font-semibold"><strong>Observação/Avaria:</strong> ${p.motivoSaida}</p>` : ''}
+            </div>
+            <button onclick="abrirModalEditarPecaAdmin(${p.id})" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow">
+              ✏️ Editar Peça (Admin)
+            </button>
+          </div>
+        `;
+      }).join('');
     }
 
-    // VIRADA DE MÊS (RESET P1)
-    function executarViradaDeMes() {
-      if (confirm('Deseja executar a Virada de Mês? A numeração sequencial das peças voltará para P1.')) {
-        pecas = pecas.map(p => {
-          return { ...p, etiqueta: `${p.corte}-P1` };
-        });
-        salvarDados();
-        alert('Virada de Mês executada com sucesso! Peças reiniciadas em P1.');
+    function exportarDadosCSV() {
+      if(pecasEstoqueList.length === 0) {
+        alert("Nenhum dado de estoque disponível para exportar.");
+        return;
       }
+
+      var csvContent = "data:text/csv;charset=utf-8,Tag,Corte,Peso_kg,NF,Fornecedor,Data_NF,Localizacao,Status\n";
+
+      pecasEstoqueList.forEach(p => {
+        csvContent += `${p.tag},${p.corte},${p.peso.toFixed(3)},${p.nfNumero},${p.fornecedor},${p.dataNF},${p.localizacao},${p.status}\n`;
+      });
+
+      var encodedUri = encodeURI(csvContent);
+      var link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `estoque_pellegrino_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
 
-    // RESET GERAL (COMPLETO)
-    function executarResetGeral() {
-      const confirmacao = prompt('ATENÇÃO: Esta ação apaga TODOS os dados do aplicativo!\n\nDigite "ZERAR" para confirmar:');
-      if (confirmacao === 'ZERAR') {
+    function resetarDadosSistema() {
+      if(confirm("⚠️ ATENÇÃO: Deseja apagar TODOS os dados e zerar o estoque do sistema? Esta ação é irreversível.")) {
         localStorage.clear();
-        caixas = [];
-        pecas = [];
-        salvarDados();
-        alert('O aplicativo foi resetado com sucesso!');
         location.reload();
-      } else if (confirmacao !== null) {
-        alert('Confirmação incorreta. Nada foi alterado.');
       }
     }
 
-    // RENDERIZAR TABELAS E TELAS
-    function renderizarTabelas() {
-      // Tabela Caixas
-      const tbodyCaixas = document.getElementById('tabelaCaixas');
-      tbodyCaixas.innerHTML = caixas.length === 0 
-        ? `<tr><td colspan="4" class="p-4 text-center text-gray-400">Nenhuma caixa cadastrada.</td></tr>`
-        : caixas.map(c => `
-          <tr class="hover:bg-gray-50">
-            <td class="p-3 font-semibold">${c.lote}</td>
-            <td class="p-3">${c.corte}</td>
-            <td class="p-3">${parseFloat(c.peso).toFixed(2)} kg</td>
-            <td class="p-3"><span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded">${c.status}</span></td>
-          </tr>
-        `).join('');
+    /* --- ETAPAS DE OPERAÇÃO 1 A 5 --- */
 
-      // Tabela Peças
-      const tbodyPecas = document.getElementById('tabelaPecas');
-      tbodyPecas.innerHTML = pecas.length === 0
-        ? `<tr><td colspan="5" class="p-4 text-center text-gray-400">Nenhuma peça no estoque.</td></tr>`
-        : pecas.map(p => `
-          <tr class="hover:bg-gray-50">
-            <td class="p-3 font-bold text-red-700">${p.etiqueta}</td>
-            <td class="p-3">${p.corte}</td>
-            <td class="p-3 text-gray-500">${p.lote}</td>
-            <td class="p-3">${parseFloat(p.peso).toFixed(2)} kg</td>
-            <td class="p-3"><span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded">${p.local}</span></td>
-          </tr>
-        `).join('');
+    function renderFornecedoresSelect() {
+      var sel = document.getElementById('nf-fornecedor');
+      sel.innerHTML = '<option value="">-- Selecione o Fornecedor --</option>' + fornecedores.map(f => `<option value="${f}">${f}</option>`).join('');
     }
 
-    // INICIALIZAÇÃO
-    renderizarTabelas();
+    function novoFornecedorPrompt() {
+      var nome = prompt("Digite o nome do novo Fornecedor / Frigorífico:");
+      if(nome && nome.trim()) {
+        nome = nome.trim();
+        if(!fornecedores.includes(nome)) {
+          fornecedores.push(nome);
+          localStorage.setItem('pel_fornecedores', JSON.stringify(fornecedores));
+          renderFornecedoresSelect();
+          document.getElementById('nf-fornecedor').value = nome;
+        }
+      }
+    }
+
+    function addNFCorteRow() {
+      var container = document.getElementById('nf-cortes-container');
+      var rowId = Date.now() + Math.floor(Math.random() * 1000);
+      var optionsCortes = cortesList.map(c => `<option value="${c}">${c}</option>`).join('');
+      var numCaixaAtual = container.children.length + 1;
+
+      var rowHtml = `
+        <div id="row-${rowId}" class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs">
+          <div class="sm:col-span-1 text-center font-bold text-slate-700 bg-slate-200 py-2 rounded">
+            CX #${numCaixaAtual}
+          </div>
+          <div class="sm:col-span-5">
+            <label class="block text-[10px] font-bold text-gray-500 mb-0.5">Proteína / Corte</label>
+            <select class="item-corte border rounded-md p-1.5 w-full bg-white font-bold text-slate-800 outline-none">
+              ${optionsCortes}
+            </select>
+          </div>
+          <div class="sm:col-span-3">
+            <label class="block text-[10px] font-bold text-gray-500 mb-0.5">Peso desta Caixa (kg) *</label>
+            <input type="number" step="0.001" placeholder="Ex: 5.250" oninput="calcularTotalNF()" class="item-peso-cx border rounded-md p-1.5 w-full bg-white font-medium outline-none" required>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-[10px] font-bold text-gray-500 mb-0.5">Nº Peças *</label>
+            <input type="number" min="1" placeholder="Ex: 5" oninput="calcularTotalNF()" class="item-pecas-cx border rounded-md p-1.5 w-full bg-white font-medium outline-none" required>
+          </div>
+          <div class="sm:col-span-1 flex justify-center items-end">
+            <button type="button" onclick="removeNFCorteRow('row-${rowId}')" class="text-red-600 hover:text-red-800 font-bold p-1 text-base" title="Remover esta caixa">✕</button>
+          </div>
+        </div>
+      `;
+      container.insertAdjacentHTML('beforeend', rowHtml);
+      renumerarCaixasVisual();
+      calcularTotalNF();
+    }
+
+    function removeNFCorteRow(id) {
+      var container = document.getElementById('nf-cortes-container');
+      if(container.children.length > 1) {
+        document.getElementById(id)?.remove();
+        renumerarCaixasVisual();
+        calcularTotalNF();
+      } else {
+        alert("A Nota Fiscal precisa conter ao menos 1 caixa cadastrada.");
+      }
+    }
+
+    function renumerarCaixasVisual() {
+      var rows = document.querySelectorAll('#nf-cortes-container > div');
+      rows.forEach((r, idx) => {
+        var badge = r.querySelector('div:first-child');
+        if(badge) badge.innerText = `CX #${idx + 1}`;
+      });
+    }
+
+    function calcularTotalNF() {
+      var rows = document.querySelectorAll('#nf-cortes-container > div');
+      var totalCaixas = rows.length;
+      var totalPecas = 0;
+      var somaPesoCaixas = 0;
+
+      rows.forEach(r => {
+        var pesoCx = parseFloat(r.querySelector('.item-peso-cx').value) || 0;
+        var pecasCx = parseInt(r.querySelector('.item-pecas-cx').value) || 0;
+
+        somaPesoCaixas += pesoCx;
+        totalPecas += pecasCx;
+      });
+
+      document.getElementById('resumo-total-caixas').innerText = totalCaixas + " caixa(s)";
+      document.getElementById('resumo-total-pecas').innerText = totalPecas + " peças";
+      document.getElementById('resumo-soma-peso').innerText = somaPesoCaixas.toFixed(3) + " kg";
+
+      var pesoDeclaradoNF = parseFloat(document.getElementById('nf-peso-total').value) || 0;
+      var diff = Math.abs(somaPesoCaixas - pesoDeclaradoNF);
+      var statusSpan = document.getElementById('resumo-status-balanco');
+
+      if(pesoDeclaradoNF === 0) {
+        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-gray-200 text-gray-700 inline-block mt-0.5";
+        statusSpan.innerText = "Informe o peso total da NF";
+      } else if(diff === 0) {
+        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 inline-block mt-0.5";
+        statusSpan.innerText = "🟢 Conforme (Bateu 100%)";
+      } else if(diff <= 0.5) {
+        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 inline-block mt-0.5";
+        statusSpan.innerText = `🟠 Tolerância Aceitável (Dif: ${diff.toFixed(3)}kg)`;
+      } else {
+        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-red-100 text-red-800 inline-block mt-0.5";
+        statusSpan.innerText = `🔴 Divergente da NF (Dif: ${diff.toFixed(3)}kg)`;
+      }
+    }
+
+    function handleNFSubmit(e) {
+      e.preventDefault();
+      var rows = document.querySelectorAll('#nf-cortes-container > div');
+
+      var nfNumero = document.getElementById('nf-numero').value.trim();
+      var fornecedor = document.getElementById('nf-fornecedor').value;
+      var dataRec = document.getElementById('nf-data').value;
+      var pesoTotalNF = parseFloat(document.getElementById('nf-peso-total').value) || 0;
+
+      var caixasGravadas = [];
+      var totalPecasNF = 0;
+      var somaPesoCaixas = 0;
+
+      rows.forEach((r, idx) => {
+        var corte = r.querySelector('.item-corte').value;
+        var pesoCx = parseFloat(r.querySelector('.item-peso-cx').value) || 0;
+        var pecasCx = parseInt(r.querySelector('.item-pecas-cx').value) || 0;
+
+        var newCaixa = {
+          id: Date.now() + Math.floor(Math.random() * 100000),
+          nfNumero: nfNumero,
+          fornecedor: fornecedor,
+          dataNF: dataRec,
+          caixaNum: idx + 1,
+          corte: corte,
+          pesoDeclarado: pesoCx,
+          qtdPecas: pecasCx,
+          status: "Fechada"
+        };
+
+        caixasPendentesList.push(newCaixa);
+        caixasGravadas.push(newCaixa);
+
+        somaPesoCaixas += pesoCx;
+        totalPecasNF += pecasCx;
+      });
+
+      var newNF = {
+        id: Date.now(),
+        numero: nfNumero,
+        fornecedor: fornecedor,
+        data: dataRec,
+        pesoTotal: pesoTotalNF,
+        somaPesoCaixas: somaPesoCaixas,
+        totalCaixas: caixasGravadas.length,
+        totalPecas: totalPecasNF,
+        caixas: caixasGravadas
+      };
+
+      nfsList.unshift(newNF);
+      localStorage.setItem('pel_nfs', JSON.stringify(nfsList));
+      localStorage.setItem('pel_caixas_pendentes', JSON.stringify(caixasPendentesList));
+
+      document.getElementById('form-nf').reset();
+      document.getElementById('nf-cortes-container').innerHTML = "";
+      document.getElementById('nf-data').value = new Date().toISOString().split('T')[0];
+      renderFornecedoresSelect();
+      addNFCorteRow();
+      renderNFList();
+      renderCaixasFechadasGrid();
+      renderDashboardEtapa0();
+
+      alert(`Nota Fiscal #${nfNumero} registrada com sucesso! ${caixasGravadas.length} caixa(s) liberadas na Etapa 2.`);
+    }
+
+    function renderNFList() {
+      var tbody = document.getElementById('lista-nfs');
+      if(!tbody) return;
+
+      if(nfsList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-gray-400">Nenhuma Nota Fiscal cadastrada até o momento.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = nfsList.map(nf => {
+        var detalhe = nf.caixas.map(c => `<strong>CX #${c.caixaNum}:</strong> ${c.corte} - ${c.pesoDeclarado.toFixed(3)}kg (${c.qtdPecas} pçs)`).join('<br>');
+        return `
+          <tr class="border-b hover:bg-slate-50">
+            <td class="p-3 font-bold text-red-700">NF #${nf.numero}</td>
+            <td class="p-3 font-medium">${nf.data}</td>
+            <td class="p-3 font-semibold text-slate-800">${nf.fornecedor}</td>
+            <td class="p-3 font-bold text-slate-800">${nf.pesoTotal.toFixed(3)} kg</td>
+            <td class="p-3 text-gray-700 leading-relaxed">${detalhe}</td>
+            <td class="p-3">
+              <button onclick="excluirNF(${nf.id})" class="text-red-600 hover:text-red-800 font-bold">Excluir</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function excluirNF(id) {
+      if(confirm("Deseja excluir este registro de Nota Fiscal? As caixas pendentes associadas também serão removidas.")) {
+        var nfObj = nfsList.find(n => n.id === id);
+        if(nfObj) {
+          caixasPendentesList = caixasPendentesList.filter(c => c.nfNumero !== nfObj.numero);
+          localStorage.setItem('pel_caixas_pendentes', JSON.stringify(caixasPendentesList));
+        }
+
+        nfsList = nfsList.filter(n => n.id !== id);
+        localStorage.setItem('pel_nfs', JSON.stringify(nfsList));
+        renderNFList();
+        renderCaixasFechadasGrid();
+        renderDashboardEtapa0();
+      }
+    }
+
+    function renderCaixasFechadasGrid() {
+      var container = document.getElementById('grid-caixas-fechadas');
+      if(!container) return;
+
+      if(caixasPendentesList.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400 col-span-full p-2">Nenhuma caixa fechada pendente no momento na câmara fria.</p>';
+        return;
+      }
+
+      container.innerHTML = caixasPendentesList.map(cx => `
+        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl shadow-sm flex flex-col justify-between space-y-3">
+          <div>
+            <div class="flex justify-between items-center border-b pb-1.5 mb-2">
+              <span class="font-bold text-red-700 text-xs">NF #${cx.nfNumero} (${cx.dataNF})</span>
+              <span class="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-bold">CX #${cx.caixaNum}</span>
+            </div>
+            <span class="font-bold text-slate-800 text-base block">${cx.corte}</span>
+            <p class="text-xs text-gray-600 mt-1">Qtd Peças Declarada: <strong>${cx.qtdPecas} peças</strong></p>
+            <p class="text-xs text-gray-600">Peso Declarado (NF): <strong>${cx.pesoDeclarado.toFixed(3)} kg</strong></p>
+          </div>
+          <button onclick="iniciarPesagemCaixa(${cx.id})" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs py-2.5 rounded-lg shadow-sm transition-all flex items-center justify-center gap-1">
+            📦 Abrir Caixa & Inspecionar
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function iniciarPesagemCaixa(caixaId) {
+      var cx = caixasPendentesList.find(c => c.id === caixaId);
+      if(!cx) return;
+
+      caixaEmPesagemAtual = cx;
+
+      document.getElementById('pesagem-titulo-caixa').innerText = `Abrindo Caixa de ${cx.corte} (NF #${cx.nfNumero})`;
+      document.getElementById('pesagem-subtitulo-caixa').innerText = `Caixa #${cx.caixaNum} | Fornecedor: ${cx.fornecedor} | Data NF: ${cx.dataNF}`;
+      document.getElementById('pesagem-peso-declarado').innerText = cx.pesoDeclarado.toFixed(3) + " kg";
+      document.getElementById('pesagem-qtd-prevista-display').innerText = cx.qtdPecas;
+
+      var inputQtdReal = document.getElementById('input-qtd-real-pecas');
+      inputQtdReal.value = cx.qtdPecas;
+
+      regerarFieldsPecasReal();
+
+      document.getElementById('painel-pesagem').classList.remove('hidden');
+      document.getElementById('painel-pesagem').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function regerarFieldsPecasReal() {
+      if(!caixaEmPesagemAtual) return;
+
+      var qtdPrevista = caixaEmPesagemAtual.qtdPecas;
+      var qtdReal = parseInt(document.getElementById('input-qtd-real-pecas').value) || 0;
+      var boxJust = document.getElementById('box-justificativa-qtd');
+
+      if(qtdReal !== qtdPrevista) {
+        boxJust.classList.remove('hidden');
+      } else {
+        boxJust.classList.add('hidden');
+      }
+
+      var container = document.getElementById('container-inputs-pecas');
+      container.innerHTML = "";
+
+      var seqInicio = sequencialCortes[caixaEmPesagemAtual.corte] || 0;
+
+      for(var i = 1; i <= qtdReal; i++) {
+        var numTagSeq = seqInicio + i;
+        var tagCompleta = `${caixaEmPesagemAtual.corte}-P${numTagSeq}`;
+
+        var inputHtml = `
+          <div id="peca-card-${i}" class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm space-y-2 text-xs">
+            <div class="flex justify-between items-center border-b pb-1">
+              <span class="font-bold text-slate-800">${tagCompleta}</span>
+              <select onchange="toggleQualidadePeca(${i})" class="select-qualidade border rounded p-1 text-[11px] font-bold bg-emerald-50 text-emerald-800 outline-none">
+                <option value="Conforme">🟢 Própria p/ Uso</option>
+                <option value="Avariada">🔴 Imprópria / Avariada</option>
+              </select>
+            </div>
+
+            <div class="box-peso-peca">
+              <label class="block text-[10px] font-bold text-gray-500 mb-0.5">Peso (kg) *</label>
+              <input type="number" step="0.001" data-tag="${tagCompleta}" oninput="calcularPesagemCaixa()" class="input-peso-peca w-full border rounded-md p-1.5 text-sm font-bold text-red-700 outline-none focus:ring-2 focus:ring-red-500" placeholder="Ex: 2.100" required>
+            </div>
+
+            <div class="box-motivo-avaria hidden border-t pt-2">
+              <label class="block text-[10px] font-bold text-red-700 mb-0.5">Motivo da Avaria *</label>
+              <select class="select-motivo-avaria w-full border rounded p-1 text-[11px] bg-red-50 text-red-900 outline-none">
+                <option value="Cheiro forte / Perda de vácuo">💨 Cheiro forte / Vácuo perdido</option>
+                <option value="Excesso de gordura / Sebo">🥩 Qualidade inadequada / Excesso sebo</option>
+                <option value="Corte fora do padrão">⚖️ Corte fora do padrão físico</option>
+              </select>
+            </div>
+          </div>
+        `;
+        container.insertAdjacentHTML('beforeend', inputHtml);
+      }
+
+      calcularPesagemCaixa();
+    }
+
+    function toggleQualidadePeca(index) {
+      var card = document.getElementById(`peca-card-${index}`);
+      var selQualidade = card.querySelector('.select-qualidade');
+      var boxMotivo = card.querySelector('.box-motivo-avaria');
+
+      if(selQualidade.value === "Avariada") {
+        selQualidade.className = "select-qualidade border rounded p-1 text-[11px] font-bold bg-red-100 text-red-800 outline-none";
+        boxMotivo.classList.remove('hidden');
+        card.classList.add('bg-red-50', 'border-red-300');
+      } else {
+        selQualidade.className = "select-qualidade border rounded p-1 text-[11px] font-bold bg-emerald-50 text-emerald-800 outline-none";
+        boxMotivo.classList.add('hidden');
+        card.classList.remove('bg-red-50', 'border-red-300');
+      }
+      calcularPesagemCaixa();
+    }
+
+    function fecharPainelPesagem() {
+      caixaEmPesagemAtual = null;
+      document.getElementById('painel-pesagem').classList.add('hidden');
+    }
+
+    function calcularPesagemCaixa() {
+      if(!caixaEmPesagemAtual) return;
+
+      var inputs = document.querySelectorAll('.input-peso-peca');
+      var somaAferida = 0;
+
+      inputs.forEach(inp => {
+        somaAferida += parseFloat(inp.value) || 0;
+      });
+
+      document.getElementById('pesagem-peso-aferido').innerText = somaAferida.toFixed(3) + " kg";
+
+      var pesoDeclarado = caixaEmPesagemAtual.pesoDeclarado;
+      var diff = Math.abs(somaAferida - pesoDeclarado);
+      var statusSpan = document.getElementById('pesagem-status-tolerancia');
+
+      if(somaAferida === 0) {
+        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-gray-200 text-gray-700 inline-block mt-0.5";
+        statusSpan.innerText = "Aguardando pesagem";
+      } else if(diff === 0) {
+        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 inline-block mt-0.5";
+        statusSpan.innerText = "🟢 Exato (Bateu 100%)";
+      } else if(diff <= 0.5) {
+        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 inline-block mt-0.5";
+        statusSpan.innerText = `🟠 Tolerância Aceitável (Dif: ${diff.toFixed(3)}kg)`;
+      } else {
+        statusSpan.className = "text-xs font-bold px-2 py-0.5 rounded bg-red-100 text-red-800 inline-block mt-0.5";
+        statusSpan.innerText = `🔴 Divergente da NF (Dif: ${diff.toFixed(3)}kg)`;
+      }
+    }
+
+    function handleSalvarPesagemCaixa(e) {
+      e.preventDefault();
+      if(!caixaEmPesagemAtual) return;
+
+      var qtdPrevista = caixaEmPesagemAtual.qtdPecas;
+      var qtdReal = parseInt(document.getElementById('input-qtd-real-pecas').value) || 0;
+      var justificativaQtd = qtdReal !== qtdPrevista ? document.getElementById('select-justificativa-qtd').value : null;
+
+      var cardsPecas = document.querySelectorAll('#container-inputs-pecas > div');
+      var pecasAprovadas = [];
+      var pecasAvariadas = [];
+      var somaAferidaTotal = 0;
+
+      cardsPecas.forEach(card => {
+        var tagSpec = card.querySelector('.input-peso-peca').getAttribute('data-tag');
+        var pesoVal = parseFloat(card.querySelector('.input-peso-peca').value) || 0;
+        var qualidade = card.querySelector('.select-qualidade').value;
+
+        somaAferidaTotal += pesoVal;
+
+        if(qualidade === "Conforme") {
+          var newPeca = {
+            id: Date.now() + Math.floor(Math.random() * 100000),
+            tag: tagSpec,
+            corte: caixaEmPesagemAtual.corte,
+            nfNumero: caixaEmPesagemAtual.nfNumero,
+            fornecedor: caixaEmPesagemAtual.fornecedor,
+            dataNF: caixaEmPesagemAtual.dataNF,
+            peso: pesoVal,
+            localizacao: "Câmara Fria",
+            status: "Em Estoque"
+          };
+          pecasEstoqueList.push(newPeca);
+          pecasAprovadas.push(newPeca);
+        } else {
+          var motivo = card.querySelector('.select-motivo-avaria').value;
+          pecasAvariadas.push({ tag: tagSpec, peso: pesoVal, motivo: motivo });
+        }
+      });
+
+      var seqAtual = sequencialCortes[caixaEmPesagemAtual.corte] || 0;
+      sequencialCortes[caixaEmPesagemAtual.corte] = seqAtual + cardsPecas.length;
+      localStorage.setItem('pel_seq_cortes', JSON.stringify(sequencialCortes));
+
+      var ocorrencias = [];
+      if(justificativaQtd) ocorrencias.push(`Contagem: ${qtdReal}/${qtdPrevista} pçs (${justificativaQtd})`);
+      if(pecasAvariadas.length > 0) ocorrencias.push(`Avarias: ${pecasAvariadas.length} pç(s) [${pecasAvariadas.map(a => a.tag + ': ' + a.motivo).join('; ')}]`);
+
+      var statusCaixaTxt = ocorrencias.length > 0 ? "Com Ressalvas" : "Conforme";
+
+      var caixaProcessada = {
+        id: caixaEmPesagemAtual.id,
+        nfNumero: caixaEmPesagemAtual.nfNumero,
+        dataNF: caixaEmPesagemAtual.dataNF,
+        corte: caixaEmPesagemAtual.corte,
+        pesoDeclarado: caixaEmPesagemAtual.pesoDeclarado,
+        pesoAferido: somaAferidaTotal,
+        qtdPecasReal: cardsPecas.length,
+        ocorrencias: ocorrencias.length > 0 ? ocorrencias.join(' | ') : "Nenhuma ocorrência",
+        tagsAprovadas: pecasAprovadas.length > 0 ? pecasAprovadas.map(p => p.tag).join(', ') : "Nenhuma",
+        status: statusCaixaTxt
+      };
+
+      caixasAbertasList.unshift(caixaProcessada);
+      localStorage.setItem('pel_caixas_abertas', JSON.stringify(caixasAbertasList));
+
+      caixasPendentesList = caixasPendentesList.filter(c => c.id !== caixaEmPesagemAtual.id);
+      localStorage.setItem('pel_caixas_pendentes', JSON.stringify(caixasPendentesList));
+      localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
+
+      fecharPainelPesagem();
+      renderCaixasFechadasGrid();
+      renderCaixasAbertasTable();
+      renderFiltrosProteinaEtapa3();
+      renderEstoqueCamaraFria();
+      renderDashboardEtapa0();
+
+      alert(`Caixa processada com sucesso! ${pecasAprovadas.length} peça(s) enviadas à Câmara Fria.`);
+    }
+
+    function renderCaixasAbertasTable() {
+      var tbody = document.getElementById('lista-caixas-abertas');
+      if(!tbody) return;
+
+      if(caixasAbertasList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-gray-400">Nenhuma caixa aberta e processada até o momento.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = caixasAbertasList.map(c => {
+        var badgeStatus = c.status === "Conforme" ? 
+          '<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded font-bold">🟢 Conforme</span>' : 
+          '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded font-bold">🟠 Com Ressalvas</span>';
+
+        return `
+          <tr class="border-b hover:bg-slate-50">
+            <td class="p-3 font-bold text-red-700">NF #${c.nfNumero}</td>
+            <td class="p-3 font-medium">${c.dataNF}</td>
+            <td class="p-3 font-semibold text-slate-800">${c.corte}</td>
+            <td class="p-3 text-slate-700">NF: ${c.pesoDeclarado.toFixed(3)}kg | Real: <strong>${c.pesoAferido.toFixed(3)}kg</strong></td>
+            <td class="p-3 text-gray-700 leading-relaxed">${c.ocorrencias}</td>
+            <td class="p-3">${badgeStatus}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function calcularDiasEstoque(dataNF) {
+      if(!dataNF) return 0;
+      var dNF = new Date(dataNF);
+      var dHoje = new Date();
+      var diffTime = Math.abs(dHoje - dNF);
+      return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    function renderFiltrosProteinaEtapa3() {
+      var container = document.getElementById('filtro-proteinas-buttons');
+      if(!container) return;
+
+      var proteinasPresentes = ["TODAS", ...new Set(pecasEstoqueList.filter(p => p.localizacao === "Câmara Fria" && p.status === "Em Estoque").map(p => p.corte))];
+
+      container.innerHTML = proteinasPresentes.map(prot => {
+        var isSelected = filtroProteinaAtual === prot;
+        var btnStyle = isSelected ? "bg-red-600 text-white font-bold" : "bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold";
+        return `<button onclick="filtrarProteinaEtapa3('${prot}')" class="px-3 py-1.5 rounded-lg text-xs transition-all ${btnStyle}">${prot}</button>`;
+      }).join('');
+    }
+
+    function filtrarProteinaEtapa3(prot) {
+      filtroProteinaAtual = prot;
+      renderFiltrosProteinaEtapa3();
+      renderEstoqueCamaraFria();
+    }
+
+    function renderEstoqueCamaraFria() {
+      var containerGrid = document.getElementById('grid-pecas-camara');
+      if(!containerGrid) return;
+
+      var pecasCamara = pecasEstoqueList.filter(p => p.localizacao === "Câmara Fria" && p.status === "Em Estoque");
+
+      if(filtroProteinaAtual !== "TODAS") {
+        pecasCamara = pecasCamara.filter(p => p.corte === filtroProteinaAtual);
+      }
+
+      var totalPeso = pecasCamara.reduce((acc, p) => acc + p.peso, 0);
+      var totalPecas = pecasCamara.length;
+
+      document.getElementById('resumo-corte-nome').innerText = filtroProteinaAtual === "TODAS" ? "Todas as Proteínas" : filtroProteinaAtual;
+      document.getElementById('resumo-corte-peso').innerText = totalPeso.toFixed(3) + " kg";
+      document.getElementById('resumo-corte-pecas').innerText = `(${totalPecas} peça${totalPecas !== 1 ? 's' : ''})`;
+
+      if(totalPecas > 0) {
+        var tagsList = pecasCamara.map(p => p.tag);
+        document.getElementById('resumo-corte-tags').innerText = `${tagsList[0]} até ${tagsList[tagsList.length - 1]}`;
+      } else {
+        document.getElementById('resumo-corte-tags').innerText = "Nenhuma peça disponível";
+      }
+
+      if(pecasCamara.length === 0) {
+        containerGrid.innerHTML = '<p class="text-xs text-gray-400 col-span-full p-2">Nenhuma peça encontrada na câmara fria para este filtro.</p>';
+        return;
+      }
+
+      containerGrid.innerHTML = pecasCamara.map(p => {
+        var dias = calcularDiasEstoque(p.dataNF);
+        var matBadgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
+        var matText = `${dias} dias`;
+
+        if(dias >= 60) {
+          matBadgeClass = "bg-red-100 text-red-800 border-red-300 animate-pulse";
+          matText = `${dias} dias (🔴 Crítico)`;
+        } else if(dias >= 30) {
+          matBadgeClass = "bg-amber-100 text-amber-800 border-amber-300";
+          matText = `${dias} dias (🟠 Maturação Ideal)`;
+        }
+
+        return `
+          <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl shadow-sm flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex justify-between items-center border-b pb-1 mb-2">
+                <span class="font-bold text-red-700 text-xs">${p.tag}</span>
+                <div class="flex items-center gap-1">
+                  <span class="text-[10px] border px-1.5 py-0.5 rounded-full font-bold ${matBadgeClass}">${matText}</span>
+                  <button onclick="abrirModalEditarPecaAdmin(${p.id})" class="text-slate-500 hover:text-slate-800 font-bold px-1.5 py-0.5 bg-slate-200 rounded text-[11px]" title="Editar Peça (Admin)">✏️ Editar</button>
+                </div>
+              </div>
+              <span class="font-bold text-slate-800 text-sm block">${p.corte}</span>
+              <p class="text-[11px] text-gray-500">NF #${p.nfNumero} (${p.dataNF})</p>
+              <p class="text-xs font-bold text-slate-900 mt-1">Peso: ${p.peso.toFixed(3)} kg</p>
+            </div>
+
+            <button onclick="transferirParaGeladeiraEli(${p.id})" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs py-2 rounded-lg transition-all flex items-center justify-center gap-1 shadow-sm">
+              🧊 Mover p/ Geladeira do Eli
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function transferirParaGeladeiraEli(pecaId) {
+      var peca = pecasEstoqueList.find(p => p.id === pecaId);
+      if(peca) {
+        peca.localizacao = "Geladeira do Eli";
+        localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
+        renderFiltrosProteinaEtapa3();
+        renderEstoqueCamaraFria();
+        renderGeladeiraEliEtapa4();
+        renderEtapa5AparasDiario();
+        renderDashboardEtapa0();
+        alert(`Peça ${peca.tag} (${peca.corte}) enviada para a Geladeira do Eli!`);
+      }
+    }
+
+    function renderGeladeiraEliEtapa4() {
+      var containerSelecao = document.getElementById('container-selecao-baixa-eli');
+      var tbodyHistorico = document.getElementById('lista-historico-baixas-eli');
+
+      if(!containerSelecao) return;
+
+      var pecasGeladeira = pecasEstoqueList.filter(p => p.localizacao === "Geladeira do Eli" && p.status === "Em Estoque");
+      var pesoTotalEli = pecasGeladeira.reduce((acc, p) => acc + p.peso, 0);
+
+      document.getElementById('eli-saldo-peso').innerText = pesoTotalEli.toFixed(3) + " kg";
+      document.getElementById('eli-saldo-pecas').innerText = pecasGeladeira.length + " peças";
+
+      if(pecasGeladeira.length === 0) {
+        containerSelecao.innerHTML = '<p class="text-xs text-gray-400 col-span-full p-3 text-center">Nenhuma peça disponível na Geladeira do Eli no momento.</p>';
+      } else {
+        containerSelecao.innerHTML = pecasGeladeira.map(p => `
+          <label class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-red-400 transition-all">
+            <div class="flex items-center gap-2">
+              <input type="checkbox" value="${p.id}" onchange="atualizarContadorBaixaEli()" class="chk-baixa-eli rounded text-red-600 focus:ring-red-500 w-4 h-4">
+              <div>
+                <span class="font-bold text-slate-800 text-xs block">${p.tag} (${p.corte})</span>
+                <span class="text-[10px] text-gray-500">NF #${p.nfNumero}</span>
+              </div>
+            </div>
+            <span class="font-bold text-red-700 text-xs">${p.peso.toFixed(3)} kg</span>
+          </label>
+        `).join('');
+      }
+
+      atualizarContadorBaixaEli();
+
+      var pecasBaixadasEli = pecasEstoqueList.filter(p => p.localizacao === "Geladeira do Eli" && p.status === "Enviada p/ Aparas");
+
+      if(!tbodyHistorico) return;
+
+      if(pecasBaixadasEli.length === 0) {
+        tbodyHistorico.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-gray-400">Nenhuma baixa efetuada na geladeira do Eli até o momento.</td></tr>';
+        return;
+      }
+
+      tbodyHistorico.innerHTML = pecasBaixadasEli.map(p => `
+        <tr class="border-b hover:bg-slate-50">
+          <td class="p-3 font-bold text-slate-800">${p.dataBaixaEli || '-'}</td>
+          <td class="p-3 font-bold text-red-700">${p.tag}</td>
+          <td class="p-3 font-semibold text-slate-800">${p.corte}</td>
+          <td class="p-3 font-bold text-slate-900">${p.peso.toFixed(3)} kg</td>
+          <td class="p-3 text-gray-600">NF #${p.nfNumero}</td>
+          <td class="p-3">
+            <button onclick="desfazerBaixaEli(${p.id})" class="text-red-600 hover:underline font-bold text-[11px]">Estornar Baixa</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function atualizarContadorBaixaEli() {
+      var selecionados = document.querySelectorAll('.chk-baixa-eli:checked').length;
+      document.getElementById('resumo-baixa-selecionados').innerText = `${selecionados} peça(s) selecionada(s) do caderninho`;
+    }
+
+    function confirmarBaixaLoteEli() {
+      var checkboxes = document.querySelectorAll('.chk-baixa-eli:checked');
+      if(checkboxes.length === 0) {
+        alert("Selecione ao menos 1 peça na lista para confirmar a baixa.");
+        return;
+      }
+
+      var dataConsumo = document.getElementById('input-data-baixa-eli').value;
+      if(!dataConsumo) {
+        alert("Por favor, selecione a Data do Consumo antes de confirmar.");
+        return;
+      }
+
+      if(confirm(`Confirmar a baixa de ${checkboxes.length} peça(s) para a data ${dataConsumo}?`)) {
+        checkboxes.forEach(chk => {
+          var pecaId = parseInt(chk.value);
+          var peca = pecasEstoqueList.find(p => p.id === pecaId);
+          if(peca) {
+            peca.status = "Enviada p/ Aparas";
+            peca.dataBaixaEli = dataConsumo;
+          }
+        });
+
+        localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
+        renderGeladeiraEliEtapa4();
+        renderEtapa5AparasDiario();
+        renderEtapa6SteaksVendidos();
+        renderDashboardEtapa0();
+        alert(`${checkboxes.length} peça(s) baixada(s) com sucesso para a data ${dataConsumo}! Liberadas para Aparas na Etapa 5.`);
+      }
+    }
+
+    function desfazerBaixaEli(pecaId) {
+      if(confirm("Deseja estornar a baixa desta peça e devolvê-la para o saldo da Geladeira do Eli?")) {
+        var peca = pecasEstoqueList.find(p => p.id === pecaId);
+        if(peca) {
+          peca.status = "Em Estoque";
+          delete peca.dataBaixaEli;
+          localStorage.setItem('pel_pecas_estoque', JSON.stringify(pecasEstoqueList));
+          renderGeladeiraEliEtapa4();
+          renderEtapa5AparasDiario();
+          renderEtapa6SteaksVendidos();
+          renderDashboardEtapa0();
+        }
+      }
+    }
+
+    function renderEtapa5AparasDiario() {
+      var selectCorte = document.getElementById('apara-diaria-corte');
+      if(!selectCorte) return;
+
+      var cortesUnicos = ["TODAS", ...new Set(pecasEstoqueList.filter(p => p.status === "Enviada p/ Aparas" || p.status === "Finalizado").map(p => p.corte))];
+      if(cortesUnicos.length === 1 && cortesUnicos[0] === "TODAS") {
+        cortesUnicos = ["TODAS", ...cortesList];
+      }
+
+      selectCorte.innerHTML = cortesUnicos.map(c => `<option value="${c}">${c === 'TODAS' ? '-- Todas as Proteínas (Geral do Dia) --' : c}</option>`).join('');
+
+      atualizarResumoBaixasDia();
+      renderTabelaHistoricoAparasDiario();
+    }
+
+    function atualizarResumoBaixasDia() {
+      var dataSel = document.getElementById('apara-diaria-data').value;
+      var corteSel = document.getElementById('apara-diaria-corte').value;
+
+      var pecasDoDia = pecasEstoqueList.filter(p => p.dataBaixaEli === dataSel);
+
+      if(corteSel !== "TODAS") {
+        pecasDoDia = pecasDoDia.filter(p => p.corte === corteSel);
+      }
+
+      var somaPesoBrutoDia = pecasDoDia.reduce((acc, p) => acc + p.peso, 0);
+
+      document.getElementById('apara-diaria-bruto-display').value = somaPesoBrutoDia.toFixed(3) + " kg (" + pecasDoDia.length + " pçs)";
+      calcularRendimentoDiarioVisual();
+    }
+
+    function calcularRendimentoDiarioVisual() {
+      var dataSel = document.getElementById('apara-diaria-data').value;
+      var corteSel = document.getElementById('apara-diaria-corte').value;
+
+      var pecasDoDia = pecasEstoqueList.filter(p => p.dataBaixaEli === dataSel);
+      if(corteSel !== "TODAS") {
+        pecasDoDia = pecasDoDia.filter(p => p.corte === corteSel);
+      }
+
+      var pesoBrutoTotal = pecasDoDia.reduce((acc, p) => acc + p.peso, 0);
+      var pesoApara = parseFloat(document.getElementById('apara-diaria-peso-apara').value) || 0;
+      var pesoPerda = parseFloat(document.getElementById('apara-diaria-peso-perda').value) || 0;
+
+      var pesoUtil = pesoBrutoTotal - pesoApara - pesoPerda;
+      if(pesoUtil < 0) pesoUtil = 0;
+
+      var porcUtil = pesoBrutoTotal > 0 ? ((pesoUtil / pesoBrutoTotal) * 100) : 100;
+
+      document.getElementById('apara-diaria-util-display').innerText = pesoUtil.toFixed(3) + " kg";
+      document.getElementById('apara-diaria-porc-display').innerText = `(${porcUtil.toFixed(1)}% de aproveitamento útil no dia)`;
+    }
+
+    function handleSalvarAparasDiario(e) {
+      e.preventDefault();
+      var dataSel = document.getElementById('apara-diaria-data').value;
+      var corteSel = document.getElementById('apara-diaria-corte').value;
+
+      if(!dataSel) {
+        alert("Selecione a data do porcionamento.");
+        return;
+      }
+
+      var pecasDoDia = pecasEstoqueList.filter(p => p.dataBaixaEli === dataSel);
+      if(corteSel !== "TODAS") {
+        pecasDoDia = pecasDoDia.filter(p => p.corte === corteSel);
+      }
+
+      var pesoBrutoTotal = pecasDoDia.reduce((acc, p) => acc + p.peso, 0);
+      var pesoApara = parseFloat(document.getElementById('apara-diaria-peso-apara').value) || 0;
+      var pesoPerda = parseFloat(document.getElementById('apara-diaria-peso-perda').value) || 0;
+
+      var pesoUtil = pesoBrutoTotal - pesoApara - pesoPerda;
+      if(pesoUtil < 0) pesoUtil = 0;
+      var porcUtil = pesoBrutoTotal > 0 ? ((pesoUtil / pesoBrutoTotal) * 100) : 100;
+
+      var obs = document.getElementById('apara-diaria-obs').value.trim();
+
+      var novoRegistroDiario = {
+        id: Date.now(),
+        data: dataSel,
+        corte: corteSel,
+        pesoBruto: pesoBrutoTotal,
+        pesoApara: pesoApara,
+        pesoPerda: pesoPerda,
+        pesoUtil: pesoUtil,
+        porcUtil: porcUtil,
+        obs: obs || "Sem observação"
+      };
+
+      aparasDiarioHistorico.unshift(novoRegistroDiario);
+      localStorage.setItem('pel_aparas_diario_hist', JSON.stringify(aparasDiarioHistorico));
+
+      document.getElementById('apara-diaria-peso-apara').value = "";
+      document.getElementById('apara-diaria-peso-perda').value = "";
+      document.getElementById('apara-diaria-obs').value = "";
+
+      renderTabelaHistoricoAparasDiario();
+      renderEtapa6SteaksVendidos();
+      renderDashboardEtapa0();
+      alert(`Rendimento acumulado do dia ${dataSel} (${corteSel}) salvo com sucesso!`);
+    }
+
+    function renderTabelaHistoricoAparasDiario() {
+      var tbody = document.getElementById('lista-historico-aparas-diario');
+      if(!tbody) return;
+
+      if(aparasDiarioHistorico.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center p-4 text-gray-400">Nenhum registro de rendimento diário consolidado efetuado até o momento.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = aparasDiarioHistorico.map(r => `
+        <tr class="border-b hover:bg-slate-50">
+          <td class="p-3 font-bold text-slate-800">${r.data}</td>
+          <td class="p-3 font-semibold text-slate-800">${r.corte}</td>
+          <td class="p-3 font-bold text-slate-900">${r.pesoBruto.toFixed(3)} kg</td>
+          <td class="p-3 font-medium text-slate-700">${r.pesoApara.toFixed(3)} kg</td>
+          <td class="p-3 font-medium text-red-600">${r.pesoPerda.toFixed(3)} kg</td>
+          <td class="p-3 font-bold text-emerald-700">${r.pesoUtil.toFixed(3)} kg (${r.porcUtil.toFixed(1)}%)</td>
+          <td class="p-3 text-gray-500">${r.obs}</td>
+          <td class="p-3">
+            <button onclick="excluirAparaDiario(${r.id})" class="text-red-600 hover:underline font-bold">Excluir</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function excluirAparaDiario(id) {
+      if(confirm("Deseja excluir este registro de rendimento diário?")) {
+        aparasDiarioHistorico = aparasDiarioHistorico.filter(a => a.id !== id);
+        localStorage.setItem('pel_aparas_diario_hist', JSON.stringify(aparasDiarioHistorico));
+        renderTabelaHistoricoAparasDiario();
+        renderEtapa6SteaksVendidos();
+        renderDashboardEtapa0();
+      }
+    }
   </script>
 </body>
 </html>
